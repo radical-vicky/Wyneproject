@@ -1,0 +1,688 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Upload Photo - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.upload-container {
+    max-width: 600px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.upload-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.upload-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-bottom: 10px;
+}
+
+.upload-header p {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+}
+
+.upload-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    padding: 40px;
+}
+
+.upload-area {
+    border: 3px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 50px 30px;
+    text-align: center;
+    margin-bottom: 30px;
+    transition: var(--transition);
+    cursor: pointer;
+}
+
+.upload-area:hover {
+    border-color: var(--coop-green);
+    background: rgba(0,168,89,0.05);
+}
+
+.upload-area.dragover {
+    border-color: var(--coop-green);
+    background: rgba(0,168,89,0.1);
+}
+
+.upload-icon {
+    width: 80px;
+    height: 80px;
+    background: rgba(0,168,89,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    color: var(--coop-green);
+    font-size: 2rem;
+}
+
+.upload-text h3 {
+    font-size: 1.4rem;
+    margin-bottom: 10px;
+    font-weight: 600;
+}
+
+.upload-text p {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+}
+
+.browse-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 30px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.browse-btn:hover {
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+#file-input {
+    display: none;
+}
+
+.upload-requirements {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    text-align: center;
+    margin-top: 20px;
+}
+
+.upload-requirements ul {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0;
+}
+
+.upload-requirements li {
+    margin-bottom: 5px;
+}
+
+.upload-requirements i {
+    color: var(--coop-green);
+    margin-right: 8px;
+}
+
+/* PREVIEW */
+.preview-container {
+    margin-top: 30px;
+    display: none;
+}
+
+.preview-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.image-preview {
+    width: 200px;
+    height: 200px;
+    border-radius: var(--radius-md);
+    margin: 0 auto 20px;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+}
+
+.image-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* FORM */
+.upload-form {
+    margin-top: 30px;
+}
+
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 10px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.form-control:focus {
+    border-color: var(--coop-green);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0,168,89,0.1);
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 25px;
+}
+
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    font-size: 0.95rem;
+}
+
+.checkbox-label input {
+    width: 20px;
+    height: 20px;
+    accent-color: var(--coop-green);
+}
+
+.form-actions {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-end;
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+
+/* GALLERY PREVIEW */
+.gallery-preview {
+    margin-top: 40px;
+}
+
+.gallery-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 25px;
+    color: var(--text-primary);
+}
+
+.photos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.photo-item {
+    position: relative;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    aspect-ratio: 1;
+    border: 2px solid transparent;
+    transition: var(--transition);
+}
+
+.photo-item.primary {
+    border-color: var(--coop-green);
+}
+
+.photo-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.photo-badge {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: var(--coop-green);
+    color: white;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+/* MOBILE UPLOAD */
+.mobile-upload-area {
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 40px 20px;
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.mobile-upload-icon {
+    width: 60px;
+    height: 60px;
+    background: rgba(0,168,89,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: var(--coop-green);
+    font-size: 1.5rem;
+}
+
+.mobile-form-group {
+    margin-bottom: 20px;
+}
+
+.mobile-form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.mobile-form-control {
+    width: 100%;
+    padding: 12px;
+    background: var(--surface-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    font-size: 1rem;
+}
+
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .upload-card {
+        padding: 25px;
+    }
+    
+    .upload-area {
+        padding: 30px 20px;
+    }
+    
+    .upload-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 1.5rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .upload-card {
+        padding: 20px;
+    }
+    
+    .upload-header h1 {
+        font-size: 1.8rem;
+    }
+    
+    .image-preview {
+        width: 150px;
+        height: 150px;
+    }
+    
+    .photos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <!-- HEADER -->
+    <div class="upload-header">
+        <h1>Upload Photo</h1>
+        <p>Add new photos to your profile gallery</p>
+    </div>
+    
+    <!-- UPLOAD CARD -->
+    <div class="upload-card">
+        <!-- UPLOAD AREA -->
+        <div class="upload-area" id="upload-area">
+            <div class="upload-icon">
+                <i class="fas fa-cloud-upload-alt"></i>
+            </div>
+            <div class="upload-text">
+                <h3>Drag & Drop</h3>
+                <p>Drag your photo here or click to browse</p>
+                <label class="browse-btn">
+                    <i class="fas fa-folder-open"></i>
+                    Browse Files
+                    <input type="file" id="file-input" name="image" accept="image/*" required>
+                </label>
+            </div>
+            <div class="upload-requirements">
+                <p>Supported formats: JPG, PNG, GIF</p>
+                <p>Max file size: 5MB</p>
+            </div>
+        </div>
+        
+        <!-- PREVIEW -->
+        <div class="preview-container" id="preview-container">
+            <h3 class="preview-title">Preview</h3>
+            <div class="image-preview">
+                <img id="preview-image" src="" alt="Preview">
+            </div>
+        </div>
+        
+        <!-- UPLOAD FORM -->
+        <form method="POST" enctype="multipart/form-data" class="upload-form" id="upload-form">
+            {% csrf_token %}
+            
+            <!-- CAPTION -->
+            <div class="form-group">
+                <label for="caption" class="form-label">Caption (Optional)</label>
+                <input type="text" id="caption" name="caption" class="form-control" 
+                       placeholder="Add a caption for your photo...">
+            </div>
+            
+            <!-- SET AS PRIMARY -->
+            <div class="checkbox-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_primary" id="is_primary">
+                    <span>Set as primary profile photo</span>
+                </label>
+            </div>
+            
+            <!-- FORM ACTIONS -->
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
+                    <i class="fas fa-upload"></i> Upload Photo
+                </button>
+                <a href="{% url 'profile' %}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+        
+        <!-- EXISTING PHOTOS -->
+        {% if user.profile.photos.all %}
+        <div class="gallery-preview">
+            <h3 class="gallery-title">Your Photos ({{ user.profile.photos.count }})</h3>
+            <div class="photos-grid">
+                {% for photo in user.profile.photos.all %}
+                <div class="photo-item {% if photo.is_primary %}primary{% endif %}">
+                    <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
+                    {% if photo.is_primary %}
+                    <div class="photo-badge">Primary</div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+            <a href="{% url 'profile' %}" class="btn btn-outline" style="width: 100%;">
+                <i class="fas fa-images"></i> View All Photos
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    const uploadArea = $('#upload-area');
+    const fileInput = $('#file-input');
+    const previewContainer = $('#preview-container');
+    const previewImage = $('#preview-image');
+    const submitBtn = $('#submit-btn');
+    const uploadForm = $('#upload-form');
+    
+    // Click to upload
+    uploadArea.on('click', function() {
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (validateFile(file)) {
+                previewFile(file);
+                submitBtn.prop('disabled', false);
+            }
+        }
+    });
+    
+    // Drag and drop
+    uploadArea.on('dragover', function(e) {
+        e.preventDefault();
+        uploadArea.addClass('dragover');
+    });
+    
+    uploadArea.on('dragleave', function() {
+        uploadArea.removeClass('dragover');
+    });
+    
+    uploadArea.on('drop', function(e) {
+        e.preventDefault();
+        uploadArea.removeClass('dragover');
+        
+        const file = e.originalEvent.dataTransfer.files[0];
+        if (file) {
+            if (validateFile(file)) {
+                fileInput[0].files = e.originalEvent.dataTransfer.files;
+                previewFile(file);
+                submitBtn.prop('disabled', false);
+            }
+        }
+    });
+    
+    // Validate file
+    function validateFile(file) {
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        
+        if (!validTypes.includes(file.type)) {
+            alert('Please upload only JPG, PNG, or GIF images.');
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            alert('File size must be less than 5MB.');
+            return false;
+        }
+        
+        return true;
+    }
+    
+    // Preview file
+    function previewFile(file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImage.attr('src', e.target.result);
+            previewContainer.show();
+            uploadArea.hide();
+        }
+        reader.readAsDataURL(file);
+    }
+    
+    // Form submission
+    uploadForm.on('submit', function(e) {
+        if (!fileInput[0].files[0]) {
+            e.preventDefault();
+            alert('Please select a photo to upload.');
+            return false;
+        }
+        
+        // Show loading
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Uploading...');
+        return true;
+    });
+    
+    // Check if primary photo exists
+    {% if user.profile.photos.filter.is_primary.exists %}
+    $('#is_primary').on('change', function() {
+        if (this.checked) {
+            if (!confirm('This will replace your current primary photo. Continue?')) {
+                this.checked = false;
+            }
+        }
+    });
+    {% endif %}
+});
+</script>
+{% endblock %}
+
+{% block mobile_content %}
+<div class="mobile-upload">
+    <!-- HEADER -->
+    <div style="text-align: center; margin-bottom: 30px;">
+        <h1 style="font-size: 1.5rem; margin-bottom: 10px;">Upload Photo</h1>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">Add to your profile gallery</p>
+    </div>
+    
+    <!-- UPLOAD AREA -->
+    <div class="mobile-upload-area" onclick="document.getElementById('mobile-file-input').click()">
+        <div class="mobile-upload-icon">
+            <i class="fas fa-cloud-upload-alt"></i>
+        </div>
+        <div style="color: var(--text-secondary); margin-bottom: 15px;">
+            Tap to select a photo
+        </div>
+        <div style="color: var(--text-muted); font-size: 0.8rem;">
+            JPG, PNG, GIF • Max 5MB
+        </div>
+    </div>
+    
+    <!-- PREVIEW -->
+    <div id="mobile-preview" style="display: none; text-align: center; margin: 20px 0;">
+        <img id="mobile-preview-image" src="" alt="Preview" 
+             style="width: 150px; height: 150px; border-radius: var(--radius-md); object-fit: cover; margin: 0 auto;">
+    </div>
+    
+    <!-- FORM -->
+    <form method="POST" enctype="multipart/form-data">
+        {% csrf_token %}
+        <input type="file" id="mobile-file-input" name="image" accept="image/*" style="display: none;">
+        
+        <!-- CAPTION -->
+        <div class="mobile-form-group">
+            <label class="mobile-form-label">Caption</label>
+            <input type="text" name="caption" class="mobile-form-control" placeholder="Add a caption...">
+        </div>
+        
+        <!-- PRIMARY -->
+        <div style="display: flex; align-items: center; gap: 10px; margin: 20px 0;">
+            <input type="checkbox" name="is_primary" id="mobile-is-primary" style="width: 20px; height: 20px;">
+            <label for="mobile-is-primary" style="color: var(--text-secondary); font-size: 0.9rem;">
+                Set as primary photo
+            </label>
+        </div>
+        
+        <!-- ACTIONS -->
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 30px 0;">
+            <button type="submit" id="mobile-submit-btn" disabled
+                    style="background: var(--primary-gradient); color: white; border: none; padding: 15px;
+                           border-radius: var(--radius-md); font-weight: 600;">
+                <i class="fas fa-upload"></i> Upload
+            </button>
+            <a href="{% url 'profile' %}" style="background: var(--surface-bg); color: var(--text-secondary); 
+               border: 1px solid var(--border-color); padding: 15px; border-radius: var(--radius-md);
+               text-align: center; font-weight: 500;">
+                <i class="fas fa-times"></i> Cancel
+            </a>
+        </div>
+    </form>
+    
+    <!-- EXISTING PHOTOS -->
+    {% if user.profile.photos.all %}
+    <div style="margin-top: 30px;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Your Photos</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
+            {% for photo in user.profile.photos.all|slice:":6" %}
+            <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 1;">
+                <img src="{{ photo.image.url }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
+                {% if photo.is_primary %}
+                <div style="position: absolute; top: 5px; left: 5px; background: var(--coop-green); color: white;
+                     padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;">
+                    Primary
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        <a href="{% url 'profile' %}" style="display: block; text-align: center; color: var(--coop-green);
+           font-size: 0.9rem; font-weight: 500;">
+            View all photos
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+$(document).ready(function() {
+    const fileInput = $('#mobile-file-input');
+    const previewDiv = $('#mobile-preview');
+    const previewImg = $('#mobile-preview-image');
+    const submitBtn = $('#mobile-submit-btn');
+    
+    fileInput.on('change', function(e) {
+        const file = e.target.files[0];
+        if (file) {
+            if (validateFile(file)) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    previewImg.attr('src', e.target.result);
+                    previewDiv.show();
+                    submitBtn.prop('disabled', false);
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+    });
+    
+    function validateFile(file) {
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+        const maxSize = 5 * 1024 * 1024;
+        
+        if (!validTypes.includes(file.type)) {
+            alert('Please upload only JPG, PNG, or GIF images.');
+            return false;
+        }
+        
+        if (file.size > maxSize) {
+            alert('File size must be less than 5MB.');
+            return false;
+        }
+        
+        return true;
+    }
+});
+</script>
+{% endblock %}

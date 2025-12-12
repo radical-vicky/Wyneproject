@@ -1,0 +1,838 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Book {{ service_provider.username }} - ConnectPro{% endblock %}
+
+{% block content %}
+<div class="booking-container">
+    <div class="container">
+        <!-- Booking Header -->
+        <div class="booking-header">
+            <div class="booking-user-info">
+                <div class="user-avatar">
+                    {% if profile.photos.first %}
+                        <img src="{{ profile.photos.first.image.url }}" alt="{{ service_provider.username }}">
+                    {% else %}
+                        <div class="avatar-default">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    {% endif %}
+                    {% if profile.is_online %}
+                        <span class="online-indicator"></span>
+                    {% endif %}
+                </div>
+                <div class="user-details">
+                    <h1>Book {{ service_provider.username }}</h1>
+                    <div class="user-meta">
+                        <span class="location">
+                            <i class="fas fa-map-marker-alt"></i>
+                            {{ profile.city_town }}, {{ profile.county }}
+                        </span>
+                        <span class="rating">
+                            <i class="fas fa-star"></i>
+                            {{ profile.rating|default:0.0|floatformat:1 }}
+                        </span>
+                        <span class="bookings">
+                            <i class="fas fa-check-circle"></i>
+                            {{ profile.total_bookings|default:0 }} bookings
+                        </span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="booking-availability">
+                <div class="availability-status {% if profile.is_available %}available{% else %}unavailable{% endif %}">
+                    {% if profile.is_available %}
+                        <i class="fas fa-check-circle"></i> Available Now
+                    {% else %}
+                        <i class="fas fa-times-circle"></i> Currently Unavailable
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <!-- Booking Process -->
+        <div class="booking-process">
+            <div class="process-steps">
+                <div class="step active">
+                    <span class="step-number">1</span>
+                    <span class="step-label">Service Details</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <span class="step-label">Date & Time</span>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <span class="step-label">Review & Pay</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="booking-content">
+            <!-- Left Column: Booking Form -->
+            <div class="booking-form-container">
+                <form method="POST" action="{% url 'booking_create' service_provider.username %}" class="booking-form" id="booking-form">
+                    {% csrf_token %}
+                    
+                    <!-- Step 1: Service Details -->
+                    <div class="booking-step active" id="step-1">
+                        <div class="step-header">
+                            <h2><i class="fas fa-concierge-bell"></i> Select Service</h2>
+                            <p>Choose the service you'd like to book</p>
+                        </div>
+                        
+                        <div class="services-selection">
+                            {% if services_list %}
+                            <div class="services-grid">
+                                {% for service in services_list %}
+                                <div class="service-option" data-service="{{ service }}">
+                                    <div class="service-icon">
+                                        {% if "Dinner" in service %}
+                                            <i class="fas fa-utensils"></i>
+                                        {% elif "Travel" in service %}
+                                            <i class="fas fa-plane"></i>
+                                        {% elif "Companion" in service %}
+                                            <i class="fas fa-heart"></i>
+                                        {% else %}
+                                            <i class="fas fa-star"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="service-info">
+                                        <h4>{{ service }}</h4>
+                                        <div class="service-rates">
+                                            {% if profile.hourly_rate_incall %}
+                                            <span>Incall: KES {{ profile.hourly_rate_incall }}/hr</span>
+                                            {% endif %}
+                                            {% if profile.hourly_rate_outcall %}
+                                            <span>Outcall: KES {{ profile.hourly_rate_outcall }}/hr</span>
+                                            {% endif %}
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            {% else %}
+                            <div class="no-services">
+                                <p>{{ service_provider.username }} hasn't listed any services yet.</p>
+                                <a href="{% url 'profile_view' service_provider.username %}" class="btn btn-outline">
+                                    <i class="fas fa-arrow-left"></i> Back to Profile
+                                </a>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>Location Type</h3>
+                            <div class="location-options">
+                                <div class="location-option" data-type="incall">
+                                    <div class="option-icon">
+                                        <i class="fas fa-home"></i>
+                                    </div>
+                                    <div class="option-info">
+                                        <h4>Incall</h4>
+                                        <p>You visit {{ service_provider.username }}'s location</p>
+                                        {% if profile.hourly_rate_incall %}
+                                        <span class="rate">KES {{ profile.hourly_rate_incall }}/hour</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                
+                                <div class="location-option" data-type="outcall">
+                                    <div class="option-icon">
+                                        <i class="fas fa-car"></i>
+                                    </div>
+                                    <div class="option-info">
+                                        <h4>Outcall</h4>
+                                        <p>{{ service_provider.username }} visits your location</p>
+                                        {% if profile.hourly_rate_outcall %}
+                                        <span class="rate">KES {{ profile.hourly_rate_outcall }}/hour</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>Duration</h3>
+                            <div class="duration-selection">
+                                <div class="duration-options">
+                                    <div class="duration-option" data-hours="1">
+                                        <span>1 hour</span>
+                                        <span class="price" id="price-1">KES 0</span>
+                                    </div>
+                                    <div class="duration-option active" data-hours="2">
+                                        <span>2 hours</span>
+                                        <span class="price" id="price-2">KES 0</span>
+                                    </div>
+                                    <div class="duration-option" data-hours="3">
+                                        <span>3 hours</span>
+                                        <span class="price" id="price-3">KES 0</span>
+                                    </div>
+                                    <div class="duration-option" data-hours="4">
+                                        <span>4 hours</span>
+                                        <span class="price" id="price-4">KES 0</span>
+                                    </div>
+                                </div>
+                                
+                                <div class="custom-duration">
+                                    <label>Custom Duration (hours)</label>
+                                    <input type="number" id="custom-hours" min="1" max="24" value="2" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-actions">
+                            <button type="button" class="btn btn-primary next-step" data-next="2">
+                                Next: Date & Time <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 2: Date & Time -->
+                    <div class="booking-step" id="step-2">
+                        <div class="step-header">
+                            <h2><i class="fas fa-calendar-alt"></i> Select Date & Time</h2>
+                            <p>Choose when you'd like to meet</p>
+                        </div>
+                        
+                        <div class="datetime-selection">
+                            <div class="date-selection">
+                                <h3>Select Date</h3>
+                                <div class="calendar" id="booking-calendar"></div>
+                            </div>
+                            
+                            <div class="time-selection">
+                                <h3>Select Time</h3>
+                                <div class="time-slots">
+                                    <div class="time-slot-group">
+                                        <h4>Morning (8 AM - 12 PM)</h4>
+                                        <div class="slots">
+                                            <div class="time-slot" data-time="08:00">8:00 AM</div>
+                                            <div class="time-slot" data-time="09:00">9:00 AM</div>
+                                            <div class="time-slot" data-time="10:00">10:00 AM</div>
+                                            <div class="time-slot" data-time="11:00">11:00 AM</div>
+                                        </div>
+                                    </div>
+                                    <div class="time-slot-group">
+                                        <h4>Afternoon (12 PM - 5 PM)</h4>
+                                        <div class="slots">
+                                            <div class="time-slot" data-time="12:00">12:00 PM</div>
+                                            <div class="time-slot" data-time="13:00">1:00 PM</div>
+                                            <div class="time-slot" data-time="14:00">2:00 PM</div>
+                                            <div class="time-slot" data-time="15:00">3:00 PM</div>
+                                            <div class="time-slot" data-time="16:00">4:00 PM</div>
+                                        </div>
+                                    </div>
+                                    <div class="time-slot-group">
+                                        <h4>Evening (5 PM - 11 PM)</h4>
+                                        <div class="slots">
+                                            <div class="time-slot" data-time="17:00">5:00 PM</div>
+                                            <div class="time-slot" data-time="18:00">6:00 PM</div>
+                                            <div class="time-slot" data-time="19:00">7:00 PM</div>
+                                            <div class="time-slot" data-time="20:00">8:00 PM</div>
+                                            <div class="time-slot" data-time="21:00">9:00 PM</div>
+                                            <div class="time-slot" data-time="22:00">10:00 PM</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-section">
+                            <h3>Meeting Location Details</h3>
+                            <div class="form-group">
+                                <label>Specific Location</label>
+                                <textarea class="form-control" name="meeting_location" rows="3" placeholder="Hotel name, restaurant address, or specific meeting point" required></textarea>
+                                <small class="form-text">Please provide detailed location information</small>
+                            </div>
+                        </div>
+                        
+                        <div class="step-actions">
+                            <button type="button" class="btn btn-outline prev-step" data-prev="1">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="button" class="btn btn-primary next-step" data-next="3">
+                                Next: Review & Pay <i class="fas fa-arrow-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Step 3: Review & Pay -->
+                    <div class="booking-step" id="step-3">
+                        <div class="step-header">
+                            <h2><i class="fas fa-check-circle"></i> Review & Confirm</h2>
+                            <p>Review your booking details and make payment</p>
+                        </div>
+                        
+                        <div class="booking-summary">
+                            <div class="summary-card">
+                                <div class="summary-header">
+                                    <h3>Booking Summary</h3>
+                                </div>
+                                <div class="summary-body">
+                                    <div class="summary-item">
+                                        <span class="label">Service:</span>
+                                        <span class="value" id="summary-service">-</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Location Type:</span>
+                                        <span class="value" id="summary-location">-</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Duration:</span>
+                                        <span class="value" id="summary-duration">-</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Date & Time:</span>
+                                        <span class="value" id="summary-datetime">-</span>
+                                    </div>
+                                    <div class="summary-item">
+                                        <span class="label">Meeting Location:</span>
+                                        <span class="value" id="summary-meeting-location">-</span>
+                                    </div>
+                                    <div class="summary-divider"></div>
+                                    <div class="summary-item total">
+                                        <span class="label">Total Amount:</span>
+                                        <span class="value" id="summary-total">KES 0</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="payment-section">
+                                <h3>Payment Method</h3>
+                                <div class="payment-options">
+                                    <div class="payment-option active" data-method="wallet">
+                                        <div class="option-icon">
+                                            <i class="fas fa-wallet"></i>
+                                        </div>
+                                        <div class="option-info">
+                                            <h4>Wallet Balance</h4>
+                                            <p>KES {{ wallet.balance|default:0|floatformat:2 }} available</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="payment-option" data-method="mpesa">
+                                        <div class="option-icon">
+                                            <i class="fas fa-mobile-alt"></i>
+                                        </div>
+                                        <div class="option-info">
+                                            <h4>M-Pesa</h4>
+                                            <p>Pay via M-Pesa</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="wallet-balance-info">
+                                    <p>Wallet Balance: <strong>KES {{ wallet.balance|default:0|floatformat:2 }}</strong></p>
+                                    <p>Required: <strong id="required-amount">KES 0</strong></p>
+                                    <p id="balance-status" class="hidden"></p>
+                                    
+                                    {% if wallet.balance < 1000 %}
+                                    <div class="alert alert-warning">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                        <p>Your wallet balance is low. You may need to add funds to complete this booking.</p>
+                                        <a href="{% url 'deposit' %}" class="btn btn-outline btn-sm">Add Funds</a>
+                                    </div>
+                                    {% endif %}
+                                </div>
+                                
+                                <div class="form-section hidden" id="mpesa-details">
+                                    <div class="form-group">
+                                        <label>M-Pesa Phone Number</label>
+                                        <input type="tel" class="form-control" placeholder="07XXXXXXXX">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="terms-section">
+                                <div class="checkbox-group">
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="agree-terms" required>
+                                        <span class="checkmark"></span>
+                                        I agree to the <a href="{% url 'terms' %}" target="_blank">Terms of Service</a> and <a href="{% url 'privacy' %}" target="_blank">Privacy Policy</a>
+                                    </label>
+                                    <label class="checkbox-label">
+                                        <input type="checkbox" id="confirm-age" required>
+                                        <span class="checkmark"></span>
+                                        I confirm that I am 18 years or older
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="step-actions">
+                            <button type="button" class="btn btn-outline prev-step" data-prev="2">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </button>
+                            <button type="submit" class="btn btn-primary" id="confirm-booking">
+                                <i class="fas fa-lock"></i> Confirm & Pay
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Hidden inputs for form submission -->
+                    <input type="hidden" name="service_type" id="service-type">
+                    <input type="hidden" name="location_type" id="location-type">
+                    <input type="hidden" name="duration_hours" id="duration-hours" value="2">
+                    <input type="hidden" name="booking_date" id="booking-date">
+                    <input type="hidden" name="total_amount" id="total-amount">
+                </form>
+            </div>
+            
+            <!-- Right Column: Provider Info -->
+            <div class="booking-sidebar">
+                <div class="provider-info-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-info-circle"></i> About {{ service_provider.username }}</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="provider-stats">
+                            <div class="stat">
+                                <i class="fas fa-star"></i>
+                                <div>
+                                    <h4>{{ profile.rating|default:0.0|floatformat:1 }}</h4>
+                                    <p>Rating</p>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-check-circle"></i>
+                                <div>
+                                    <h4>{{ profile.total_bookings|default:0 }}</h4>
+                                    <p>Bookings</p>
+                                </div>
+                            </div>
+                            <div class="stat">
+                                <i class="fas fa-clock"></i>
+                                <div>
+                                    <h4>{{ profile.response_time|default:"Fast" }}</h4>
+                                    <p>Response Time</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="provider-details">
+                            <h4>Location</h4>
+                            <p><i class="fas fa-map-marker-alt"></i> {{ profile.location }}</p>
+                            
+                            <h4>Verification</h4>
+                            <div class="verification-badges">
+                                {% if profile.is_verified %}
+                                <span class="badge verified">
+                                    <i class="fas fa-check-circle"></i> Verified
+                                </span>
+                                {% endif %}
+                                {% if profile.is_vip %}
+                                <span class="badge vip">VIP</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="provider-rules">
+                            <h4>Booking Rules</h4>
+                            <ul>
+                                <li><i class="fas fa-clock"></i> Minimum 1 hour booking</li>
+                                <li><i class="fas fa-calendar"></i> 24-hour cancellation policy</li>
+                                <li><i class="fas fa-money-bill-wave"></i> Full payment required to confirm</li>
+                                <li><i class="fas fa-user-clock"></i> Please be punctual</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="need-help">
+                            <h4>Need Help?</h4>
+                            <p>Questions about this booking?</p>
+                            <a href="{% url 'conversation_user' service_provider.username %}" class="btn btn-outline btn-block">
+                                <i class="fas fa-comment"></i> Message {{ service_provider.username }}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="safety-tips-card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-shield-alt"></i> Safety Tips</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="safety-tips">
+                            <li><i class="fas fa-check"></i> Meet in public places first</li>
+                            <li><i class="fas fa-check"></i> Inform a friend about your plans</li>
+                            <li><i class="fas fa-check"></i> Keep personal information private</li>
+                            <li><i class="fas fa-check"></i> Trust your instincts</li>
+                            <li><i class="fas fa-check"></i> Report any suspicious behavior</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Payment Processing Modal -->
+<div class="modal" id="payment-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Processing Payment</h3>
+        </div>
+        <div class="modal-body">
+            <div class="payment-processing">
+                <div class="loading-spinner"></div>
+                <h4 id="payment-status">Processing your payment...</h4>
+                <p id="payment-message">Please wait while we process your payment</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Booking Success Modal -->
+<div class="modal" id="success-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Booking Confirmed! 🎉</h3>
+        </div>
+        <div class="modal-body">
+            <div class="success-content">
+                <div class="success-icon">
+                    <i class="fas fa-check-circle"></i>
+                </div>
+                <h4>Your booking has been confirmed</h4>
+                <p>You will receive a confirmation message shortly</p>
+                
+                <div class="booking-details-summary">
+                    <div class="detail">
+                        <span class="label">Booking ID:</span>
+                        <span class="value" id="success-booking-id">#0000</span>
+                    </div>
+                    <div class="detail">
+                        <span class="label">Provider:</span>
+                        <span class="value">{{ service_provider.username }}</span>
+                    </div>
+                    <div class="detail">
+                        <span class="label">Date & Time:</span>
+                        <span class="value" id="success-datetime">-</span>
+                    </div>
+                    <div class="detail">
+                        <span class="label">Total Paid:</span>
+                        <span class="value" id="success-amount">KES 0</span>
+                    </div>
+                </div>
+                
+                <div class="success-actions">
+                    <a href="#" class="btn btn-primary" id="view-booking-btn">
+                        <i class="fas fa-eye"></i> View Booking Details
+                    </a>
+                    <a href="{% url 'dashboard' %}" class="btn btn-outline">
+                        <i class="fas fa-home"></i> Go to Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script>
+$(document).ready(function() {
+    // Booking state
+    let bookingState = {
+        service: null,
+        locationType: 'incall',
+        duration: 2,
+        date: null,
+        time: null,
+        meetingLocation: '',
+        totalAmount: 0,
+        hourlyRate: {{ profile.hourly_rate_incall|default:0 }}
+    };
+    
+    // Initialize calendar
+    const calendar = flatpickr("#booking-calendar", {
+        minDate: "today",
+        dateFormat: "Y-m-d",
+        onChange: function(selectedDates, dateStr) {
+            bookingState.date = dateStr;
+            updateSummary();
+        }
+    });
+    
+    // Service selection
+    $('.service-option').click(function() {
+        $('.service-option').removeClass('active');
+        $(this).addClass('active');
+        bookingState.service = $(this).data('service');
+        $('#service-type').val(bookingState.service);
+        updatePrices();
+    });
+    
+    // Location type selection
+    $('.location-option').click(function() {
+        const type = $(this).data('type');
+        $('.location-option').removeClass('active');
+        $(this).addClass('active');
+        bookingState.locationType = type;
+        $('#location-type').val(type);
+        
+        // Update hourly rate
+        bookingState.hourlyRate = type === 'incall' ? 
+            {{ profile.hourly_rate_incall|default:0 }} : 
+            {{ profile.hourly_rate_outcall|default:0 }};
+        
+        updatePrices();
+        updateSummary();
+    });
+    
+    // Duration selection
+    $('.duration-option').click(function() {
+        const hours = parseInt($(this).data('hours'));
+        $('.duration-option').removeClass('active');
+        $(this).addClass('active');
+        bookingState.duration = hours;
+        $('#duration-hours').val(hours);
+        $('#custom-hours').val(hours);
+        updatePrices();
+        updateSummary();
+    });
+    
+    // Custom duration
+    $('#custom-hours').on('input', function() {
+        const hours = parseInt($(this).val()) || 1;
+        bookingState.duration = hours;
+        $('#duration-hours').val(hours);
+        $('.duration-option').removeClass('active');
+        updatePrices();
+        updateSummary();
+    });
+    
+    // Time slot selection
+    $('.time-slot').click(function() {
+        $('.time-slot').removeClass('active');
+        $(this).addClass('active');
+        bookingState.time = $(this).data('time');
+        updateSummary();
+    });
+    
+    // Meeting location
+    $('textarea[name="meeting_location"]').on('input', function() {
+        bookingState.meetingLocation = $(this).val();
+        updateSummary();
+    });
+    
+    // Payment method selection
+    $('.payment-option').click(function() {
+        const method = $(this).data('method');
+        $('.payment-option').removeClass('active');
+        $(this).addClass('active');
+        
+        if (method === 'mpesa') {
+            $('#mpesa-details').removeClass('hidden');
+        } else {
+            $('#mpesa-details').addClass('hidden');
+        }
+    });
+    
+    // Calculate and update prices
+    function updatePrices() {
+        if (!bookingState.hourlyRate) return;
+        
+        // Update duration option prices
+        $('.duration-option').each(function() {
+            const hours = parseInt($(this).data('hours'));
+            const price = bookingState.hourlyRate * hours;
+            $(this).find('.price').text(`KES ${price.toFixed(2)}`);
+        });
+        
+        // Update total
+        bookingState.totalAmount = bookingState.hourlyRate * bookingState.duration;
+        updateSummary();
+        
+        // Check wallet balance
+        const walletBalance = {{ wallet.balance|default:0 }};
+        const requiredAmount = bookingState.totalAmount;
+        const balanceStatus = $('#balance-status');
+        
+        if (walletBalance >= requiredAmount) {
+            balanceStatus.removeClass('text-danger').addClass('text-success')
+                .html('<i class="fas fa-check-circle"></i> Sufficient balance');
+        } else {
+            balanceStatus.removeClass('text-success').addClass('text-danger')
+                .html(`<i class="fas fa-exclamation-circle"></i> Need KES ${(requiredAmount - walletBalance).toFixed(2)} more`);
+        }
+    }
+    
+    // Update booking summary
+    function updateSummary() {
+        $('#summary-service').text(bookingState.service || '-');
+        $('#summary-location').text(bookingState.locationType === 'incall' ? 'Incall' : 'Outcall');
+        $('#summary-duration').text(`${bookingState.duration} hour${bookingState.duration > 1 ? 's' : ''}`);
+        
+        if (bookingState.date && bookingState.time) {
+            const date = new Date(bookingState.date + 'T' + bookingState.time);
+            const formattedDate = date.toLocaleDateString('en-US', {
+                weekday: 'short',
+                month: 'short',
+                day: 'numeric'
+            });
+            const formattedTime = date.toLocaleTimeString('en-US', {
+                hour: 'numeric',
+                minute: '2-digit'
+            });
+            $('#summary-datetime').text(`${formattedDate} at ${formattedTime}`);
+            $('#booking-date').val(date.toISOString());
+        } else {
+            $('#summary-datetime').text('-');
+        }
+        
+        $('#summary-meeting-location').text(bookingState.meetingLocation || '-');
+        $('#summary-total').text(`KES ${bookingState.totalAmount.toFixed(2)}`);
+        $('#required-amount').text(`KES ${bookingState.totalAmount.toFixed(2)}`);
+        $('#total-amount').val(bookingState.totalAmount);
+    }
+    
+    // Step navigation
+    $('.next-step').click(function() {
+        const nextStep = $(this).data('next');
+        const currentStep = $(this).closest('.booking-step').attr('id').split('-')[1];
+        
+        // Validate current step
+        if (!validateStep(currentStep)) {
+            return;
+        }
+        
+        // Navigate to next step
+        $('.booking-step').removeClass('active');
+        $(`#step-${nextStep}`).addClass('active');
+        
+        // Update process steps
+        $('.process-steps .step').removeClass('active');
+        $(`.process-steps .step:nth-child(${nextStep})`).addClass('active');
+        
+        // Scroll to top
+        $('html, body').animate({ scrollTop: 0 }, 300);
+    });
+    
+    $('.prev-step').click(function() {
+        const prevStep = $(this).data('prev');
+        
+        $('.booking-step').removeClass('active');
+        $(`#step-${prevStep}`).addClass('active');
+        
+        // Update process steps
+        $('.process-steps .step').removeClass('active');
+        $(`.process-steps .step:nth-child(${prevStep})`).addClass('active');
+        
+        // Scroll to top
+        $('html, body').animate({ scrollTop: 0 }, 300);
+    });
+    
+    // Step validation
+    function validateStep(step) {
+        switch(step) {
+            case '1':
+                if (!bookingState.service) {
+                    alert('Please select a service');
+                    return false;
+                }
+                return true;
+                
+            case '2':
+                if (!bookingState.date || !bookingState.time) {
+                    alert('Please select date and time');
+                    return false;
+                }
+                if (!bookingState.meetingLocation) {
+                    alert('Please provide meeting location details');
+                    return false;
+                }
+                return true;
+                
+            case '3':
+                if (!$('#agree-terms').is(':checked')) {
+                    alert('Please agree to the Terms of Service');
+                    return false;
+                }
+                if (!$('#confirm-age').is(':checked')) {
+                    alert('Please confirm you are 18+ years old');
+                    return false;
+                }
+                return true;
+        }
+        return true;
+    }
+    
+    // Form submission
+    $('#booking-form').submit(function(e) {
+        e.preventDefault();
+        
+        if (!validateStep('3')) {
+            return;
+        }
+        
+        // Check payment method
+        const paymentMethod = $('.payment-option.active').data('method');
+        
+        if (paymentMethod === 'wallet') {
+            const walletBalance = {{ wallet.balance|default:0 }};
+            if (walletBalance < bookingState.totalAmount) {
+                alert('Insufficient wallet balance. Please add funds or use M-Pesa.');
+                return;
+            }
+        }
+        
+        // Show payment processing modal
+        $('#payment-modal').addClass('show');
+        
+        // Submit form via AJAX
+        const formData = $(this).serialize();
+        
+        $.ajax({
+            url: $(this).attr('action'),
+            method: 'POST',
+            data: formData,
+            success: function(response) {
+                $('#payment-modal').removeClass('show');
+                
+                if (response.success) {
+                    // Show success modal
+                    $('#success-booking-id').text('#' + response.booking_id);
+                    $('#success-datetime').text($('#summary-datetime').text());
+                    $('#success-amount').text($('#summary-total').text());
+                    $('#view-booking-btn').attr('href', '/booking/' + response.booking_id + '/');
+                    $('#success-modal').addClass('show');
+                } else {
+                    alert('Booking failed: ' + response.error);
+                }
+            },
+            error: function() {
+                $('#payment-modal').removeClass('show');
+                alert('An error occurred. Please try again.');
+            }
+        });
+    });
+    
+    // Modal close
+    $('.modal-close').click(function() {
+        $(this).closest('.modal').removeClass('show');
+    });
+    
+    // Initialize with default values
+    $('.location-option[data-type="incall"]').click();
+    $('.duration-option[data-hours="2"]').click();
+    $('.payment-option[data-method="wallet"]').click();
+    
+    // Set default date to tomorrow
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    calendar.setDate(tomorrow);
+    
+    // Auto-select first service if available
+    if ($('.service-option').length > 0) {
+        $('.service-option').first().click();
+    }
+});
+</script>
+{% endblock %}

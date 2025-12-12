@@ -1,0 +1,254 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Wallet | ConnectPlus{% endblock %}
+
+{% block content %}
+<div class="wallet-container">
+    <!-- Balance Overview -->
+    <div class="balance-overview glass-card p-5 mb-4">
+        <div class="balance-header text-center mb-4">
+            <h2 class="balance-title">Your Wallet</h2>
+            <p class="balance-subtitle">Total available balance</p>
+        </div>
+        
+        <div class="balance-amount text-center mb-4">
+            <span class="amount-symbol">KES</span>
+            <span class="amount-value">{{ wallet.balance|floatformat:2 }}</span>
+        </div>
+        
+        <div class="balance-actions">
+            <a href="{% url 'deposit' %}" class="btn btn-primary btn-lg">
+                <i class="ri-add-line"></i> Deposit
+            </a>
+            <a href="{% url 'withdrawal' %}" class="btn btn-outline btn-lg">
+                <i class="ri-arrow-up-line"></i> Withdraw
+            </a>
+        </div>
+    </div>
+    
+    <!-- M-Pesa Balance -->
+    <div class="mpesa-balance glass-card p-4 mb-4">
+        <div class="mpesa-header d-flex justify-between align-center mb-3">
+            <h3 class="mpesa-title">
+                <i class="ri-wallet-3-line"></i> M-Pesa Balance
+            </h3>
+            <span class="mpesa-amount">KES {{ wallet.mpesa_balance|floatformat:2 }}</span>
+        </div>
+        <p class="text-muted">Linked M-Pesa account balance</p>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="quick-actions grid grid-4 gap-3 mb-4">
+        <button class="action-btn glass-card" onclick="depositViaMpesa()">
+            <div class="action-icon">
+                <i class="ri-smartphone-line"></i>
+            </div>
+            <div class="action-label">M-Pesa</div>
+        </button>
+        
+        <button class="action-btn glass-card" onclick="transferFunds()">
+            <div class="action-icon">
+                <i class="ri-exchange-line"></i>
+            </div>
+            <div class="action-label">Transfer</div>
+        </button>
+        
+        <button class="action-btn glass-card" onclick="viewTransactions()">
+            <div class="action-icon">
+                <i class="ri-history-line"></i>
+            </div>
+            <div class="action-label">History</div>
+        </button>
+        
+        <button class="action-btn glass-card" onclick="withdrawToBank()">
+            <div class="action-icon">
+                <i class="ri-bank-line"></i>
+            </div>
+            <div class="action-label">Bank</div>
+        </button>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div class="transactions-section">
+        <div class="section-header d-flex justify-between align-center mb-4">
+            <h3 class="section-title">Recent Transactions</h3>
+            <a href="#" class="btn btn-outline btn-sm">View All</a>
+        </div>
+        
+        {% if transactions %}
+        <div class="transaction-list">
+            {% for transaction in transactions %}
+            <div class="transaction-item glass-card">
+                <div class="transaction-icon">
+                    {% if transaction.transaction_type == 'deposit' %}
+                    <i class="ri-arrow-down-line"></i>
+                    {% elif transaction.transaction_type == 'withdrawal' %}
+                    <i class="ri-arrow-up-line"></i>
+                    {% elif transaction.transaction_type == 'payment' %}
+                    <i class="ri-shopping-bag-line"></i>
+                    {% else %}
+                    <i class="ri-exchange-line"></i>
+                    {% endif %}
+                </div>
+                
+                <div class="transaction-info">
+                    <div class="transaction-title">
+                        {{ transaction.get_transaction_type_display }}
+                    </div>
+                    <div class="transaction-meta">
+                        {{ transaction.initiated_at|date:"M d, Y H:i" }}
+                        {% if transaction.mpesa_receipt %}
+                        • Receipt: {{ transaction.mpesa_receipt }}
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="transaction-amount 
+                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}
+                    positive
+                    {% else %}
+                    negative
+                    {% endif %}">
+                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}
+                    + KES {{ transaction.amount|floatformat:2 }}
+                    {% else %}
+                    - KES {{ transaction.amount|floatformat:2 }}
+                    {% endif %}
+                </div>
+                
+                <div class="transaction-status">
+                    <span class="status-badge {{ transaction.status }}">
+                        {{ transaction.get_status_display }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state text-center p-5">
+            <i class="ri-wallet-line text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-2">No transactions yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- M-Pesa Deposit Modal -->
+<div class="modal-overlay" id="mpesaModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">M-Pesa Deposit</h3>
+            <button class="modal-close" onclick="closeMpesaModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="mpesaForm">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="tel" class="form-control" name="phone" 
+                           placeholder="07XXXXXXXX" required>
+                </div>
+                <div class="form-group">
+                    <label>Amount (KES)</label>
+                    <input type="number" class="form-control" name="amount" 
+                           min="10" step="10" required>
+                </div>
+                <div class="form-group">
+                    <label>M-Pesa PIN</label>
+                    <input type="password" class="form-control" name="pin" 
+                           placeholder="Enter M-Pesa PIN" required maxlength="4">
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeMpesaModal()">Cancel</button>
+            <button class="btn btn-primary" onclick="processMpesaDeposit()">
+                Deposit
+            </button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function depositViaMpesa() {
+    $('#mpesaModal').addClass('active');
+}
+
+function closeMpesaModal() {
+    $('#mpesaModal').removeClass('active');
+    $('#mpesaForm')[0].reset();
+}
+
+function processMpesaDeposit() {
+    const form = $('#mpesaForm');
+    const formData = form.serialize();
+    
+    $.ajax({
+        url: '{% url "api_mpesa_deposit" %}',
+        type: 'POST',
+        data: JSON.stringify({
+            phone: $('[name="phone"]').val(),
+            amount: $('[name="amount"]').val(),
+            pin: $('[name="pin"]').val()
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            closeMpesaModal();
+            showToast(response.message, 'success');
+            // Simulate payment processing
+            simulatePayment(response.transaction_id);
+        },
+        error: function(xhr) {
+            showToast(xhr.responseJSON.error, 'error');
+        }
+    });
+}
+
+function simulatePayment(transactionId) {
+    showToast('Processing payment...', 'info');
+    
+    setTimeout(() => {
+        showToast('Payment successful! Funds added to wallet.', 'success');
+        // Refresh page after 2 seconds
+        setTimeout(() => location.reload(), 2000);
+    }, 3000);
+}
+
+function transferFunds() {
+    showToast('Transfer feature coming soon!', 'info');
+}
+
+function viewTransactions() {
+    window.location.href = '#transactions';
+}
+
+function withdrawToBank() {
+    showToast('Bank withdrawal feature coming soon!', 'info');
+}
+
+function showToast(message, type) {
+    const toast = $(`
+        <div class="toast toast-${type} glass-card">
+            <span>${message}</span>
+            <button class="toast-close">&times;</button>
+        </div>
+    `);
+    
+    $('.main-content').append(toast);
+    
+    setTimeout(() => {
+        toast.fadeOut(() => toast.remove());
+    }, 3000);
+}
+
+// Close modal on click outside
+$('#mpesaModal').on('click', function(e) {
+    if (e.target === this) {
+        closeMpesaModal();
+    }
+});
+</script>
+{% endblock %}

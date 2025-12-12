@@ -1,0 +1,177 @@
+{% extends "base_auth.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block title %}Sign In | EscortConnect{% endblock %}
+
+{% block auth_content %}
+<div class="auth-header">
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-subtitle">Sign in to your premium account</p>
+</div>
+
+<!-- Tabs -->
+<div class="auth-tabs">
+    <a href="{% url 'account_login' %}" class="auth-tab active">Sign In</a>
+    <a href="{% url 'account_signup' %}" class="auth-tab">Register</a>
+</div>
+
+<!-- Login Form -->
+<form class="auth-form" method="POST" action="{% url 'account_login' %}">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+    
+    <!-- Email/Username -->
+    <div class="form-group">
+        <input type="text" 
+               name="login" 
+               id="id_login" 
+               class="form-input"
+               required
+               autocomplete="email"
+               placeholder=" ">
+        <label for="id_login" class="form-label">Email or Username</label>
+        <i class="fas fa-envelope input-icon"></i>
+    </div>
+    
+    <!-- Password -->
+    <div class="form-group">
+        <input type="password" 
+               name="password" 
+               id="id_password" 
+               class="form-input"
+               required
+               placeholder=" ">
+        <label for="id_password" class="form-label">Password</label>
+        <i class="fas fa-lock input-icon"></i>
+        <button type="button" class="password-toggle" data-target="id_password">
+            <i class="fas fa-eye"></i>
+        </button>
+    </div>
+    
+    <!-- Remember Me & Forgot Password -->
+    <div class="form-links">
+        <label class="checkbox-label">
+            <input type="checkbox" name="remember">
+            <span>Remember me</span>
+        </label>
+        <a href="{% url 'account_reset_password' %}" class="link-premium">
+            Forgot Password?
+        </a>
+    </div>
+    
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+    
+    <!-- Submit Button -->
+    <button type="submit" class="btn-primary">
+        <i class="fas fa-sign-in-alt"></i>
+        Sign In
+    </button>
+</form>
+
+<!-- Signup Link -->
+<div class="text-center">
+    <p class="link-text">
+        Don't have an account? 
+        <a href="{% url 'account_signup' %}" class="link-premium">Create Account</a>
+    </p>
+</div>
+
+<!-- Security Footer -->
+<div class="auth-footer">
+    <p class="auth-footer-text">
+        <i class="fas fa-shield-alt"></i>
+        Secure & encrypted connection
+    </p>
+</div>
+
+<style>
+/* Additional styles for login */
+.social-login {
+    margin: 25px 0;
+    text-align: center;
+}
+
+.social-divider {
+    display: flex;
+    align-items: center;
+    margin: 20px 0;
+    color: #b0b0d0;
+    font-size: 0.9rem;
+}
+
+.social-divider::before,
+.social-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: rgba(255,255,255,0.1);
+}
+
+.social-divider span {
+    padding: 0 15px;
+}
+
+.social-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.social-btn {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+    color: #fff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.social-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+
+.social-btn.google {
+    border-color: rgba(219,68,55,0.3);
+    color: #db4437;
+}
+
+.social-btn.facebook {
+    border-color: rgba(59,89,152,0.3);
+    color: #3b5998;
+}
+</style>
+
+<div class="social-login">
+    <div class="social-divider">
+        <span>or continue with</span>
+    </div>
+    
+    <div class="social-buttons">
+        <a href="#" class="social-btn google">
+            <i class="fab fa-google"></i>
+            Google
+        </a>
+        <a href="#" class="social-btn facebook">
+            <i class="fab fa-facebook-f"></i>
+            Facebook
+        </a>
+    </div>
+</div>
+{% endblock %}

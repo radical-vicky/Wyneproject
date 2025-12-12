@@ -1,0 +1,796 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Elite Connect - Premium Dating{% endblock %}</title>
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            /* Dark Theme Color Palette */
+            --bg-primary: #0a0a0f;
+            --bg-secondary: #14141f;
+            --bg-tertiary: #1e1e2f;
+            --bg-glass: rgba(30, 30, 47, 0.7);
+            --bg-glass-light: rgba(255, 255, 255, 0.05);
+            --bg-hover: rgba(255, 255, 255, 0.1);
+            
+            /* Text Colors */
+            --text-primary: #ffffff;
+            --text-secondary: #b8b8d1;
+            --text-muted: #8a8aa3;
+            
+            /* Accent Colors */
+            --accent-primary: #ff4d8d;
+            --accent-secondary: #6c63ff;
+            --accent-success: #00d4aa;
+            --accent-warning: #ffb74d;
+            --accent-danger: #ff5252;
+            --accent-info: #29b6f6;
+            
+            /* VIP & Premium Colors */
+            --vip-gold: #ffd700;
+            --vip-gradient: linear-gradient(135deg, #ffd700, #ff9500);
+            --verified-blue: #00b0ff;
+            
+            /* Borders & Shadows */
+            --border-radius: 16px;
+            --border-radius-sm: 8px;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.4);
+            --glass-blur: blur(20px);
+            
+            /* Spacing */
+            --spacing-xs: 0.5rem;
+            --spacing-sm: 1rem;
+            --spacing-md: 1.5rem;
+            --spacing-lg: 2rem;
+            --spacing-xl: 3rem;
+            
+            /* Transitions */
+            --transition-fast: 0.2s ease;
+            --transition-normal: 0.3s ease;
+            --transition-slow: 0.5s ease;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        .glass-effect {
+            background: var(--bg-glass);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+        }
+        
+        .glass-light {
+            background: var(--bg-glass-light);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border: 1px solid var(--border-color);
+        }
+        
+        /* Navigation */
+        .navbar {
+            background: var(--bg-glass);
+            backdrop-filter: var(--glass-blur);
+            -webkit-backdrop-filter: var(--glass-blur);
+            border-bottom: 1px solid var(--border-color);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1rem var(--spacing-lg);
+        }
+        
+        .navbar-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .nav-brand {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 600;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-decoration: none;
+        }
+        
+        .nav-search {
+            flex: 0 1 400px;
+            position: relative;
+        }
+        
+        .nav-search input {
+            width: 100%;
+            padding: 0.8rem 1rem 0.8rem 3rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 50px;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: var(--transition-normal);
+        }
+        
+        .nav-search input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(255, 77, 141, 0.2);
+        }
+        
+        .nav-search i {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+        }
+        
+        .nav-links {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .nav-link {
+            color: var(--text-secondary);
+            text-decoration: none;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: var(--transition-fast);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link:hover {
+            color: var(--text-primary);
+            background: var(--bg-hover);
+        }
+        
+        .nav-link.active {
+            color: var(--accent-primary);
+            background: rgba(255, 77, 141, 0.1);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -5px;
+            right: -5px;
+            background: var(--accent-danger);
+            color: white;
+            font-size: 0.7rem;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid var(--accent-primary);
+        }
+        
+        .vip-badge {
+            background: var(--vip-gradient);
+            color: #000;
+            padding: 0.2rem 0.8rem;
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .verified-badge {
+            color: var(--verified-blue);
+            font-size: 0.9rem;
+        }
+        
+        /* Main Content Layout */
+        .main-container {
+            max-width: 1400px;
+            margin: 5rem auto 2rem;
+            padding: 0 var(--spacing-lg);
+            display: grid;
+            grid-template-columns: 250px 1fr 300px;
+            gap: var(--spacing-lg);
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            position: sticky;
+            top: 6rem;
+            height: calc(100vh - 8rem);
+            overflow-y: auto;
+        }
+        
+        .sidebar-section {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .sidebar-title {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: var(--spacing-sm);
+            padding-left: var(--spacing-sm);
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: 0.8rem var(--spacing-sm);
+            color: var(--text-secondary);
+            text-decoration: none;
+            border-radius: var(--border-radius-sm);
+            transition: var(--transition-fast);
+        }
+        
+        .sidebar-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+        
+        .sidebar-item.active {
+            background: var(--accent-primary);
+            color: white;
+        }
+        
+        /* Content Area */
+        .content-area {
+            min-height: 80vh;
+        }
+        
+        /* Card Styles (Pinterest-inspired) */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        
+        .card {
+            background: var(--bg-tertiary);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: var(--transition-normal);
+            position: relative;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .card-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .card-content {
+            padding: var(--spacing-md);
+        }
+        
+        .card-title {
+            font-size: 1.2rem;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-primary);
+        }
+        
+        .card-description {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            margin-bottom: var(--spacing-sm);
+            line-height: 1.5;
+        }
+        
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: var(--transition-fast);
+            font-size: 0.95rem;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(108, 99, 255, 0.3);
+        }
+        
+        .btn-secondary {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+        
+        .btn-vip {
+            background: var(--vip-gradient);
+            color: #000;
+            font-weight: 600;
+        }
+        
+        /* Forms */
+        .form-group {
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: var(--spacing-xs);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.8rem 1rem;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: var(--border-radius-sm);
+            color: var(--text-primary);
+            font-size: 0.95rem;
+            transition: var(--transition-normal);
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(255, 77, 141, 0.2);
+        }
+        
+        /* Messages & Alerts */
+        .alert {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: var(--spacing-md);
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            background: rgba(0, 212, 170, 0.1);
+            border-left-color: var(--accent-success);
+            color: var(--accent-success);
+        }
+        
+        .alert-error {
+            background: rgba(255, 82, 82, 0.1);
+            border-left-color: var(--accent-danger);
+            color: var(--accent-danger);
+        }
+        
+        /* Profile Cards */
+        .profile-card {
+            position: relative;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+        }
+        
+        .profile-banner {
+            height: 100px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            border: 4px solid var(--bg-tertiary);
+            object-fit: cover;
+            position: absolute;
+            top: 50px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        /* Footer */
+        .footer {
+            background: var(--bg-secondary);
+            border-top: 1px solid var(--border-color);
+            padding: var(--spacing-xl) 0;
+            margin-top: var(--spacing-xl);
+        }
+        
+        .footer-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-lg);
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: var(--spacing-lg);
+        }
+        
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .main-container {
+                grid-template-columns: 200px 1fr;
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+            
+            .navbar-container {
+                flex-wrap: wrap;
+            }
+            
+            .nav-search {
+                order: 3;
+                flex: 1 1 100%;
+                margin-top: 1rem;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 0 var(--spacing-sm);
+            }
+            
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            }
+            
+            .footer-content {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: var(--bg-secondary);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: var(--accent-primary);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-secondary);
+        }
+    </style>
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'dashboard' %}" class="nav-brand">
+                <i class="fas fa-heart"></i> EliteConnect
+            </a>
+            
+            <div class="nav-search">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search profiles, services, posts...">
+            </div>
+            
+            <div class="nav-links">
+                <a href="{% url 'dashboard' %}" class="nav-link {% if request.path == '/dashboard/' %}active{% endif %}">
+                    <i class="fas fa-home"></i> Home
+                </a>
+                <a href="{% url 'inbox' %}" class="nav-link {% if 'inbox' in request.path %}active{% endif %}">
+                    <i class="fas fa-envelope"></i> Messages
+                    {% if request.user.is_authenticated and request.user.profile.unread_messages > 0 %}
+                        <span class="notification-badge">{{ request.user.profile.unread_messages }}</span>
+                    {% endif %}
+                </a>
+                <a href="{% url 'search' %}" class="nav-link {% if 'search' in request.path %}active{% endif %}">
+                    <i class="fas fa-compass"></i> Discover
+                </a>
+                <a href="{% url 'wallet' %}" class="nav-link {% if 'wallet' in request.path %}active{% endif %}">
+                    <i class="fas fa-wallet"></i> Wallet
+                </a>
+                
+                {% if user.is_authenticated %}
+                    <div class="dropdown">
+                        <a href="{% url 'profile' %}" class="nav-link">
+                            {% if user.profile.photos.all %}
+                                <img src="{{ user.profile.photos.first.image.url }}" alt="Avatar" class="user-avatar">
+                            {% else %}
+                                <i class="fas fa-user-circle fa-2x"></i>
+                            {% endif %}
+                            {{ user.username }}
+                            {% if user.profile.is_vip %}
+                                <span class="vip-badge">
+                                    <i class="fas fa-crown"></i> VIP
+                                </span>
+                            {% endif %}
+                        </a>
+                    </div>
+                    <a href="{% url 'account_logout' %}" class="nav-link">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn btn-primary">Sign In</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-container">
+        <!-- Sidebar -->
+        {% if user.is_authenticated %}
+        <aside class="sidebar glass-effect">
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Quick Actions</h4>
+                <a href="{% url 'post_create' %}" class="sidebar-item">
+                    <i class="fas fa-plus-circle"></i> Create Post
+                </a>
+                <a href="{% url 'upload_photo' %}" class="sidebar-item">
+                    <i class="fas fa-camera"></i> Add Photos
+                </a>
+                <a href="{% url 'booking_create' 'username' %}" class="sidebar-item">
+                    <i class="fas fa-calendar-plus"></i> Book Service
+                </a>
+                <a href="{% url 'deposit' %}" class="sidebar-item">
+                    <i class="fas fa-money-bill-wave"></i> Add Funds
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">My Network</h4>
+                <a href="{% url 'contacts' %}" class="sidebar-item">
+                    <i class="fas fa-users"></i> Contacts
+                    <span class="badge">{% if user.contacts.count %}{{ user.contacts.count }}{% endif %}</span>
+                </a>
+                <a href="{% url 'conversation_new' %}" class="sidebar-item">
+                    <i class="fas fa-comment-medical"></i> New Chat
+                </a>
+                <a href="{% url 'invitations' %}" class="sidebar-item">
+                    <i class="fas fa-user-plus"></i> Invitations
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Services</h4>
+                {% for service in user.profile.get_services_list|slice:":5" %}
+                <a href="#" class="sidebar-item">
+                    <i class="fas fa-star"></i> {{ service }}
+                </a>
+                {% endfor %}
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Stats</h4>
+                <div class="sidebar-item">
+                    <i class="fas fa-eye"></i> Views: {{ user.profile.total_views }}
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-phone"></i> Calls: {{ user.profile.total_calls }}
+                </div>
+                <div class="sidebar-item">
+                    <i class="fas fa-calendar-check"></i> Bookings: {{ user.profile.total_bookings }}
+                </div>
+            </div>
+        </aside>
+        {% endif %}
+
+        <!-- Content Area -->
+        <div class="content-area">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }}">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}
+            {% endblock %}
+        </div>
+
+        <!-- Right Sidebar -->
+        {% if user.is_authenticated %}
+        <aside class="sidebar glass-effect">
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Online Now</h4>
+                {% for online_user in online_users|slice:":5" %}
+                <a href="{% url 'profile_view' online_user.username %}" class="sidebar-item">
+                    {% if online_user.profile.photos.all %}
+                        <img src="{{ online_user.profile.photos.first.image.url }}" alt="" style="width: 30px; height: 30px; border-radius: 50%;">
+                    {% else %}
+                        <i class="fas fa-user-circle"></i>
+                    {% endif %}
+                    {{ online_user.username }}
+                    <span class="online-dot" style="width: 8px; height: 8px; background: var(--accent-success); border-radius: 50%; margin-left: auto;"></span>
+                </a>
+                {% endfor %}
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Trending Services</h4>
+                <a href="#" class="sidebar-item">
+                    <i class="fas fa-utensils"></i> Dinner Date
+                    <span class="badge" style="background: var(--accent-primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 0.8rem;">Hot</span>
+                </a>
+                <a href="#" class="sidebar-item">
+                    <i class="fas fa-plane"></i> Travel Companion
+                </a>
+                <a href="#" class="sidebar-item">
+                    <i class="fas fa-music"></i> Event Companion
+                </a>
+            </div>
+            
+            <div class="sidebar-section">
+                <h4 class="sidebar-title">Wallet Balance</h4>
+                <div class="sidebar-item">
+                    <i class="fas fa-wallet"></i>
+                    <div style="flex: 1;">
+                        <div>KES {{ user.wallet.balance|default:"0.00" }}</div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted);">M-Pesa: KES {{ user.wallet.mpesa_balance|default:"0.00" }}</div>
+                    </div>
+                    <a href="{% url 'deposit' %}" class="btn btn-primary" style="padding: 0.3rem 0.8rem; font-size: 0.8rem;">+ Add</a>
+                </div>
+            </div>
+        </aside>
+        {% endif %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div>
+                <h3 class="nav-brand">EliteConnect</h3>
+                <p style="color: var(--text-secondary); margin-top: 1rem;">Premium dating and companionship platform</p>
+            </div>
+            
+            <div>
+                <h4>Quick Links</h4>
+                <a href="{% url 'search' %}" style="display: block; color: var(--text-secondary); margin-top: 0.5rem; text-decoration: none;">Discover</a>
+                <a href="{% url 'terms' %}" style="display: block; color: var(--text-secondary); margin-top: 0.5rem; text-decoration: none;">Terms</a>
+                <a href="{% url 'privacy' %}" style="display: block; color: var(--text-secondary); margin-top: 0.5rem; text-decoration: none;">Privacy</a>
+            </div>
+            
+            <div>
+                <h4>Support</h4>
+                <a href="{% url 'help' %}" style="display: block; color: var(--text-secondary); margin-top: 0.5rem; text-decoration: none;">Help Center</a>
+                <a href="#" style="display: block; color: var(--text-secondary); margin-top: 0.5rem; text-decoration: none;">Safety Tips</a>
+                <a href="#" style="display: block; color: var(--text-secondary); margin-top: 0.5rem; text-decoration: none;">Contact Us</a>
+            </div>
+            
+            <div>
+                <h4>Connect</h4>
+                <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                    <a href="#" style="color: var(--text-secondary);"><i class="fab fa-instagram fa-lg"></i></a>
+                    <a href="#" style="color: var(--text-secondary);"><i class="fab fa-twitter fa-lg"></i></a>
+                    <a href="#" style="color: var(--text-secondary);"><i class="fab fa-facebook fa-lg"></i></a>
+                </div>
+                <p style="color: var(--text-muted); margin-top: 1rem; font-size: 0.9rem;">© 2024 EliteConnect. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Online status update
+        function updateOnlineStatus() {
+            fetch('/api/update-online-status/?status=online')
+                .then(response => response.json())
+                .then(data => console.log('Status updated'))
+                .catch(error => console.error('Error:', error));
+        }
+        
+        // Update status every minute
+        setInterval(updateOnlineStatus, 60000);
+        
+        // Mark messages as read
+        function markAsRead(messageId) {
+            fetch(`/api/message/${messageId}/read/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json',
+                }
+            });
+        }
+        
+        // Get CSRF token
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+        
+        // Pinterest-style card hover effects
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', () => {
+                card.style.transform = 'translateY(-10px) scale(1.02)';
+            });
+            
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'translateY(0) scale(1)';
+            });
+        });
+        
+        // Auto-hide alerts
+        setTimeout(() => {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => alert.remove(), 300);
+            });
+        }, 5000);
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

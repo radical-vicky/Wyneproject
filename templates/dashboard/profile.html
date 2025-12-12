@@ -1,0 +1,472 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ profile_user.username }} | ConnectPlus{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <!-- Profile Header -->
+    <div class="profile-card glass-card">
+        <div class="profile-header">
+            {% if primary_photo %}
+            <img src="{{ primary_photo.image.url }}" alt="Cover" class="profile-cover">
+            {% else %}
+            <div class="profile-cover-placeholder">
+                <i class="ri-image-line"></i>
+            </div>
+            {% endif %}
+            
+            {% if profile.is_vip %}
+            <span class="profile-badge">
+                <i class="ri-vip-crown-fill"></i> VIP
+            </span>
+            {% endif %}
+            
+            <div class="profile-avatar-container">
+                {% if primary_photo %}
+                <img src="{{ primary_photo.image.url }}" alt="{{ profile_user.username }}">
+                {% else %}
+                <div class="avatar-placeholder-large">
+                    {{ profile_user.username|first|upper }}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <div class="profile-body">
+            <div class="d-flex justify-between align-center mb-3">
+                <div>
+                    <h1 class="profile-name">{{ profile_user.username }}</h1>
+                    <div class="profile-location">
+                        <i class="ri-map-pin-line"></i>
+                        {{ profile.city_town }}, {{ profile.county }}
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    {% if is_owner %}
+                    <a href="{% url 'profile_edit' %}" class="btn btn-secondary">
+                        <i class="ri-edit-line"></i> Edit Profile
+                    </a>
+                    {% else %}
+                    <div class="d-flex gap-2">
+                        <button onclick="startConversation('{{ profile_user.username }}')" 
+                                class="btn btn-primary">
+                            <i class="ri-message-2-line"></i> Message
+                        </button>
+                        
+                        <button onclick="initiateCall('{{ profile_user.username }}')" 
+                                class="btn btn-outline">
+                            <i class="ri-phone-line"></i> Call
+                        </button>
+                        
+                        {% if is_contact %}
+                        <button onclick="toggleFavorite(this)" 
+                                class="btn btn-icon" 
+                                data-user="{{ profile_user.username }}">
+                            <i class="ri-heart-line"></i>
+                        </button>
+                        {% else %}
+                        <button onclick="addToContacts('{{ profile_user.username }}')" 
+                                class="btn btn-outline">
+                            <i class="ri-user-add-line"></i> Add
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Status Badges -->
+            <div class="d-flex gap-2 mb-3">
+                {% if profile.is_online %}
+                <span class="status-badge online">
+                    <i class="ri-checkbox-blank-circle-fill"></i> Online
+                </span>
+                {% endif %}
+                
+                {% if profile.is_verified %}
+                <span class="status-badge verified">
+                    <i class="ri-verified-badge-fill"></i> Verified
+                </span>
+                {% endif %}
+                
+                {% if profile.is_available %}
+                <span class="status-badge available">
+                    <i class="ri-check-double-line"></i> Available
+                </span>
+                {% else %}
+                <span class="status-badge busy">
+                    <i class="ri-time-line"></i> Busy
+                </span>
+                {% endif %}
+            </div>
+            
+            <!-- About Section -->
+            <div class="about-section mb-4">
+                <h3 class="section-title">About</h3>
+                <div class="about-grid grid grid-2">
+                    <div class="about-item">
+                        <span class="about-label">Age</span>
+                        <span class="about-value">{{ profile.age }}</span>
+                    </div>
+                    <div class="about-item">
+                        <span class="about-label">Gender</span>
+                        <span class="about-value">{{ profile.get_gender_display }}</span>
+                    </div>
+                    <div class="about-item">
+                        <span class="about-label">Orientation</span>
+                        <span class="about-value">{{ profile.get_sexual_orientation_display }}</span>
+                    </div>
+                    <div class="about-item">
+                        <span class="about-label">Nationality</span>
+                        <span class="about-value">{{ profile.nationality }}</span>
+                    </div>
+                    <div class="about-item">
+                        <span class="about-label">Phone</span>
+                        <span class="about-value">{{ profile.phone_number }}</span>
+                    </div>
+                    <div class="about-item">
+                        <span class="about-label">WhatsApp</span>
+                        <span class="about-value">{{ profile.whatsapp_number|default:"Not provided" }}</span>
+                    </div>
+                </div>
+                
+                <div class="mt-3">
+                    <span class="about-label">Location</span>
+                    <p class="about-value">{{ profile.location }}</p>
+                </div>
+            </div>
+            
+            <!-- Services & Rates -->
+            <div class="services-section mb-4">
+                <h3 class="section-title">Services & Rates</h3>
+                
+                {% if profile.services_offered %}
+                <div class="mb-3">
+                    <span class="about-label">Services Offered</span>
+                    <div class="profile-services mt-1">
+                        {% for service in services_list %}
+                        <span class="service-tag">{{ service }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if profile.hourly_rate_incall or profile.hourly_rate_outcall %}
+                <div class="rates-grid grid grid-2">
+                    {% if profile.hourly_rate_incall %}
+                    <div class="rate-card">
+                        <div class="rate-type">Incall Rate</div>
+                        <div class="rate-amount">KES {{ profile.hourly_rate_incall|floatformat:2 }}/hr</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if profile.hourly_rate_outcall %}
+                    <div class="rate-card">
+                        <div class="rate-type">Outcall Rate</div>
+                        <div class="rate-amount">KES {{ profile.hourly_rate_outcall|floatformat:2 }}/hr</div>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Stats -->
+            <div class="stats-section mb-4">
+                <h3 class="section-title">Statistics</h3>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ profile.total_views }}</div>
+                        <div class="stat-label">Views</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ profile.total_calls }}</div>
+                        <div class="stat-label">Calls</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ profile.total_bookings }}</div>
+                        <div class="stat-label">Bookings</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ profile.rating|floatformat:1 }}</div>
+                        <div class="stat-label">Rating</div>
+                    </div>
+                </div>
+            </div>
+            
+            {% if is_owner %}
+            <!-- Action Buttons for Owner -->
+            <div class="profile-footer">
+                <a href="{% url 'upload_photo' %}" class="btn btn-outline">
+                    <i class="ri-camera-line"></i> Add Photos
+                </a>
+                <a href="{% url 'upload_video' %}" class="btn btn-outline">
+                    <i class="ri-video-line"></i> Add Videos
+                </a>
+                <a href="{% url 'post_create' %}" class="btn btn-outline">
+                    <i class="ri-file-text-line"></i> Create Post
+                </a>
+                <a href="{% url 'settings' %}" class="btn btn-outline">
+                    <i class="ri-settings-3-line"></i> Settings
+                </a>
+            </div>
+            {% elif can_contact %}
+            <!-- Action Buttons for Visitors -->
+            <div class="profile-footer">
+                <a href="{% url 'booking_create' profile_user.username %}" class="btn btn-primary">
+                    <i class="ri-calendar-line"></i> Book Service
+                </a>
+                <button onclick="startConversation('{{ profile_user.username }}')" class="btn btn-secondary">
+                    <i class="ri-message-2-line"></i> Message
+                </button>
+                <button onclick="initiateCall('{{ profile_user.username }}')" class="btn btn-secondary">
+                    <i class="ri-phone-line"></i> Call
+                </button>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Media Gallery -->
+    <div class="media-section">
+        <div class="section-header d-flex justify-between align-center mb-3">
+            <h2 class="section-title">Media Gallery</h2>
+            {% if is_owner %}
+            <div class="section-actions">
+                <a href="{% url 'upload_photo' %}" class="btn btn-sm btn-outline">
+                    <i class="ri-add-line"></i> Add Photos
+                </a>
+                <a href="{% url 'upload_video' %}" class="btn btn-sm btn-outline">
+                    <i class="ri-add-line"></i> Add Videos
+                </a>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Photo Grid -->
+        {% if photos %}
+        <h4 class="sub-section-title mb-2">Photos</h4>
+        <div class="photo-grid grid grid-4">
+            {% for photo in photos %}
+            <div class="photo-item glass-card" onclick="openPhotoModal('{{ photo.image.url }}')">
+                <img src="{{ photo.image.url }}" alt="{{ photo.caption|default:'Photo' }}" class="photo-thumbnail">
+                {% if photo.is_primary %}
+                <span class="photo-badge">
+                    <i class="ri-star-fill"></i> Primary
+                </span>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <!-- Video Grid -->
+        {% if videos %}
+        <h4 class="sub-section-title mb-2 mt-4">Videos</h4>
+        <div class="video-grid grid grid-3">
+            {% for video in videos %}
+            <div class="video-item glass-card">
+                <div class="video-thumbnail">
+                    {% if video.thumbnail %}
+                    <img src="{{ video.thumbnail.url }}" alt="{{ video.title }}">
+                    {% else %}
+                    <div class="video-thumbnail-placeholder">
+                        <i class="ri-play-circle-line"></i>
+                    </div>
+                    {% endif %}
+                    <div class="video-duration">{{ video.get_duration_display }}</div>
+                </div>
+                <div class="video-info p-2">
+                    <h5 class="video-title">{{ video.title }}</h5>
+                    <div class="video-stats">
+                        <span><i class="ri-eye-line"></i> {{ video.views }}</span>
+                        <span><i class="ri-heart-line"></i> {{ video.likes }}</span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        {% if not photos and not videos %}
+        <div class="empty-state text-center p-5">
+            <i class="ri-gallery-line text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-2">No media uploaded yet</p>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- User's Posts -->
+    {% if posts %}
+    <div class="posts-section mt-4">
+        <div class="section-header d-flex justify-between align-center mb-3">
+            <h2 class="section-title">Recent Posts</h2>
+            {% if is_owner %}
+            <a href="{% url 'post_create' %}" class="btn btn-sm btn-primary">
+                <i class="ri-add-line"></i> New Post
+            </a>
+            {% endif %}
+        </div>
+        
+        <div class="posts-grid">
+            {% for post in posts %}
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-avatar">
+                        {% if profile.photos.first %}
+                        <img src="{{ profile.photos.first.image.url }}" alt="{{ post.user.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder">{{ post.user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="post-user">
+                        <div class="post-username">{{ post.user.username }}</div>
+                        <div class="post-time">{{ post.created_at|timesince }} ago</div>
+                    </div>
+                    
+                    {% if post.is_pinned %}
+                    <span class="post-pin-badge">
+                        <i class="ri-pushpin-fill"></i> Pinned
+                    </span>
+                    {% endif %}
+                </div>
+                
+                <div class="post-content">
+                    <p class="post-text">{{ post.content|truncatechars:200 }}</p>
+                    
+                    {% if post.image %}
+                    <div class="post-media">
+                        <img src="{{ post.image.url }}" alt="Post image">
+                    </div>
+                    {% elif post.video %}
+                    <div class="post-media">
+                        <video controls>
+                            <source src="{{ post.video.url }}" type="video/mp4">
+                        </video>
+                    </div>
+                    {% endif %}
+                    
+                    {% if post.location %}
+                    <div class="post-location mt-2">
+                        <i class="ri-map-pin-line"></i> {{ post.location }}
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="post-stats">
+                    <span class="post-stat">
+                        <i class="ri-eye-line"></i> {{ post.views }}
+                    </span>
+                    <span class="post-stat">
+                        <i class="ri-heart-line"></i> {{ post.likes }}
+                    </span>
+                    <span class="post-stat">
+                        <i class="ri-chat-3-line"></i> {{ post.comments_count }}
+                    </span>
+                </div>
+                
+                <div class="post-actions">
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-outline w-100">
+                        View Full Post
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Photo Modal -->
+<div class="modal-overlay" id="photoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">Photo</h3>
+            <button class="modal-close" onclick="closePhotoModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <img id="modalPhoto" src="" alt="" class="w-100">
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function startConversation(username) {
+    window.location.href = `/conversation/user/${username}/`;
+}
+
+function initiateCall(username) {
+    window.location.href = `/call/${username}/`;
+}
+
+function addToContacts(username) {
+    $.ajax({
+        url: '{% url "contact_add" %}',
+        type: 'POST',
+        data: {
+            'username': username,
+            'nickname': username
+        },
+        success: function(response) {
+            if (response.success) {
+                showToast('Added to contacts!', 'success');
+                location.reload();
+            }
+        },
+        error: function(xhr) {
+            showToast(xhr.responseJSON.error, 'error');
+        }
+    });
+}
+
+function toggleFavorite(button) {
+    const username = $(button).data('user');
+    $.ajax({
+        url: `/contact/${getContactId(username)}/favorite/`,
+        type: 'POST',
+        data: {
+            'csrfmiddlewaretoken': '{{ csrf_token }}'
+        },
+        success: function() {
+            const isFavorite = $(button).find('i').hasClass('ri-heart-fill');
+            $(button).find('i').toggleClass('ri-heart-line ri-heart-fill');
+            showToast(isFavorite ? 'Removed from favorites' : 'Added to favorites', 'success');
+        }
+    });
+}
+
+function openPhotoModal(photoUrl) {
+    $('#modalPhoto').attr('src', photoUrl);
+    $('#photoModal').addClass('active');
+}
+
+function closePhotoModal() {
+    $('#photoModal').removeClass('active');
+}
+
+function showToast(message, type) {
+    const toast = $(`
+        <div class="toast toast-${type} glass-card">
+            <span>${message}</span>
+            <button class="toast-close">&times;</button>
+        </div>
+    `);
+    
+    $('.main-content').append(toast);
+    
+    setTimeout(() => {
+        toast.fadeOut(() => toast.remove());
+    }, 3000);
+}
+
+// Close modal on click outside
+$('#photoModal').on('click', function(e) {
+    if (e.target === this) {
+        closePhotoModal();
+    }
+});
+</script>
+{% endblock %}

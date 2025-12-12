@@ -1,0 +1,137 @@
+<div class="flex items-center justify-between">
+    <!-- Search Bar -->
+    <div class="flex-1 max-w-2xl">
+        <form action="{% url 'search' %}" method="get" class="relative">
+            <input type="search" 
+                   name="q" 
+                   placeholder="Search profiles, posts, services..."
+                   class="w-full form-control pl-12"
+                   value="{{ request.GET.q|default:'' }}">
+            <i class="fas fa-search absolute left-4 top-1/2 transform -translate-y-1/2 text-muted"></i>
+            <button type="submit" class="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <i class="fas fa-arrow-right text-accent-primary"></i>
+            </button>
+        </form>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="flex items-center gap-3 ml-4">
+        <!-- Call to Action -->
+        <a href="{% url 'post_create' %}" class="btn btn-primary hidden md:flex">
+            <i class="fas fa-plus"></i> Create
+        </a>
+        
+        <!-- Notifications -->
+        <div class="relative">
+            <button onclick="toggleNotifications()" class="p-2 rounded-lg hover:bg-glass-hover relative">
+                <i class="fas fa-bell"></i>
+                {% if unread_messages_count > 0 %}
+                <span class="notification-badge">{{ unread_messages_count }}</span>
+                {% endif %}
+            </button>
+            
+            <!-- Notifications Dropdown -->
+            <div id="notifications-dropdown" class="hidden absolute right-0 mt-2 w-80 glass rounded-lg p-0 z-50">
+                <div class="p-3 border-b border-glass">
+                    <h4 class="font-semibold">Notifications</h4>
+                </div>
+                <div class="max-h-96 overflow-y-auto">
+                    {% for msg in recent_unread_messages|slice:":5" %}
+                    <a href="{% url 'conversation' msg.conversation.id %}" 
+                       class="block p-3 border-b border-glass hover:bg-glass-hover">
+                        <div class="flex items-start gap-3">
+                            {% with msg.sender.profile.photos.all|first as photo %}
+                            {% if photo %}
+                            <img src="{{ photo.image.url }}" 
+                                 class="w-8 h-8 rounded-full object-cover">
+                            {% else %}
+                            <div class="w-8 h-8 rounded-full bg-gradient-to-br from-pink-500 to-cyan-400 flex items-center justify-center">
+                                <span class="text-white text-xs">{{ msg.sender.username|first|upper }}</span>
+                            </div>
+                            {% endif %}
+                            {% endwith %}
+                            <div class="flex-1">
+                                <p class="text-sm font-medium">{{ msg.sender.username }}</p>
+                                <p class="text-xs text-muted truncate">{{ msg.content|truncatechars:30 }}</p>
+                            </div>
+                            <span class="text-xs text-muted">{{ msg.sent_at|timesince }}</span>
+                        </div>
+                    </a>
+                    {% empty %}
+                    <div class="p-4 text-center text-muted">
+                        <i class="fas fa-bell-slash text-2xl mb-2"></i>
+                        <p>No new notifications</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% if unread_messages_count > 0 %}
+                <div class="p-3 border-t border-glass">
+                    <a href="{% url 'inbox' %}" class="text-center block text-sm text-accent-primary hover:text-accent-secondary">
+                        View all notifications
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Theme Toggle -->
+        <button onclick="toggleTheme()" class="p-2 rounded-lg hover:bg-glass-hover">
+            <i class="fas fa-moon"></i>
+        </button>
+        
+        <!-- Mobile Menu Toggle -->
+        <button onclick="toggleSidebar()" class="p-2 rounded-lg hover:bg-glass-hover md:hidden">
+            <i class="fas fa-bars"></i>
+        </button>
+    </div>
+</div>
+
+<script>
+function toggleNotifications() {
+    const dropdown = document.getElementById('notifications-dropdown');
+    dropdown.classList.toggle('hidden');
+}
+
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    
+    // Update icon
+    const icon = event.currentTarget.querySelector('i');
+    if (newTheme === 'dark') {
+        icon.className = 'fas fa-moon';
+    } else {
+        icon.className = 'fas fa-sun';
+    }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    const dropdown = document.getElementById('notifications-dropdown');
+    const button = document.querySelector('[onclick="toggleNotifications()"]');
+    
+    if (dropdown && button && !button.contains(event.target) && !dropdown.contains(event.target)) {
+        dropdown.classList.add('hidden');
+    }
+});
+
+// Load saved theme
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    
+    // Set correct icon
+    const themeButton = document.querySelector('[onclick="toggleTheme()"]');
+    if (themeButton) {
+        const icon = themeButton.querySelector('i');
+        if (savedTheme === 'dark') {
+            icon.className = 'fas fa-moon';
+        } else {
+            icon.className = 'fas fa-sun';
+        }
+    }
+});
+</script>

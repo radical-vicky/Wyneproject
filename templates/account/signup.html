@@ -1,0 +1,329 @@
+{% extends "base_auth.html" %}
+{% load i18n %}
+
+{% block title %}Create Account | EscortConnect{% endblock %}
+
+{% block auth_content %}
+<div class="auth-header">
+    <h1 class="auth-title">Join Premium</h1>
+    <p class="auth-subtitle">Create your exclusive account</p>
+</div>
+
+<!-- Tabs -->
+<div class="auth-tabs">
+    <a href="{% url 'account_login' %}" class="auth-tab">Sign In</a>
+    <a href="{% url 'account_signup' %}" class="auth-tab active">Register</a>
+</div>
+
+<!-- Signup Form -->
+<form class="auth-form" method="POST" action="{% url 'account_signup' %}" id="signupForm">
+    {% csrf_token %}
+    
+    {% if form.non_field_errors %}
+    <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        {{ form.non_field_errors }}
+    </div>
+    {% endif %}
+    
+    <!-- Account Type -->
+    <div class="account-type mb-4">
+        <label class="form-label mb-2">I am a:</label>
+        <div class="type-selector">
+            <label class="type-option">
+                <input type="radio" name="account_type" value="client" checked hidden>
+                <div class="type-card">
+                    <i class="fas fa-user-tie"></i>
+                    <h4>Client</h4>
+                    <p>Looking for premium services</p>
+                </div>
+            </label>
+            <label class="type-option">
+                <input type="radio" name="account_type" value="provider" hidden>
+                <div class="type-card">
+                    <i class="fas fa-star"></i>
+                    <h4>Provider</h4>
+                    <p>Offering premium services</p>
+                </div>
+            </label>
+        </div>
+    </div>
+    
+    <!-- Email -->
+    <div class="form-group">
+        <input type="email" 
+               name="email" 
+               id="id_email" 
+               class="form-input"
+               required
+               autocomplete="email"
+               placeholder=" ">
+        <label for="id_email" class="form-label">Email Address</label>
+        <i class="fas fa-envelope input-icon"></i>
+    </div>
+    
+    <!-- Username -->
+    <div class="form-group">
+        <input type="text" 
+               name="username" 
+               id="id_username" 
+               class="form-input"
+               required
+               pattern="[A-Za-z0-9_]+"
+               title="Only letters, numbers, and underscores"
+               placeholder=" ">
+        <label for="id_username" class="form-label">Username</label>
+        <i class="fas fa-user input-icon"></i>
+    </div>
+    
+    <!-- Password -->
+    <div class="form-group">
+        <input type="password" 
+               name="password1" 
+               id="id_password1" 
+               class="form-input"
+               required
+               minlength="8"
+               placeholder=" ">
+        <label for="id_password1" class="form-label">Password</label>
+        <i class="fas fa-lock input-icon"></i>
+        <button type="button" class="password-toggle" data-target="id_password1">
+            <i class="fas fa-eye"></i>
+        </button>
+    </div>
+    
+    <!-- Confirm Password -->
+    <div class="form-group">
+        <input type="password" 
+               name="password2" 
+               id="id_password2" 
+               class="form-input"
+               required
+               placeholder=" ">
+        <label for="id_password2" class="form-label">Confirm Password</label>
+        <i class="fas fa-lock input-icon"></i>
+        <button type="button" class="password-toggle" data-target="id_password2">
+            <i class="fas fa-eye"></i>
+        </button>
+    </div>
+    
+    <!-- Password Strength -->
+    <div class="password-strength mb-3">
+        <div class="strength-bar">
+            <div class="strength-fill" id="strengthFill"></div>
+        </div>
+        <div class="strength-text" id="strengthText">Password strength: Weak</div>
+    </div>
+    
+    <!-- Terms -->
+    <div class="checkbox-group">
+        <label class="checkbox-label">
+            <input type="checkbox" name="terms" id="terms" required>
+            <span>I agree to <a href="#" class="link-premium">Terms</a> & <a href="#" class="link-premium">Privacy</a></span>
+        </label>
+    </div>
+    
+    <div class="checkbox-group">
+        <label class="checkbox-label">
+            <input type="checkbox" name="age" id="age" required>
+            <span>I confirm I am 18 years or older</span>
+        </label>
+    </div>
+    
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+    
+    <!-- Submit -->
+    <button type="submit" class="btn-primary">
+        <i class="fas fa-user-plus"></i>
+        Create Account
+    </button>
+</form>
+
+<!-- Login Link -->
+<div class="text-center mt-3">
+    <p class="link-text">
+        Already have an account? 
+        <a href="{% url 'account_login' %}" class="link-premium">Sign In</a>
+    </p>
+</div>
+
+<!-- Benefits -->
+<div class="auth-footer mt-4">
+    <div class="benefits">
+        <div class="benefit-item">
+            <i class="fas fa-check-circle"></i>
+            <span>Verified members only</span>
+        </div>
+        <div class="benefit-item">
+            <i class="fas fa-shield-alt"></i>
+            <span>Bank-level security</span>
+        </div>
+        <div class="benefit-item">
+            <i class="fas fa-crown"></i>
+            <span>VIP access available</span>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Signup specific styles */
+.account-type {
+    width: 100%;
+}
+
+.type-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+.type-option input:checked + .type-card {
+    border-color: #ff4081;
+    background: rgba(255,64,129,0.1);
+}
+
+.type-card {
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.type-card:hover {
+    background: rgba(255,255,255,0.08);
+}
+
+.type-card i {
+    font-size: 24px;
+    color: #ff4081;
+    margin-bottom: 10px;
+}
+
+.type-card h4 {
+    font-size: 0.95rem;
+    color: #fff;
+    margin-bottom: 5px;
+}
+
+.type-card p {
+    font-size: 0.8rem;
+    color: #b0b0d0;
+    line-height: 1.3;
+}
+
+/* Password strength */
+.password-strength {
+    margin-top: 10px;
+}
+
+.strength-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.strength-fill {
+    height: 100%;
+    width: 0%;
+    background: #ff4757;
+    transition: all 0.3s ease;
+}
+
+.strength-text {
+    font-size: 0.8rem;
+    color: #b0b0d0;
+}
+
+/* Benefits */
+.benefits {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    text-align: center;
+}
+
+.benefit-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.benefit-item i {
+    color: #ff4081;
+    font-size: 1rem;
+}
+
+.benefit-item span {
+    font-size: 0.75rem;
+    color: #b0b0d0;
+}
+
+@media (max-width: 480px) {
+    .type-selector {
+        grid-template-columns: 1fr;
+    }
+    
+    .benefits {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+}
+</style>
+
+<script>
+$(document).ready(function() {
+    // Password strength checker
+    $('#id_password1').on('input', function() {
+        const password = $(this).val();
+        const strengthFill = $('#strengthFill');
+        const strengthText = $('#strengthText');
+        
+        let score = 0;
+        if (password.length >= 8) score++;
+        if (/[A-Z]/.test(password)) score++;
+        if (/[0-9]/.test(password)) score++;
+        if (/[^A-Za-z0-9]/.test(password)) score++;
+        
+        const colors = ['#ff4757', '#ffa502', '#2ed573', '#1e90ff'];
+        const labels = ['Very Weak', 'Weak', 'Good', 'Strong'];
+        
+        const width = (score * 25) + '%';
+        strengthFill.css({
+            'width': width,
+            'background-color': colors[score] || colors[0]
+        });
+        strengthText.text('Password strength: ' + (labels[score] || 'Very Weak'));
+        strengthText.css('color', colors[score] || colors[0]);
+    });
+    
+    // Account type selection
+    $('.type-option input').change(function() {
+        $('.type-card').removeClass('active');
+        $(this).siblings('.type-card').addClass('active');
+    });
+    
+    // Initial active state
+    $('.type-option input:checked').siblings('.type-card').addClass('active');
+    
+    // Password confirmation check
+    $('#id_password2').on('input', function() {
+        const pass1 = $('#id_password1').val();
+        const pass2 = $(this).val();
+        
+        if (pass1 && pass2 && pass1 !== pass2) {
+            $(this).addClass('error');
+        } else {
+            $(this).removeClass('error');
+        }
+    });
+});
+</script>
+{% endblock %}

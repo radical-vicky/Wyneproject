@@ -1,0 +1,111 @@
+{% extends "account/base.html" %}
+
+{% load i18n %}
+
+{% block head_title %}{% trans "Email Addresses" %}{% endblock %}
+
+{% block auth_header %}
+<h2>{% trans "Email Addresses" %}</h2>
+<p>{% trans "Manage your email addresses" %}</p>
+{% endblock %}
+
+{% block content %}
+{% if user.emailaddress_set.all %}
+<div style="margin-bottom: 30px;">
+    <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--auth-text);">{% trans "Current Email Addresses" %}</h3>
+    
+    <form action="{% url 'account_email' %}" method="post" class="email_list">
+        {% csrf_token %}
+        
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            {% for emailaddress in user.emailaddress_set.all %}
+            <div style="background: rgba(255, 255, 255, 0.05); border: 1px solid var(--auth-border); border-radius: 12px; padding: 15px; display: flex; align-items: center; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 40px; height: 40px; background: rgba(138, 43, 226, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-envelope" style="color: #8a2be2;"></i>
+                    </div>
+                    <div>
+                        <div style="font-weight: 600; color: var(--auth-text);">{{ emailaddress.email }}</div>
+                        {% if emailaddress.verified %}
+                        <div style="font-size: 12px; color: #00d68f;">
+                            <i class="fas fa-check-circle"></i> {% trans "Verified" %}
+                        </div>
+                        {% else %}
+                        <div style="font-size: 12px; color: #ffaa00;">
+                            <i class="fas fa-clock"></i> {% trans "Unverified" %}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px;">
+                    {% if emailaddress.primary %}
+                    <span style="background: rgba(0, 214, 143, 0.1); color: #00d68f; padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: 600;">
+                        {% trans "Primary" %}
+                    </span>
+                    {% else %}
+                    <button type="submit" name="action_primary" value="{{ emailaddress.email }}" style="background: rgba(138, 43, 226, 0.1); color: #8a2be2; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.3s;">
+                        {% trans "Make Primary" %}
+                    </button>
+                    {% endif %}
+                    
+                    {% if not emailaddress.primary %}
+                    <button type="submit" name="action_remove" value="{{ emailaddress.email }}" style="background: rgba(255, 71, 87, 0.1); color: #ff4757; border: none; padding: 5px 10px; border-radius: 6px; font-size: 12px; cursor: pointer; transition: all 0.3s;">
+                        {% trans "Remove" %}
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<!-- Add Email Form -->
+<div>
+    <h3 style="font-size: 18px; margin-bottom: 15px; color: var(--auth-text);">{% trans "Add Email Address" %}</h3>
+    
+    <form method="post" action="{% url 'account_email' %}" class="add_email" style="margin-bottom: 30px;">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label class="form-label" for="id_email">{% trans "New Email Address" %}</label>
+            <div class="input-with-icon">
+                <i class="fas fa-envelope input-icon"></i>
+                <input type="email" name="email" placeholder="Enter new email address" required id="id_email" class="form-input">
+            </div>
+        </div>
+        
+        <button type="submit" name="action_add" class="auth-button">
+            <i class="fas fa-plus"></i> {% trans "Add Email" %}
+        </button>
+    </form>
+</div>
+
+<div style="display: flex; justify-content: center; gap: 15px; margin-top: 30px;">
+    <a href="{% url 'dashboard' %}" class="auth-button" style="background: transparent; border: 1px solid var(--auth-border); color: var(--auth-text); text-decoration: none; text-align: center; flex: 1;">
+        <i class="fas fa-arrow-left"></i> {% trans "Back to Dashboard" %}
+    </a>
+    
+    <a href="{% url 'account_change_password' %}" class="auth-button" style="background: transparent; border: 1px solid var(--auth-border); color: var(--auth-text); text-decoration: none; text-align: center; flex: 1;">
+        <i class="fas fa-key"></i> {% trans "Change Password" %}
+    </a>
+</div>
+
+{% block extra_body %}
+<script type="text/javascript">
+(function() {
+    var message = "{% trans 'Do you really want to remove the selected email address?' %}";
+    var actions = document.getElementsByName('action_remove');
+    if (actions.length) {
+        actions[0].addEventListener("click", function(e) {
+            if (!confirm(message)) {
+                e.preventDefault();
+            }
+        });
+    }
+})();
+</script>
+{% endblock %}
+{% endblock %}

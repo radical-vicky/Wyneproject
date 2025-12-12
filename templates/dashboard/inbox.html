@@ -1,0 +1,460 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Messages | ConnectPlus{% endblock %}
+
+{% block content %}
+<div class="messaging-container">
+    <div class="grid grid-3 gap-0">
+        <!-- Conversations List -->
+        <div class="conversation-sidebar glass-card">
+            <div class="sidebar-header p-3">
+                <h2 class="sidebar-title">Messages</h2>
+                <button class="btn btn-primary btn-sm" onclick="newConversation()">
+                    <i class="ri-add-line"></i> New
+                </button>
+            </div>
+            
+            <!-- Search -->
+            <div class="sidebar-search p-3">
+                <div class="search-bar">
+                    <i class="ri-search-line search-icon"></i>
+                    <input type="text" class="search-input" placeholder="Search messages..." 
+                           onkeyup="searchConversations(this.value)">
+                </div>
+            </div>
+            
+            <!-- Conversations -->
+            <div class="conversation-list">
+                {% for conversation in conversations %}
+                <a href="{% url 'conversation' conversation.id %}" 
+                   class="conversation-item {% if conversation.id == active_conversation.id %}active{% endif %}">
+                    <div class="conversation-header">
+                        <div class="conversation-avatar">
+                            {% if conversation.other_profile.photos.first %}
+                            <img src="{{ conversation.other_profile.photos.first.image.url }}" 
+                                 alt="{{ conversation.other_participant.username }}">
+                            {% else %}
+                            <div class="avatar-placeholder">
+                                {{ conversation.other_participant.username|first|upper }}
+                            </div>
+                            {% endif %}
+                            
+                            {% if conversation.other_profile.is_online %}
+                            <span class="online-status"></span>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="conversation-info">
+                            <div class="conversation-name">
+                                {{ conversation.other_participant.username }}
+                            </div>
+                            <div class="conversation-preview">
+                                {{ conversation.last_message|truncatechars:30 }}
+                            </div>
+                        </div>
+                        
+                        <div class="conversation-meta">
+                            <div class="conversation-time">
+                                {{ conversation.last_message_at|timesince }}
+                            </div>
+                            {% if conversation.unread_count %}
+                            <div class="conversation-unread">
+                                {{ conversation.unread_count }}
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </a>
+                {% empty %}
+                <div class="empty-state p-4 text-center">
+                    <i class="ri-message-3-line text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">No conversations yet</p>
+                    <button class="btn btn-primary mt-2" onclick="newConversation()">
+                        Start a conversation
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Chat Area -->
+        <div class="chat-area glass-card">
+            {% if active_conversation %}
+            <!-- Chat Header -->
+            <div class="chat-header p-3">
+                <div class="chat-user">
+                    <div class="chat-avatar">
+                        {% if other_profile.photos.first %}
+                        <img src="{{ other_profile.photos.first.image.url }}" 
+                             alt="{{ other_user.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder">
+                            {{ other_user.username|first|upper }}
+                        </div>
+                        {% endif %}
+                        
+                        {% if other_profile.is_online %}
+                        <span class="online-status"></span>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="chat-info">
+                        <h3 class="chat-name">{{ other_user.username }}</h3>
+                        <div class="chat-status">
+                            {% if other_profile.is_online %}
+                            <span class="status-text online">Online</span>
+                            {% else %}
+                            <span class="status-text offline">
+                                Last seen {{ other_profile.last_active|timesince }} ago
+                            </span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="chat-actions">
+                    <button class="btn btn-icon" onclick="initiateCall('{{ other_user.username }}')">
+                        <i class="ri-phone-line"></i>
+                    </button>
+                    <button class="btn btn-icon" onclick="viewProfile('{{ other_user.username }}')">
+                        <i class="ri-user-line"></i>
+                    </button>
+                    <div class="dropdown">
+                        <button class="btn btn-icon dropdown-toggle">
+                            <i class="ri-more-2-line"></i>
+                        </button>
+                        <div class="dropdown-menu">
+                            <a href="#" class="dropdown-item">
+                                <i class="ri-user-unfollow-line"></i> Block
+                            </a>
+                            <a href="#" class="dropdown-item">
+                                <i class="ri-delete-bin-line"></i> Delete Chat
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Messages -->
+            <div class="message-container" id="messageContainer">
+                {% for message in messages %}
+                <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
+                    <div class="message-content">
+                        {% if message.message_type == 'image' %}
+                        <img src="{{ message.media_file.url }}" alt="Image" class="message-media">
+                        {% elif message.message_type == 'video' %}
+                        <video src="{{ message.media_file.url }}" controls class="message-media"></video>
+                        {% elif message.message_type == 'audio' %}
+                        <audio src="{{ message.media_file.url }}" controls class="message-media"></audio>
+                        {% else %}
+                        <div class="message-text">{{ message.content }}</div>
+                        {% endif %}
+                        
+                        <span class="message-time">
+                            {{ message.sent_at|time:"H:i" }}
+                            {% if message.sender == user %}
+                            <i class="ri-check-{% if message.is_read %}double{% else %}line{% endif %}"></i>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Message Input -->
+            <div class="message-input">
+                <div class="message-actions">
+                    <button class="btn btn-icon" onclick="attachFile()">
+                        <i class="ri-attachment-line"></i>
+                    </button>
+                    <button class="btn btn-icon" onclick="attachImage()">
+                        <i class="ri-image-line"></i>
+                    </button>
+                    <button class="btn btn-icon" onclick="recordAudio()">
+                        <i class="ri-mic-line"></i>
+                    </button>
+                </div>
+                
+                <form method="post" enctype="multipart/form-data" id="messageForm">
+                    {% csrf_token %}
+                    <input type="text" name="content" class="message-input-field" 
+                           placeholder="Type a message..." autocomplete="off">
+                    <input type="file" name="media_file" id="mediaInput" style="display: none;">
+                    
+                    <button type="submit" class="message-send-btn">
+                        <i class="ri-send-plane-line"></i>
+                    </button>
+                </form>
+            </div>
+            
+            {% else %}
+            <!-- Empty Chat State -->
+            <div class="empty-chat text-center p-5">
+                <i class="ri-message-3-line text-muted" style="font-size: 4rem;"></i>
+                <h3 class="mt-3">Your Messages</h3>
+                <p class="text-muted">Select a conversation or start a new one</p>
+                <button class="btn btn-primary mt-3" onclick="newConversation()">
+                    <i class="ri-add-line"></i> New Message
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- User Info Sidebar -->
+        <div class="user-sidebar glass-card">
+            {% if other_user %}
+            <div class="user-info p-3">
+                <div class="user-avatar text-center">
+                    {% if other_profile.photos.first %}
+                    <img src="{{ other_profile.photos.first.image.url }}" 
+                         alt="{{ other_user.username }}" class="avatar-large">
+                    {% else %}
+                    <div class="avatar-placeholder-large">
+                        {{ other_user.username|first|upper }}
+                    </div>
+                    {% endif %}
+                    
+                    <h3 class="user-name mt-2">{{ other_user.username }}</h3>
+                    
+                    <div class="user-status">
+                        {% if other_profile.is_online %}
+                        <span class="status-badge online">
+                            <i class="ri-checkbox-blank-circle-fill"></i> Online
+                        </span>
+                        {% else %}
+                        <span class="status-badge offline">
+                            <i class="ri-checkbox-blank-circle-line"></i> Offline
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div class="user-details mt-4">
+                    <div class="detail-item">
+                        <span class="detail-label">Location</span>
+                        <span class="detail-value">{{ other_profile.city_town }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Age</span>
+                        <span class="detail-value">{{ other_profile.age }}</span>
+                    </div>
+                    
+                    <div class="detail-item">
+                        <span class="detail-label">Gender</span>
+                        <span class="detail-value">{{ other_profile.get_gender_display }}</span>
+                    </div>
+                    
+                    {% if other_profile.services_offered %}
+                    <div class="detail-item">
+                        <span class="detail-label">Services</span>
+                        <div class="service-tags mt-1">
+                            {% for service in other_profile.get_services_list|slice:":3" %}
+                            <span class="service-tag">{{ service }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="user-actions mt-4">
+                    <button class="btn btn-primary w-100 mb-2" 
+                            onclick="window.location.href='{% url 'booking_create' other_user.username %}'">
+                        <i class="ri-calendar-line"></i> Book Service
+                    </button>
+                    
+                    <button class="btn btn-outline w-100 mb-2" 
+                            onclick="initiateCall('{{ other_user.username }}')">
+                        <i class="ri-phone-line"></i> Call
+                    </button>
+                    
+                    <button class="btn btn-outline w-100" 
+                            onclick="window.location.href='{% url 'profile_view' other_user.username %}'">
+                        <i class="ri-profile-line"></i> View Profile
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- New Conversation Modal -->
+<div class="modal-overlay" id="newConversationModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">New Message</h3>
+            <button class="modal-close" onclick="closeNewConversationModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="search-bar mb-3">
+                <i class="ri-search-line search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search users..." 
+                       onkeyup="searchUsers(this.value)">
+            </div>
+            
+            <div class="user-list" id="userList">
+                <!-- Users will be loaded here -->
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let currentConversationId = {{ active_conversation.id|default:"null" }};
+let lastMessageId = {{ messages.last.id|default:0 }};
+
+function newConversation() {
+    $('#newConversationModal').addClass('active');
+}
+
+function closeNewConversationModal() {
+    $('#newConversationModal').removeClass('active');
+}
+
+function searchUsers(query) {
+    if (query.length < 2) return;
+    
+    $.ajax({
+        url: '{% url "api_search_users" %}',
+        type: 'GET',
+        data: { 'q': query },
+        success: function(data) {
+            const userList = $('#userList');
+            userList.empty();
+            
+            if (data.users.length === 0) {
+                userList.html('<p class="text-muted text-center p-3">No users found</p>');
+                return;
+            }
+            
+            data.users.forEach(user => {
+                const userElement = $(`
+                    <div class="user-list-item" onclick="startConversation('${user.username}')">
+                        <div class="user-avatar-sm">
+                            ${user.avatar_url ? 
+                                `<img src="${user.avatar_url}" alt="${user.username}">` :
+                                `<div class="avatar-placeholder">${user.username[0].toUpperCase()}</div>`
+                            }
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">${user.username}</div>
+                            <div class="user-location">${user.city_town}</div>
+                        </div>
+                    </div>
+                `);
+                userList.append(userElement);
+            });
+        }
+    });
+}
+
+function searchConversations(query) {
+    $('.conversation-item').each(function() {
+        const name = $(this).find('.conversation-name').text().toLowerCase();
+        const preview = $(this).find('.conversation-preview').text().toLowerCase();
+        
+        if (name.includes(query.toLowerCase()) || preview.includes(query.toLowerCase())) {
+            $(this).show();
+        } else {
+            $(this).hide();
+        }
+    });
+}
+
+function attachFile() {
+    $('#mediaInput').attr('accept', '*').click();
+}
+
+function attachImage() {
+    $('#mediaInput').attr('accept', 'image/*').click();
+}
+
+function recordAudio() {
+    // Implement audio recording
+    showToast('Audio recording not implemented yet', 'info');
+}
+
+// Auto-scroll to bottom of messages
+function scrollToBottom() {
+    const container = $('#messageContainer');
+    container.scrollTop(container[0].scrollHeight);
+}
+
+// Check for new messages
+function checkNewMessages() {
+    if (!currentConversationId) return;
+    
+    $.ajax({
+        url: `/api/conversation/${currentConversationId}/messages/`,
+        type: 'GET',
+        data: { 'last_message_id': lastMessageId },
+        success: function(data) {
+            if (data.messages.length > 0) {
+                data.messages.forEach(msg => {
+                    const messageElement = $(`
+                        <div class="message ${msg.sender === '{{ user.username }}' ? 'sent' : 'received'}">
+                            <div class="message-content">
+                                <div class="message-text">${msg.content}</div>
+                                <span class="message-time">
+                                    ${msg.sent_at}
+                                    ${msg.sender === '{{ user.username }}' ? 
+                                        '<i class="ri-check-double-line"></i>' : ''}
+                                </span>
+                            </div>
+                        </div>
+                    `);
+                    $('#messageContainer').append(messageElement);
+                    lastMessageId = Math.max(lastMessageId, msg.id);
+                });
+                scrollToBottom();
+            }
+        }
+    });
+}
+
+// Form submission
+$('#messageForm').on('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    
+    $.ajax({
+        url: window.location.href,
+        type: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        success: function() {
+            $('#messageForm')[0].reset();
+            checkNewMessages();
+        }
+    });
+});
+
+// Initialize
+$(document).ready(function() {
+    scrollToBottom();
+    
+    // Check for new messages every 5 seconds
+    setInterval(checkNewMessages, 5000);
+    
+    // File input change handler
+    $('#mediaInput').on('change', function() {
+        if (this.files.length > 0) {
+            $('#messageForm').submit();
+        }
+    });
+});
+
+// Close modal on click outside
+$('.modal-overlay').on('click', function(e) {
+    if (e.target === this) {
+        $(this).removeClass('active');
+    }
+});
+</script>
+{% endblock %}

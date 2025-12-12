@@ -1,0 +1,301 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | ConnectPlus{% endblock %}
+
+{% block content %}
+<div class="dashboard-container">
+    <!-- Welcome Section -->
+    <div class="dashboard-widget glass-card">
+        <div class="widget-header">
+            <h2 class="widget-title">Welcome back, {{ user.username }}!</h2>
+            <div class="widget-actions">
+                <button class="btn btn-primary btn-sm" onclick="refreshStats()">
+                    <i class="ri-refresh-line"></i> Refresh
+                </button>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon text-primary">
+                    <i class="ri-eye-line"></i>
+                </div>
+                <div class="stat-value">{{ profile.total_views }}</div>
+                <div class="stat-label">Profile Views</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon text-success">
+                    <i class="ri-calendar-check-line"></i>
+                </div>
+                <div class="stat-value">{{ stats.total_bookings }}</div>
+                <div class="stat-label">Bookings</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon text-info">
+                    <i class="ri-chat-3-line"></i>
+                </div>
+                <div class="stat-value">{{ stats.total_contacts }}</div>
+                <div class="stat-label">Contacts</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon text-warning">
+                    <i class="ri-wallet-3-line"></i>
+                </div>
+                <div class="stat-value">KES {{ wallet.balance|floatformat:2 }}</div>
+                <div class="stat-label">Wallet Balance</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="grid grid-2 gap-3">
+        <!-- Recent Activity -->
+        <div class="dashboard-widget glass-card">
+            <div class="widget-header">
+                <h3 class="widget-title">Recent Activity</h3>
+                <a href="{% url 'booking_list' %}" class="btn btn-outline btn-sm">
+                    View All
+                </a>
+            </div>
+            
+            <div class="activity-list">
+                {% for booking in pending_bookings %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="ri-calendar-line"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            {% if booking.client == user %}
+                            Booking request sent to {{ booking.service_provider.username }}
+                            {% else %}
+                            New booking from {{ booking.client.username }}
+                            {% endif %}
+                        </div>
+                        <div class="activity-time">
+                            {{ booking.created_at|timesince }} ago
+                        </div>
+                    </div>
+                    <span class="badge badge-{{ booking.status }}">
+                        {{ booking.status|title }}
+                    </span>
+                </div>
+                {% empty %}
+                <p class="text-muted text-center p-3">No recent activity</p>
+                {% endfor %}
+                
+                {% for message in recent_messages %}
+                <div class="activity-item">
+                    <div class="activity-icon">
+                        <i class="ri-message-2-line"></i>
+                    </div>
+                    <div class="activity-content">
+                        <div class="activity-text">
+                            New message from {{ message.sender.username }}
+                        </div>
+                        <div class="activity-time">
+                            {{ message.sent_at|timesince }} ago
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <!-- Quick Stats -->
+        <div class="dashboard-widget glass-card">
+            <div class="widget-header">
+                <h3 class="widget-title">Profile Stats</h3>
+                <a href="{% url 'profile' %}" class="btn btn-outline btn-sm">
+                    View Profile
+                </a>
+            </div>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <i class="ri-star-line stat-icon"></i>
+                    <div class="stat-value">{{ profile.rating|floatformat:1 }}</div>
+                    <div class="stat-label">Rating</div>
+                </div>
+                
+                <div class="stat-card">
+                    <i class="ri-phone-line stat-icon"></i>
+                    <div class="stat-value">{{ profile.total_calls }}</div>
+                    <div class="stat-label">Total Calls</div>
+                </div>
+                
+                <div class="stat-card">
+                    <i class="ri-thumb-up-line stat-icon"></i>
+                    <div class="stat-value">{{ posts.count }}</div>
+                    <div class="stat-label">Posts</div>
+                </div>
+                
+                <div class="stat-card">
+                    <i class="ri-check-double-line stat-icon"></i>
+                    <div class="stat-value">
+                        {% if profile.is_verified %}
+                        Verified
+                        {% else %}
+                        Pending
+                        {% endif %}
+                    </div>
+                    <div class="stat-label">Status</div>
+                </div>
+            </div>
+            
+            <div class="mt-3">
+                <h4 class="mb-2">Service Tags</h4>
+                <div class="profile-services">
+                    {% for service in profile.get_services_list %}
+                    <span class="service-tag">{{ service }}</span>
+                    {% empty %}
+                    <span class="text-muted">No services added</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Posts -->
+    <div class="dashboard-widget glass-card">
+        <div class="widget-header">
+            <h3 class="widget-title">Your Recent Posts</h3>
+            <a href="{% url 'post_create' %}" class="btn btn-primary btn-sm">
+                <i class="ri-add-line"></i> New Post
+            </a>
+        </div>
+        
+        {% if recent_posts %}
+        <div class="grid grid-3 gap-3">
+            {% for post in recent_posts %}
+            <div class="post-card">
+                <div class="post-header">
+                    <div class="post-avatar">
+                        {% if profile.photos.first %}
+                        <img src="{{ profile.photos.first.image.url }}" alt="{{ user.username }}">
+                        {% else %}
+                        <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="post-user">
+                        <div class="post-username">{{ user.username }}</div>
+                        <div class="post-time">{{ post.created_at|timesince }} ago</div>
+                    </div>
+                </div>
+                
+                <div class="post-content">
+                    <p class="post-text">{{ post.content|truncatechars:100 }}</p>
+                    {% if post.image %}
+                    <div class="post-media">
+                        <img src="{{ post.image.url }}" alt="Post image">
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="post-stats">
+                    <span class="post-stat">
+                        <i class="ri-heart-line"></i> {{ post.likes }}
+                    </span>
+                    <span class="post-stat">
+                        <i class="ri-chat-3-line"></i> {{ post.comments_count }}
+                    </span>
+                </div>
+                
+                <div class="post-actions">
+                    <a href="{% url 'post_detail' post.id %}" class="btn btn-outline btn-sm w-100">
+                        View Post
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="text-center p-4">
+            <i class="ri-file-text-line text-muted" style="font-size: 3rem;"></i>
+            <p class="text-muted mt-2">No posts yet. Create your first post!</p>
+            <a href="{% url 'post_create' %}" class="btn btn-primary mt-2">
+                Create First Post
+            </a>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Quick Links -->
+    <div class="dashboard-widget glass-card">
+        <h3 class="widget-title mb-3">Quick Actions</h3>
+        <div class="grid grid-4">
+            <a href="{% url 'upload_photo' %}" class="quick-action-btn">
+                <i class="ri-camera-line"></i>
+                <span>Add Photos</span>
+            </a>
+            
+            <a href="{% url 'wallet' %}" class="quick-action-btn">
+                <i class="ri-wallet-3-line"></i>
+                <span>Wallet</span>
+            </a>
+            
+            <a href="{% url 'search' %}" class="quick-action-btn">
+                <i class="ri-search-line"></i>
+                <span>Search</span>
+            </a>
+            
+            <a href="{% url 'settings' %}" class="quick-action-btn">
+                <i class="ri-settings-3-line"></i>
+                <span>Settings</span>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function refreshStats() {
+    $('.loading-spinner').show();
+    $.ajax({
+        url: '{% url "api_get_notifications" %}',
+        type: 'GET',
+        success: function(data) {
+            // Update notification badge
+            $('.notification-badge').text(data.total);
+            // You can add more updates here
+            showToast('Stats updated!', 'success');
+        },
+        complete: function() {
+            $('.loading-spinner').hide();
+        }
+    });
+}
+
+function showToast(message, type) {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type} glass-card`;
+    toast.innerHTML = `
+        <span>${message}</span>
+        <button class="toast-close">&times;</button>
+    `;
+    document.querySelector('.main-content').appendChild(toast);
+    
+    setTimeout(() => {
+        toast.remove();
+    }, 3000);
+}
+
+// Update online status
+window.addEventListener('focus', function() {
+    $.get('{% url "api_update_online_status" %}?status=online');
+});
+
+window.addEventListener('blur', function() {
+    setTimeout(() => {
+        if (!document.hasFocus()) {
+            $.get('{% url "api_update_online_status" %}?status=offline');
+        }
+    }, 30000); // 30 seconds after losing focus
+});
+</script>
+{% endblock %}

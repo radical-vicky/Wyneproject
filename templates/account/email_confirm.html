@@ -1,0 +1,122 @@
+{% extends "base_auth.html" %}
+{% load i18n %}
+{% load account %}
+
+{% block title %}Confirm Email | EscortConnect{% endblock %}
+
+{% block auth_content %}
+<div class="auth-header text-center">
+    <div class="icon-large mb-3">
+        {% if confirmation %}
+            <i class="fas fa-envelope-open-text"></i>
+        {% else %}
+            <i class="fas fa-exclamation-triangle"></i>
+        {% endif %}
+    </div>
+    
+    {% if confirmation %}
+        <h1 class="auth-title">Confirm Your Email</h1>
+        <p class="auth-subtitle">
+            Please confirm that 
+            <a href="mailto:{{ confirmation.email_address.email }}" class="link-premium">
+                {{ confirmation.email_address.email }}
+            </a> 
+            is your email address.
+        </p>
+    {% else %}
+        <h1 class="auth-title">Invalid Link</h1>
+        <p class="auth-subtitle">
+            This confirmation link has expired or is invalid.
+        </p>
+    {% endif %}
+</div>
+
+{% if confirmation %}
+<form class="auth-form" method="POST" action="{% url 'account_confirm_email' confirmation.key %}">
+    {% csrf_token %}
+    
+    <button type="submit" class="btn-primary">
+        <i class="fas fa-check-circle"></i>
+        Confirm Email
+    </button>
+</form>
+{% endif %}
+
+<!-- Next Steps -->
+<div class="next-steps mt-4">
+    {% if confirmation %}
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>What happens next?</strong>
+            <p style="margin-top: 5px; font-size: 0.9rem;">
+                After confirmation, you'll have full access to all premium features.
+            </p>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Need a new link?</strong>
+            <p style="margin-top: 5px; font-size: 0.9rem;">
+                You can request a new confirmation email from your account settings.
+            </p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Action Links -->
+<div class="action-links mt-4">
+    {% if confirmation %}
+    <a href="{% url 'dashboard' %}" class="link-premium">
+        <i class="fas fa-home"></i>
+        Go to Dashboard
+    </a>
+    {% else %}
+    <div class="link-group">
+        <a href="{% url 'account_login' %}" class="link-premium" style="margin-right: 15px;">
+            <i class="fas fa-sign-in-alt"></i>
+            Sign In
+        </a>
+        <a href="{% url 'account_signup' %}" class="link-premium">
+            <i class="fas fa-user-plus"></i>
+            Sign Up
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.icon-large i {
+    font-size: 3rem;
+    {% if confirmation %}
+        color: #2196f3;
+        background: rgba(33,150,243,0.1);
+    {% else %}
+        color: #ff9800;
+        background: rgba(255,152,0,0.1);
+    {% endif %}
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.link-group {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+@media (max-width: 480px) {
+    .link-group {
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+    }
+}
+</style>
+{% endblock %}

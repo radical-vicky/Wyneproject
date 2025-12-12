@@ -1,0 +1,18 @@
+<div class="mobile-header-left">
+    <button class="mobile-menu-toggle">
+        <i class="fas fa-bars"></i>
+    </button>
+    <a href="{% url 'dashboard' %}" class="mobile-logo">
+        CoopConnect
+    </a>
+</div>
+
+<div class="mobile-header-right">
+    <button class="mobile-action-btn" onclick="window.location.href='{% url 'wallet' %}'">
+        <i class="fas fa-wallet"></i>
+    </button>
+    <button class="mobile-action-btn notification-btn" onclick="window.location.href='{% url 'inbox' %}'">
+        <i class="fas fa-bell"></i>
+        <span class="mobile-notification-count">0</span>
+    </button>
+</div>

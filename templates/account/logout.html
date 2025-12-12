@@ -1,0 +1,153 @@
+{% extends "base_auth.html" %}
+{% load i18n %}
+
+{% block title %}Sign Out | EscortConnect{% endblock %}
+
+{% block auth_content %}
+<div class="auth-header text-center">
+    <div class="icon-large mb-3">
+        <i class="fas fa-sign-out-alt"></i>
+    </div>
+    <h1 class="auth-title">Sign Out</h1>
+    <p class="auth-subtitle">Are you sure you want to sign out?</p>
+</div>
+
+<!-- Logout Form -->
+<form class="auth-form" method="POST" action="{% url 'account_logout' %}">
+    {% csrf_token %}
+    
+    {% if redirect_field_value %}
+    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+    {% endif %}
+    
+    <!-- Warning Message -->
+    <div class="alert alert-warning mb-4">
+        <i class="fas fa-exclamation-triangle"></i>
+        <div>
+            <strong>Signing out?</strong>
+            <p style="margin-top: 5px; font-size: 0.9rem;">
+                You'll need to sign in again to access premium features.
+            </p>
+        </div>
+    </div>
+    
+    <!-- Action Buttons -->
+    <div class="button-group">
+        <a href="{% url 'dashboard' %}" class="btn-secondary">
+            <i class="fas fa-arrow-left"></i>
+            Stay Signed In
+        </a>
+        <button type="submit" class="btn-primary">
+            <i class="fas fa-sign-out-alt"></i>
+            Sign Out
+        </button>
+    </div>
+</form>
+
+<!-- Quick Return -->
+<div class="quick-links mt-4">
+    <p class="link-text text-center mb-2">Quick Return:</p>
+    <div class="link-grid">
+        <a href="{% url 'dashboard' %}" class="quick-link">
+            <i class="fas fa-home"></i>
+            Home
+        </a>
+        <a href="{% url 'profile' %}" class="quick-link">
+            <i class="fas fa-user"></i>
+            Profile
+        </a>
+        <a href="{% url 'settings' %}" class="quick-link">
+            <i class="fas fa-cog"></i>
+            Settings
+        </a>
+    </div>
+</div>
+
+<style>
+.icon-large i {
+    font-size: 3rem;
+    color: #ff9800;
+    background: rgba(255,152,0,0.1);
+    width: 80px;
+    height: 80px;
+    line-height: 80px;
+    border-radius: 50%;
+    display: inline-block;
+}
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin: 25px 0;
+}
+
+.btn-secondary {
+    padding: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    color: #fff;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+}
+
+.btn-secondary:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+}
+
+.quick-links {
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.link-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.quick-link {
+    background: rgba(255,255,255,0.03);
+    padding: 12px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #b0b0d0;
+    font-size: 0.85rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.quick-link:hover {
+    background: rgba(255,255,255,0.05);
+    color: #fff;
+}
+
+.quick-link i {
+    font-size: 1.2rem;
+    color: #ff4081;
+}
+
+@media (max-width: 480px) {
+    .button-group {
+        grid-template-columns: 1fr;
+    }
+    
+    .link-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}

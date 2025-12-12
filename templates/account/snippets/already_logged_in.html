@@ -1,0 +1,23 @@
+{% load i18n %}
+<div style="text-align: center; padding: 20px 0;">
+    <div style="width: 80px; height: 80px; margin: 0 auto 20px; background: rgba(255, 170, 0, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+        <i class="fas fa-user-check" style="font-size: 32px; color: #ffaa00;"></i>
+    </div>
+    
+    <p style="color: var(--auth-text-secondary); margin-bottom: 30px; font-size: 16px;">
+        {% blocktrans %}You are already logged in as {{ user_display }}.{% endblocktrans %}
+    </p>
+    
+    <div style="display: flex; flex-direction: column; gap: 15px;">
+        <a href="{% url 'dashboard' %}" class="auth-button" style="background: linear-gradient(135deg, #8a2be2, #6a1bb3);">
+            <i class="fas fa-home"></i> {% trans "Go to Dashboard" %}
+        </a>
+        
+        <form method="post" action="{% url 'account_logout' %}" style="margin: 0;">
+            {% csrf_token %}
+            <button type="submit" class="auth-button" style="background: transparent; border: 1px solid var(--auth-border); color: var(--auth-text);">
+                <i class="fas fa-sign-out-alt"></i> {% trans "Sign Out" %}
+            </button>
+        </form>
+    </div>
+</div>

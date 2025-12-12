@@ -1,0 +1,95 @@
+{% if messages %}
+<div class="messages-container fixed top-20 right-4 z-50 space-y-2">
+    {% for message in messages %}
+    <div class="message glass p-4 rounded-lg animate-fade-in shadow-lg max-w-md 
+                {% if message.tags %}message-{{ message.tags }}{% endif %}"
+         onclick="this.classList.add('fade-out')">
+        <div class="flex items-start gap-3">
+            {% if message.tags == 'success' %}
+            <i class="fas fa-check-circle text-green-400 mt-1"></i>
+            {% elif message.tags == 'error' %}
+            <i class="fas fa-times-circle text-red-400 mt-1"></i>
+            {% elif message.tags == 'warning' %}
+            <i class="fas fa-exclamation-triangle text-yellow-400 mt-1"></i>
+            {% elif message.tags == 'info' %}
+            <i class="fas fa-info-circle text-blue-400 mt-1"></i>
+            {% else %}
+            <i class="fas fa-bell text-accent-primary mt-1"></i>
+            {% endif %}
+            <div class="flex-1">
+                <p class="font-medium">
+                    {% if message.tags == 'success' %}
+                    Success!
+                    {% elif message.tags == 'error' %}
+                    Error!
+                    {% elif message.tags == 'warning' %}
+                    Warning!
+                    {% elif message.tags == 'info' %}
+                    Info
+                    {% endif %}
+                </p>
+                <p class="text-sm text-muted mt-1">{{ message }}</p>
+            </div>
+            <button onclick="this.parentElement.parentElement.remove()" 
+                    class="text-muted hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="progress-bar mt-2 h-1 bg-glass rounded-full overflow-hidden">
+            <div class="h-full bg-accent-primary animate-progress"></div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+
+<style>
+.animate-progress {
+    animation: progress 5s linear forwards;
+    width: 100%;
+    transform-origin: left;
+}
+
+@keyframes progress {
+    0% { transform: scaleX(1); }
+    100% { transform: scaleX(0); }
+}
+
+.message-success {
+    border-left: 4px solid #10b981;
+}
+
+.message-error {
+    border-left: 4px solid #ef4444;
+}
+
+.message-warning {
+    border-left: 4px solid #f59e0b;
+}
+
+.message-info {
+    border-left: 4px solid #3b82f6;
+}
+
+.fade-out {
+    animation: fadeOut 0.5s ease forwards;
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; transform: translateX(0); }
+    to { opacity: 0; transform: translateX(100%); }
+}
+</style>
+
+<script>
+// Auto-remove messages after 5 seconds
+document.addEventListener('DOMContentLoaded', () => {
+    const messages = document.querySelectorAll('.message');
+    messages.forEach(msg => {
+        setTimeout(() => {
+            msg.classList.add('fade-out');
+            setTimeout(() => msg.remove(), 500);
+        }, 5000);
+    });
+});
+</script>

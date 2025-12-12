@@ -1,0 +1,86 @@
+<footer class="mt-12 pt-8 border-t border-glass">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <!-- Brand -->
+            <div>
+                <a href="{% url 'dashboard' %}" class="flex items-center gap-3 mb-4">
+                    <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-cyan-400 flex items-center justify-center">
+                        <i class="fas fa-heart text-white"></i>
+                    </div>
+                    <h2 class="text-xl font-bold">Glide</h2>
+                </a>
+                <p class="text-sm text-muted mb-4">
+                    Connecting amazing people through meaningful experiences and genuine connections.
+                </p>
+                <div class="flex gap-3">
+                    <a href="#" class="p-2 rounded-lg bg-glass hover:bg-glass-hover">
+                        <i class="fab fa-facebook-f"></i>
+                    </a>
+                    <a href="#" class="p-2 rounded-lg bg-glass hover:bg-glass-hover">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="p-2 rounded-lg bg-glass hover:bg-glass-hover">
+                        <i class="fab fa-instagram"></i>
+                    </a>
+                    <a href="#" class="p-2 rounded-lg bg-glass hover:bg-glass-hover">
+                        <i class="fab fa-tiktok"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Quick Links -->
+            <div>
+                <h3 class="font-bold mb-4">Quick Links</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'dashboard' %}" class="text-sm text-muted hover:text-accent-primary">Home</a></li>
+                    <li><a href="{% url 'search' %}" class="text-sm text-muted hover:text-accent-primary">Discover</a></li>
+                    <li><a href="{% url 'inbox' %}" class="text-sm text-muted hover:text-accent-primary">Messages</a></li>
+                    <li><a href="{% url 'booking_list' %}" class="text-sm text-muted hover:text-accent-primary">Bookings</a></li>
+                    <li><a href="{% url 'contacts' %}" class="text-sm text-muted hover:text-accent-primary">Contacts</a></li>
+                </ul>
+            </div>
+            
+            <!-- Resources -->
+            <div>
+                <h3 class="font-bold mb-4">Resources</h3>
+                <ul class="space-y-2">
+                    <li><a href="{% url 'help' %}" class="text-sm text-muted hover:text-accent-primary">Help Center</a></li>
+                    <li><a href="{% url 'terms' %}" class="text-sm text-muted hover:text-accent-primary">Terms of Service</a></li>
+                    <li><a href="{% url 'privacy' %}" class="text-sm text-muted hover:text-accent-primary">Privacy Policy</a></li>
+                    <li><a href="#" class="text-sm text-muted hover:text-accent-primary">Safety Guidelines</a></li>
+                    <li><a href="#" class="text-sm text-muted hover:text-accent-primary">Community Guidelines</a></li>
+                </ul>
+            </div>
+            
+            <!-- Contact -->
+            <div>
+                <h3 class="font-bold mb-4">Contact Us</h3>
+                <ul class="space-y-2 text-sm text-muted">
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-envelope"></i>
+                        <span>support@glide.com</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-phone"></i>
+                        <span>+254 700 000 000</span>
+                    </li>
+                    <li class="flex items-center gap-2">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>Nairobi, Kenya</span>
+                    </li>
+                </ul>
+                <div class="mt-4">
+                    <p class="text-xs text-muted">
+                        Available 24/7 for support and inquiries.
+                    </p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Copyright -->
+        <div class="mt-8 pt-6 border-t border-glass text-center text-sm text-muted">
+            <p>&copy; {% now "Y" %} Glide. All rights reserved.</p>
+            <p class="mt-1">Designed with <i class="fas fa-heart text-accent-primary"></i> for meaningful connections</p>
+        </div>
+    </div>
+</footer>

@@ -1,0 +1,1177 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}ConnectPlus | Premium Dating & Social App{% endblock %}
+
+{% block content %}
+<style>
+    /* Landing Page Specific Styles */
+    .landing-page {
+        min-height: 100vh;
+        background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, #16213e 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section {
+        position: relative;
+        padding: 8rem 2rem 6rem;
+        text-align: center;
+        z-index: 1;
+    }
+
+    .hero-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 20%, rgba(255, 77, 141, 0.1) 0%, transparent 50%),
+                    radial-gradient(circle at 70% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
+        z-index: -1;
+    }
+
+    .hero-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .hero-title {
+        font-size: 4rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto 3rem;
+        line-height: 1.6;
+    }
+
+    .hero-buttons {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .hero-btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .hero-btn-primary {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        border: none;
+    }
+
+    .hero-btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(255, 77, 141, 0.3);
+    }
+
+    .hero-btn-secondary {
+        background: transparent;
+        border: 2px solid var(--accent-primary);
+        color: var(--accent-primary);
+    }
+
+    .hero-btn-secondary:hover {
+        background: var(--accent-primary);
+        color: white;
+        transform: translateY(-3px);
+    }
+
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 3rem;
+        margin-top: 4rem;
+        flex-wrap: wrap;
+    }
+
+    .stat-item {
+        text-align: center;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--accent-primary);
+        margin-bottom: 0.5rem;
+    }
+
+    .stat-label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .features-section {
+        padding: 6rem 2rem;
+        background: var(--bg-secondary);
+    }
+
+    .section-title {
+        text-align: center;
+        font-size: 2.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .section-subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        max-width: 600px;
+        margin: 0 auto 4rem;
+        font-size: 1.1rem;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .feature-card {
+        background: var(--bg-glass);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2.5rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .feature-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--accent-primary);
+    }
+
+    .feature-icon {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 2rem;
+        color: white;
+        font-size: 2rem;
+    }
+
+    .feature-title {
+        font-size: 1.5rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .feature-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .profiles-section {
+        padding: 6rem 2rem;
+        background: var(--bg-primary);
+    }
+
+    .profiles-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .profile-card-landing {
+        background: var(--bg-glass);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        transition: all 0.3s ease;
+    }
+
+    .profile-card-landing:hover {
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .profile-image {
+        height: 200px;
+        overflow: hidden;
+    }
+
+    .profile-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .profile-card-landing:hover .profile-image img {
+        transform: scale(1.1);
+    }
+
+    .profile-info {
+        padding: 1.5rem;
+    }
+
+    .profile-name {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
+        color: var(--text-primary);
+    }
+
+    .profile-location {
+        color: var(--accent-primary);
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .profile-stats-landing {
+        display: flex;
+        gap: 1rem;
+        margin-top: 1rem;
+    }
+
+    .profile-stat {
+        text-align: center;
+        flex: 1;
+    }
+
+    .profile-stat-value {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--accent-primary);
+    }
+
+    .profile-stat-label {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+    }
+
+    .how-it-works {
+        padding: 6rem 2rem;
+        background: var(--bg-secondary);
+    }
+
+    .steps-container {
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
+    }
+
+    .steps-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 2rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .step-card {
+        background: var(--bg-glass);
+        backdrop-filter: var(--glass-blur);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 2rem;
+        text-align: center;
+        position: relative;
+    }
+
+    .step-number {
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0 auto 1.5rem;
+    }
+
+    .step-title {
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        color: var(--text-primary);
+    }
+
+    .step-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+    }
+
+    .cta-section {
+        padding: 8rem 2rem;
+        text-align: center;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .cta-background {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
+        opacity: 0.3;
+    }
+
+    .cta-content {
+        position: relative;
+        z-index: 1;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .cta-title {
+        font-size: 3rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        line-height: 1.2;
+    }
+
+    .cta-subtitle {
+        font-size: 1.25rem;
+        opacity: 0.9;
+        margin-bottom: 3rem;
+        line-height: 1.6;
+    }
+
+    .cta-buttons {
+        display: flex;
+        gap: 1.5rem;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .cta-btn {
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+        border-radius: var(--radius-lg);
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .cta-btn-primary {
+        background: white;
+        color: var(--accent-primary);
+        border: none;
+    }
+
+    .cta-btn-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
+    }
+
+    .cta-btn-secondary {
+        background: transparent;
+        border: 2px solid white;
+        color: white;
+    }
+
+    .cta-btn-secondary:hover {
+        background: white;
+        color: var(--accent-primary);
+        transform: translateY(-3px);
+    }
+
+    .footer-section {
+        padding: 4rem 2rem;
+        background: var(--bg-tertiary);
+    }
+
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 3rem;
+        margin-bottom: 3rem;
+    }
+
+    .footer-logo {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .footer-logo .logo {
+        width: 40px;
+        height: 40px;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        border-radius: var(--radius-md);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-weight: 700;
+        font-size: 1.5rem;
+    }
+
+    .footer-logo-text {
+        font-family: 'Montserrat', sans-serif;
+        font-weight: 700;
+        font-size: 1.5rem;
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .footer-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+    }
+
+    .social-links {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .social-link {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: var(--bg-secondary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-primary);
+        transition: all 0.3s ease;
+    }
+
+    .social-link:hover {
+        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+        color: white;
+        transform: translateY(-3px);
+    }
+
+    .footer-column h3 {
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        color: var(--text-primary);
+    }
+
+    .footer-links {
+        list-style: none;
+    }
+
+    .footer-links li {
+        margin-bottom: 0.75rem;
+    }
+
+    .footer-links a {
+        color: var(--text-secondary);
+        transition: color 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .footer-links a:hover {
+        color: var(--accent-primary);
+    }
+
+    .footer-bottom {
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 1rem;
+    }
+
+    .copyright {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+    }
+
+    .footer-legal {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .footer-legal a {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+        transition: color 0.3s ease;
+    }
+
+    .footer-legal a:hover {
+        color: var(--accent-primary);
+    }
+
+    /* Animations */
+    @keyframes float {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-20px);
+        }
+    }
+
+    .floating-element {
+        animation: float 6s ease-in-out infinite;
+    }
+
+    .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+
+    .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    /* Responsive Design */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .hero-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .hero-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .hero-stats {
+            gap: 2rem;
+        }
+
+        .stat-number {
+            font-size: 2rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+
+        .cta-title {
+            font-size: 2.5rem;
+        }
+
+        .cta-buttons {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .cta-btn {
+            width: 100%;
+            max-width: 300px;
+        }
+
+        .footer-bottom {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .footer-legal {
+            justify-content: center;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .hero-title {
+            font-size: 2rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1rem;
+        }
+
+        .section-title {
+            font-size: 1.75rem;
+        }
+
+        .cta-title {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="landing-page">
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-background"></div>
+        <div class="hero-content">
+            <h1 class="hero-title fade-in">
+                Connect, Meet & Discover <br>
+                <span class="gradient-text">Premium Dating</span>
+            </h1>
+            <p class="hero-subtitle fade-in" data-delay="0.2s">
+                Join Kenya's most exclusive dating community. Find genuine connections, 
+                meet interesting people, and create unforgettable experiences.
+            </p>
+            <div class="hero-buttons fade-in" data-delay="0.4s">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="hero-btn hero-btn-primary">
+                        Go to Dashboard
+                    </a>
+                    <a href="{% url 'search' %}" class="hero-btn hero-btn-secondary">
+                        Browse Profiles
+                    </a>
+                {% else %}
+                    <a href="{% url 'account_signup' %}" class="hero-btn hero-btn-primary">
+                        Join Free Today
+                    </a>
+                    <a href="{% url 'account_login' %}" class="hero-btn hero-btn-secondary">
+                        Sign In
+                    </a>
+                {% endif %}
+            </div>
+            
+            <div class="hero-stats fade-in" data-delay="0.6s">
+                <div class="stat-item floating-element">
+                    <div class="stat-number">10K+</div>
+                    <div class="stat-label">Active Members</div>
+                </div>
+                <div class="stat-item floating-element" style="animation-delay: 1s;">
+                    <div class="stat-number">5K+</div>
+                    <div class="stat-label">Successful Dates</div>
+                </div>
+                <div class="stat-item floating-element" style="animation-delay: 2s;">
+                    <div class="stat-number">98%</div>
+                    <div class="stat-label">Satisfaction Rate</div>
+                </div>
+                <div class="stat-item floating-element" style="animation-delay: 3s;">
+                    <div class="stat-number">24/7</div>
+                    <div class="stat-label">Support</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features-section">
+        <div class="container">
+            <h2 class="section-title fade-in">Why Choose ConnectPlus?</h2>
+            <p class="section-subtitle fade-in" data-delay="0.2s">
+                We provide a safe, exclusive platform for meaningful connections and premium dating experiences.
+            </p>
+            
+            <div class="features-grid">
+                <div class="feature-card fade-in" data-delay="0.1s">
+                    <div class="feature-icon">
+                        <i class="ri-shield-check-line"></i>
+                    </div>
+                    <h3 class="feature-title">Verified Profiles</h3>
+                    <p class="feature-description">
+                        Every profile undergoes strict verification to ensure authenticity and safety.
+                        Your security is our top priority.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in" data-delay="0.2s">
+                    <div class="feature-icon">
+                        <i class="ri-vip-crown-line"></i>
+                    </div>
+                    <h3 class="feature-title">VIP Experience</h3>
+                    <p class="feature-description">
+                        Access premium features, priority matching, and exclusive events 
+                        for a superior dating experience.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in" data-delay="0.3s">
+                    <div class="feature-icon">
+                        <i class="ri-lock-line"></i>
+                    </div>
+                    <h3 class="feature-title">Complete Privacy</h3>
+                    <p class="feature-description">
+                        Control your visibility and choose who can see your profile.
+                        Your data is encrypted and secure.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in" data-delay="0.4s">
+                    <div class="feature-icon">
+                        <i class="ri-chat-smile-line"></i>
+                    </div>
+                    <h3 class="feature-title">Smart Matching</h3>
+                    <p class="feature-description">
+                        Our intelligent algorithm connects you with compatible partners
+                        based on interests, location, and preferences.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in" data-delay="0.5s">
+                    <div class="feature-icon">
+                        <i class="ri-calendar-check-line"></i>
+                    </div>
+                    <h3 class="feature-title">Easy Booking</h3>
+                    <p class="feature-description">
+                        Schedule dates, book services, and manage appointments
+                        seamlessly with our integrated booking system.
+                    </p>
+                </div>
+                
+                <div class="feature-card fade-in" data-delay="0.6s">
+                    <div class="feature-icon">
+                        <i class="ri-wallet-3-line"></i>
+                    </div>
+                    <h3 class="feature-title">Secure Payments</h3>
+                    <p class="feature-description">
+                        Integrated M-Pesa payments ensure safe and convenient
+                        transactions for all your dating experiences.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Featured Profiles -->
+    <section class="profiles-section">
+        <div class="container">
+            <h2 class="section-title fade-in">Featured Profiles</h2>
+            <p class="section-subtitle fade-in" data-delay="0.2s">
+                Meet some of our most popular and verified members
+            </p>
+            
+            <div class="profiles-grid">
+                {% for profile in featured_profiles %}
+                <div class="profile-card-landing fade-in" data-delay="{{ forloop.counter|add:"0.1"|divisibleby:2|yesno:"0.1,0.2" }}">
+                    <div class="profile-image">
+                        {% if profile.photos.first %}
+                        <img src="{{ profile.photos.first.image.url }}" alt="{{ profile.user.username }}">
+                        {% else %}
+                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));"></div>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info">
+                        <h3 class="profile-name">{{ profile.user.username }}</h3>
+                        <div class="profile-location">
+                            <i class="ri-map-pin-line"></i>
+                            {{ profile.city_town }}, {{ profile.county }}
+                        </div>
+                        <div class="profile-stats-landing">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">{{ profile.age }}</div>
+                                <div class="profile-stat-label">Age</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">{{ profile.total_views }}</div>
+                                <div class="profile-stat-label">Views</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">{{ profile.rating|floatformat:1 }}</div>
+                                <div class="profile-stat-label">Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <!-- Fallback profiles if none in database -->
+                <div class="profile-card-landing fade-in">
+                    <div class="profile-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
+                    <div class="profile-info">
+                        <h3 class="profile-name">Sarah_K</h3>
+                        <div class="profile-location">
+                            <i class="ri-map-pin-line"></i>
+                            Nairobi, Kenya
+                        </div>
+                        <div class="profile-stats-landing">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">28</div>
+                                <div class="profile-stat-label">Age</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">1.2K</div>
+                                <div class="profile-stat-label">Views</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">4.8</div>
+                                <div class="profile-stat-label">Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-card-landing fade-in" data-delay="0.1s">
+                    <div class="profile-image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
+                    <div class="profile-info">
+                        <h3 class="profile-name">John_D</h3>
+                        <div class="profile-location">
+                            <i class="ri-map-pin-line"></i>
+                            Mombasa, Kenya
+                        </div>
+                        <div class="profile-stats-landing">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">32</div>
+                                <div class="profile-stat-label">Age</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">2.1K</div>
+                                <div class="profile-stat-label">Views</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">4.9</div>
+                                <div class="profile-stat-label">Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-card-landing fade-in" data-delay="0.2s">
+                    <div class="profile-image" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
+                    <div class="profile-info">
+                        <h3 class="profile-name">Lisa_M</h3>
+                        <div class="profile-location">
+                            <i class="ri-map-pin-line"></i>
+                            Kisumu, Kenya
+                        </div>
+                        <div class="profile-stats-landing">
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">26</div>
+                                <div class="profile-stat-label">Age</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">856</div>
+                                <div class="profile-stat-label">Views</div>
+                            </div>
+                            <div class="profile-stat">
+                                <div class="profile-stat-value">4.7</div>
+                                <div class="profile-stat-label">Rating</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- How It Works -->
+    <section class="how-it-works">
+        <div class="container">
+            <h2 class="section-title fade-in">How It Works</h2>
+            <p class="section-subtitle fade-in" data-delay="0.2s">
+                Get started in just 4 simple steps
+            </p>
+            
+            <div class="steps-container">
+                <div class="steps-grid">
+                    <div class="step-card fade-in" data-delay="0.1s">
+                        <div class="step-number">1</div>
+                        <h3 class="step-title">Create Profile</h3>
+                        <p class="step-description">
+                            Sign up and create your profile with photos and details about yourself.
+                            Verification takes less than 24 hours.
+                        </p>
+                    </div>
+                    
+                    <div class="step-card fade-in" data-delay="0.2s">
+                        <div class="step-number">2</div>
+                        <h3 class="step-title">Browse & Connect</h3>
+                        <p class="step-description">
+                            Explore verified profiles, use advanced filters, and connect with
+                            people who match your interests.
+                        </p>
+                    </div>
+                    
+                    <div class="step-card fade-in" data-delay="0.3s">
+                        <div class="step-number">3</div>
+                        <h3 class="step-title">Chat & Plan</h3>
+                        <p class="step-description">
+                            Use our secure messaging system to chat, make voice/video calls,
+                            and plan your dates.
+                        </p>
+                    </div>
+                    
+                    <div class="step-card fade-in" data-delay="0.4s">
+                        <div class="step-number">4</div>
+                        <h3 class="step-title">Meet & Enjoy</h3>
+                        <p class="step-description">
+                            Book dates, services, and enjoy premium dating experiences
+                            with complete safety and convenience.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-background"></div>
+        <div class="cta-content">
+            <h2 class="cta-title fade-in">
+                Ready to Find Your Perfect Match?
+            </h2>
+            <p class="cta-subtitle fade-in" data-delay="0.2s">
+                Join thousands of singles who have found meaningful connections through ConnectPlus.
+                Your next great relationship could be just a click away.
+            </p>
+            <div class="cta-buttons fade-in" data-delay="0.4s">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'search' %}" class="cta-btn cta-btn-primary">
+                        Find Matches Now
+                    </a>
+                    <a href="{% url 'post_create' %}" class="cta-btn cta-btn-secondary">
+                        Create a Post
+                    </a>
+                {% else %}
+                    <a href="{% url 'account_signup' %}" class="cta-btn cta-btn-primary">
+                        Get Started Free
+                    </a>
+                    <a href="{% url 'account_login' %}" class="cta-btn cta-btn-secondary">
+                        Sign In to Account
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer-section">
+        <div class="footer-content">
+            <div class="footer-grid">
+                <div class="footer-column">
+                    <div class="footer-logo">
+                        <div class="logo">CP</div>
+                        <span class="footer-logo-text">ConnectPlus</span>
+                    </div>
+                    <p class="footer-description">
+                        Kenya's premier dating and social connection platform.
+                        Creating meaningful relationships through technology.
+                    </p>
+                    <div class="social-links">
+                        <a href="#" class="social-link">
+                            <i class="ri-facebook-fill"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="ri-twitter-fill"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="ri-instagram-line"></i>
+                        </a>
+                        <a href="#" class="social-link">
+                            <i class="ri-linkedin-fill"></i>
+                        </a>
+                    </div>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Quick Links</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'search' %}"><i class="ri-search-line"></i> Browse Profiles</a></li>
+                        <li><a href="{% url 'dashboard' %}"><i class="ri-dashboard-line"></i> Dashboard</a></li>
+                        <li><a href="#"><i class="ri-vip-crown-line"></i> VIP Features</a></li>
+                        <li><a href="#"><i class="ri-question-line"></i> Help Center</a></li>
+                        <li><a href="#"><i class="ri-phone-line"></i> Contact Us</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Services</h3>
+                    <ul class="footer-links">
+                        <li><a href="#"><i class="ri-calendar-line"></i> Date Booking</a></li>
+                        <li><a href="#"><i class="ri-chat-3-line"></i> Premium Messaging</a></li>
+                        <li><a href="#"><i class="ri-verified-badge-line"></i> Profile Verification</a></li>
+                        <li><a href="#"><i class="ri-shield-check-line"></i> Safety Features</a></li>
+                        <li><a href="#"><i class="ri-gift-line"></i> Gift Services</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-column">
+                    <h3>Legal</h3>
+                    <ul class="footer-links">
+                        <li><a href="{% url 'terms' %}"><i class="ri-file-text-line"></i> Terms of Service</a></li>
+                        <li><a href="{% url 'privacy' %}"><i class="ri-shield-keyhole-line"></i> Privacy Policy</a></li>
+                        <li><a href="#"><i class="ri-cookie-line"></i> Cookie Policy</a></li>
+                        <li><a href="#"><i class="ri-group-line"></i> Community Guidelines</a></li>
+                        <li><a href="#"><i class="ri-alert-line"></i> Safety Tips</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="copyright">
+                    &copy; 2024 ConnectPlus. All rights reserved.
+                </div>
+                <div class="footer-legal">
+                    <a href="{% url 'terms' %}">Terms</a>
+                    <a href="{% url 'privacy' %}">Privacy</a>
+                    <a href="#">Cookies</a>
+                    <a href="#">Sitemap</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll animations
+    const fadeElements = document.querySelectorAll('.fade-in');
+    
+    const observerOptions = {
+        root: null,
+        rootMargin: '0px',
+        threshold: 0.1
+    };
+    
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const delay = entry.target.getAttribute('data-delay') || '0';
+                setTimeout(() => {
+                    entry.target.classList.add('visible');
+                }, parseFloat(delay) * 1000);
+                observer.unobserve(entry.target);
+            }
+        });
+    }, observerOptions);
+    
+    fadeElements.forEach(element => {
+        observer.observe(element);
+    });
+    
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const targetId = this.getAttribute('href');
+            if (targetId === '#') return;
+            
+            const targetElement = document.querySelector(targetId);
+            if (targetElement) {
+                window.scrollTo({
+                    top: targetElement.offsetTop - 80,
+                    behavior: 'smooth'
+                });
+            }
+        });
+    });
+    
+    // Update stats animation
+    const statNumbers = document.querySelectorAll('.stat-number');
+    
+    const animateValue = (element, start, end, duration) => {
+        if (start === end) return;
+        
+        const range = end - start;
+        const increment = end > start ? 1 : -1;
+        const stepTime = Math.abs(Math.floor(duration / range));
+        
+        let current = start;
+        const timer = setInterval(() => {
+            current += increment;
+            element.textContent = current + (element.textContent.includes('+') ? '+' : '');
+            
+            if (current === end) {
+                clearInterval(timer);
+            }
+        }, stepTime);
+    };
+    
+    // Animate stats when they become visible
+    const statsObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const statElement = entry.target;
+                const value = parseInt(statElement.textContent);
+                
+                if (!statElement.classList.contains('animated')) {
+                    statElement.classList.add('animated');
+                    animateValue(statElement, 0, value, 2000);
+                }
+            }
+        });
+    }, { threshold: 0.5 });
+    
+    statNumbers.forEach(stat => {
+        statsObserver.observe(stat);
+    });
+    
+    // Add scroll effect to navbar
+    const navbar = document.querySelector('.navbar');
+    if (navbar) {
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 100) {
+                navbar.style.background = 'var(--bg-glass)';
+                navbar.style.backdropFilter = 'blur(20px)';
+                navbar.style.boxShadow = 'var(--shadow-md)';
+            } else {
+                navbar.style.background = 'transparent';
+                navbar.style.backdropFilter = 'none';
+                navbar.style.boxShadow = 'none';
+            }
+        });
+    }
+    
+    // Auto-typing effect for hero subtitle
+    const heroSubtitle = document.querySelector('.hero-subtitle');
+    if (heroSubtitle) {
+        const text = heroSubtitle.textContent;
+        heroSubtitle.textContent = '';
+        let i = 0;
+        
+        function typeWriter() {
+            if (i < text.length) {
+                heroSubtitle.textContent += text.charAt(i);
+                i++;
+                setTimeout(typeWriter, 50);
+            }
+        }
+        
+        // Start typing after a delay
+        setTimeout(typeWriter, 1000);
+    }
+    
+    // Theme toggle for landing page
+    const themeToggle = document.querySelector('.theme-toggle');
+    if (themeToggle) {
+        themeToggle.style.position = 'fixed';
+        themeToggle.style.top = '1rem';
+        themeToggle.style.right = '1rem';
+        themeToggle.style.zIndex = '1001';
+    }
+});
+</script>
+{% endblock %}
