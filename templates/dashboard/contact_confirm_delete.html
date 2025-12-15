@@ -1,9 +1,943 @@
-<!-- main/templates/dashboard/contact_confirm_delete.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Remove Contact - {{ contact.profile.user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Delete Confirmation Specific Styles */
+.delete-confirmation-container {
+    max-width: 600px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.confirmation-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.warning-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+    border: 2px solid rgba(244, 67, 54, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    color: var(--danger);
+    font-size: 3rem;
+}
+
+.contact-preview {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 30px 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+}
+
+.contact-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+}
+
+.contact-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.contact-info {
+    flex: 1;
+    text-align: left;
+}
+
+.contact-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.contact-details {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.consequences-list {
+    background: rgba(244, 67, 54, 0.05);
+    border: 1px solid rgba(244, 67, 54, 0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.consequence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.consequence-item:last-child {
+    margin-bottom: 0;
+}
+
+.consequence-icon {
+    color: var(--danger);
+    font-size: 1.2rem;
+    min-width: 20px;
+    padding-top: 2px;
+}
+
+.consequence-text {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.backup-section {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+
+.backup-options {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.export-option {
+    padding: 10px 20px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-option:hover {
+    background: rgba(0, 168, 89, 0.1);
+    border-color: var(--coop-green);
+}
+
+.alternative-options {
+    margin-top: 30px;
+    text-align: left;
+}
+
+.alternative-list {
+    margin-top: 15px;
+}
+
+.alternative-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.alternative-item:hover {
+    background: rgba(0, 168, 89, 0.1);
+    border-color: var(--coop-green);
+}
+
+.alternative-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 168, 89, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--coop-green);
+}
+
+.alternative-text {
+    flex: 1;
+}
+
+.alternative-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.alternative-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.recent-interactions {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.interaction-item {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    padding: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.interaction-item:last-child {
+    border-bottom: none;
+}
+
+.interaction-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(33, 150, 243, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--info);
+}
+
+.interaction-details {
+    flex: 1;
+}
+
+.interaction-type {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.interaction-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+@media (max-width: 768px) {
+    .delete-confirmation-container {
+        margin: 20px auto;
+        padding: 10px;
+    }
+    
+    .confirmation-card {
+        padding: 25px;
+    }
+    
+    .warning-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .contact-preview {
+        flex-direction: column;
+        text-align: center;
+        gap: 15px;
+    }
+    
+    .contact-info {
+        text-align: center;
+    }
+    
+    .backup-options {
+        flex-direction: column;
+    }
+    
+    .export-option {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .confirmation-card {
+        padding: 20px;
+    }
+    
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+        margin-bottom: 20px;
+    }
+    
+    .contact-avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .contact-name {
+        font-size: 1.1rem;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: contact_confirm_delete.html</h1>
-    <p>Content coming soon...</p>
+<div class="fade-in">
+    <div class="delete-confirmation-container">
+        <div class="confirmation-card">
+            <!-- Warning Icon -->
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="mb-2">Remove Contact</h1>
+            <p class="text-secondary mb-4">Are you sure you want to remove this contact?</p>
+            
+            <!-- Contact Preview -->
+            <div class="contact-preview">
+                <div class="contact-avatar">
+                    {% if contact.profile.photos.first %}
+                    <img src="{{ contact.profile.photos.first.image.url }}" alt="{{ contact.profile.user.username }}">
+                    {% else %}
+                    <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="contact-info">
+                    <div class="contact-name">{{ contact.profile.user.get_full_name|default:contact.profile.user.username }}</div>
+                    <div class="contact-details">
+                        <div><i class="fas fa-user-tag"></i> {{ contact.profile.get_occupation_display|default:"Occupation not set" }}</div>
+                        <div><i class="fas fa-map-marker-alt"></i> {{ contact.profile.location|default:"Location not set" }}</div>
+                        <div><i class="fas fa-calendar"></i> Added {{ contact.created_at|date:"M j, Y" }}</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Consequences Warning -->
+            <div class="consequences-list">
+                <h4 class="mb-3"><i class="fas fa-exclamation-circle text-danger"></i> This will:</h4>
+                
+                <div class="consequence-item">
+                    <div class="consequence-icon">
+                        <i class="fas fa-user-minus"></i>
+                    </div>
+                    <div class="consequence-text">
+                        Remove <strong>{{ contact.profile.user.username }}</strong> from your contacts list
+                    </div>
+                </div>
+                
+                <div class="consequence-item">
+                    <div class="consequence-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="consequence-text">
+                        Delete your chat history with this contact
+                    </div>
+                </div>
+                
+                <div class="consequence-item">
+                    <div class="consequence-icon">
+                        <i class="fas fa-star"></i>
+                    </div>
+                    <div class="consequence-text">
+                        Remove any notes and ratings you've added for this contact
+                    </div>
+                </div>
+                
+                <div class="consequence-item">
+                    <div class="consequence-icon">
+                        <i class="fas fa-bell-slash"></i>
+                    </div>
+                    <div class="consequence-text">
+                        Stop all notifications from this contact
+                    </div>
+                </div>
+                
+                {% if contact.is_favorite %}
+                <div class="consequence-item">
+                    <div class="consequence-icon">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <div class="consequence-text">
+                        Remove this contact from your favorites
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Recent Interactions -->
+            <div class="recent-interactions">
+                <h4 class="mb-3"><i class="fas fa-history text-info"></i> Recent Interactions</h4>
+                
+                {% if recent_interactions %}
+                    {% for interaction in recent_interactions|slice:":3" %}
+                    <div class="interaction-item">
+                        <div class="interaction-icon">
+                            <i class="fas 
+                                {% if interaction.type == 'call' %}fa-phone
+                                {% elif interaction.type == 'message' %}fa-comment
+                                {% elif interaction.type == 'booking' %}fa-calendar-check
+                                {% else %}fa-user{% endif %}"></i>
+                        </div>
+                        <div class="interaction-details">
+                            <div class="interaction-type">
+                                {% if interaction.type == 'call' %}Call
+                                {% elif interaction.type == 'message' %}Message
+                                {% elif interaction.type == 'booking' %}Booking
+                                {% else %}Interaction{% endif %}
+                            </div>
+                            <div class="interaction-time">{{ interaction.time|timesince }} ago</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="text-center text-secondary py-3">
+                        <i class="fas fa-info-circle"></i> No recent interactions found
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Alternative Options -->
+            <div class="alternative-options">
+                <h4 class="mb-3"><i class="fas fa-lightbulb text-warning"></i> Consider Alternatives</h4>
+                
+                <div class="alternative-list">
+                    <div class="alternative-item" onclick="muteContact()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-volume-mute"></i>
+                        </div>
+                        <div class="alternative-text">
+                            <div class="alternative-title">Mute Notifications</div>
+                            <div class="alternative-desc">Keep contact but stop notifications</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </div>
+                    
+                    <div class="alternative-item" onclick="editContact()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="alternative-text">
+                            <div class="alternative-title">Edit Contact Details</div>
+                            <div class="alternative-desc">Update contact information instead</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </div>
+                    
+                    <div class="alternative-item" onclick="archiveContact()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div class="alternative-text">
+                            <div class="alternative-title">Archive Contact</div>
+                            <div class="alternative-desc">Hide contact without deleting</div>
+                        </div>
+                        <i class="fas fa-chevron-right text-muted"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> Yes, Remove Contact
+                    </button>
+                </form>
+                
+                <a href="{% url 'contacts' %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+            
+            <!-- Backup Options -->
+            <div class="backup-section">
+                <p class="text-secondary mb-2">Want to backup your chat history first?</p>
+                <div class="backup-options">
+                    <button class="export-option" onclick="exportChatHistory()">
+                        <i class="fas fa-download"></i> Export Chat History
+                    </button>
+                    
+                    <button class="export-option" onclick="saveContactInfo()">
+                        <i class="fas fa-save"></i> Save Contact Info
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Export Chat History Modal -->
+<div id="exportChatModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Export Chat History</h3>
+    <form id="exportChatForm" onsubmit="processExport(event)">
+        <div class="form-group">
+            <label class="form-label">Export Format</label>
+            <select class="form-control" name="format">
+                <option value="txt">Text File (.txt)</option>
+                <option value="pdf">PDF Document (.pdf)</option>
+                <option value="json">JSON Format (.json)</option>
+                <option value="csv">CSV Spreadsheet (.csv)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Date Range</label>
+            <div class="row">
+                <div class="col-6">
+                    <input type="date" class="form-control" name="start_date" placeholder="Start date">
+                </div>
+                <div class="col-6">
+                    <input type="date" class="form-control" name="end_date" placeholder="End date">
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Include</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_media" checked>
+                    <span class="form-check-label">Media files (images, videos)</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_metadata" checked>
+                    <span class="form-check-label">Message metadata (timestamps, read status)</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_deleted" checked>
+                    <span class="form-check-label">Deleted messages (if available)</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Export Process</strong>
+                <div class="text-sm">Large chat histories may take several minutes to export.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-download"></i> Export Now
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Save Contact Info Modal -->
+<div id="saveContactModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Save Contact Information</h3>
+    <div id="contactInfoPreview">
+        <div class="text-center p-4">
+            <i class="fas fa-spinner fa-spin"></i> Loading contact information...
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <button class="btn btn-primary w-100" onclick="downloadContactCard()">
+            <i class="fas fa-save"></i> Save as vCard
+        </button>
+    </div>
+</div>
+
+<!-- Mute Contact Modal -->
+<div id="muteContactModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Mute Notifications</h3>
+    <form id="muteForm" onsubmit="processMute(event)">
+        <div class="form-group">
+            <label class="form-label">Mute Duration</label>
+            <select class="form-control" name="duration">
+                <option value="1h">1 Hour</option>
+                <option value="8h">8 Hours</option>
+                <option value="1d">24 Hours</option>
+                <option value="7d">7 Days</option>
+                <option value="30d">30 Days</option>
+                <option value="forever">Until I turn it back on</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Mute Types</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="mute_messages" checked>
+                    <span class="form-check-label">Messages</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="mute_calls" checked>
+                    <span class="form-check-label">Call Notifications</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="mute_status" checked>
+                    <span class="form-check-label">Online Status Updates</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="mute_stories" checked>
+                    <span class="form-check-label">Story Updates</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Note</strong>
+                <div class="text-sm">You can unmute at any time from contact settings.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-volume-mute"></i> Mute Contact
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Load contact info for preview
+    loadContactInfo();
+});
+
+// Load contact information
+function loadContactInfo() {
+    const contactId = "{{ contact.id }}";
+    
+    // In a real application, this would be an AJAX call
+    setTimeout(() => {
+        const contactInfo = {
+            name: "{{ contact.profile.user.get_full_name|default:contact.profile.user.username }}",
+            username: "{{ contact.profile.user.username }}",
+            email: "{{ contact.profile.user.email|default:'Not provided' }}",
+            phone: "{{ contact.profile.phone_number|default:'Not provided' }}",
+            location: "{{ contact.profile.location|default:'Not provided' }}",
+            occupation: "{{ contact.profile.get_occupation_display|default:'Not provided' }}",
+            bio: "{{ contact.profile.bio|default:'Not provided'|truncatechars:100 }}",
+            joined: "{{ contact.profile.user.date_joined|date:'F j, Y' }}",
+            notes: "{{ contact.notes|default:'No notes added' }}"
+        };
+        
+        const html = `
+            <div class="contact-info-preview">
+                <div class="form-group">
+                    <label class="form-label">Name</label>
+                    <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                        ${contactInfo.name}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Username</label>
+                    <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                        ${contactInfo.username}
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                ${contactInfo.email}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="form-group">
+                            <label class="form-label">Phone</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                ${contactInfo.phone}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                        ${contactInfo.location}
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Notes</label>
+                    <div class="form-control" style="background: transparent; border: none; min-height: auto; padding-left: 0;">
+                        ${contactInfo.notes}
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#contactInfoPreview').html(html);
+    }, 500);
+}
+
+// Export chat history
+function exportChatHistory() {
+    showModal($('#exportChatModalContent').html());
+}
+
+function processExport(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    // Show processing
+    $('#modalContent').html(`
+        <div class="text-center p-5">
+            <div class="processing-icon mb-4">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+            </div>
+            <h4 class="mb-2">Exporting Chat History</h4>
+            <p class="text-secondary">Preparing your chat history for download...</p>
+            <div class="progress-bar mt-4">
+                <div class="progress-fill" id="exportProgress" style="width: 0%"></div>
+            </div>
+            <div class="text-sm text-secondary mt-2" id="exportStatus">Initializing...</div>
+        </div>
+    `);
+    
+    // Simulate export process
+    let progress = 0;
+    const progressInterval = setInterval(() => {
+        progress += 5;
+        $('#exportProgress').css('width', progress + '%');
+        
+        if (progress <= 25) {
+            $('#exportStatus').text('Collecting messages...');
+        } else if (progress <= 50) {
+            $('#exportStatus').text('Processing media files...');
+        } else if (progress <= 75) {
+            $('#exportStatus').text('Formatting data...');
+        } else {
+            $('#exportStatus').text('Finalizing export...');
+        }
+        
+        if (progress >= 100) {
+            clearInterval(progressInterval);
+            setTimeout(() => {
+                // Simulate download
+                const blob = new Blob(['Chat history export complete'], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `chat-history-{{ contact.profile.user.username }}-${new Date().toISOString().split('T')[0]}.txt`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showMessage('Chat history exported successfully!', 'success');
+                hideModal();
+            }, 500);
+        }
+    }, 100);
+}
+
+// Save contact info
+function saveContactInfo() {
+    showModal($('#saveContactModalContent').html());
+}
+
+function downloadContactCard() {
+    // Generate vCard
+    const vCard = `BEGIN:VCARD
+VERSION:3.0
+FN:{{ contact.profile.user.get_full_name|default:contact.profile.user.username }}
+N:{{ contact.profile.user.last_name|default:"" }};{{ contact.profile.user.first_name|default:"" }};;;
+NICKNAME:{{ contact.profile.user.username }}
+EMAIL:{{ contact.profile.user.email|default:"" }}
+TEL:{{ contact.profile.phone_number|default:"" }}
+ADR:;;{{ contact.profile.location|default:"" }}
+TITLE:{{ contact.profile.get_occupation_display|default:"" }}
+NOTE:Imported from CoopConnect on ${new Date().toISOString().split('T')[0]}
+URL:${window.location.origin}{% url 'profile' contact.profile.id %}
+END:VCARD`;
+    
+    const blob = new Blob([vCard], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `{{ contact.profile.user.username }}.vcf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showMessage('Contact saved as vCard!', 'success');
+    hideModal();
+}
+
+// Alternative actions
+function muteContact() {
+    showModal($('#muteContactModalContent').html());
+}
+
+function processMute(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '{% url "api_mute_contact" contact.id %}',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Contact muted successfully!', 'success');
+                hideModal();
+                setTimeout(() => {
+                    window.location.href = '{% url "contacts" %}';
+                }, 1500);
+            } else {
+                alert('Failed to mute contact: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error muting contact. Please try again.');
+        }
+    });
+}
+
+function editContact() {
+    window.location.href = '{% url "edit_contact" contact.id %}';
+}
+
+function archiveContact() {
+    if (confirm('Archive this contact? It will be hidden from your main contacts list but not deleted.')) {
+        $.ajax({
+            url: '{% url "api_archive_contact" contact.id %}',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Contact archived!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "contacts" %}';
+                    }, 1500);
+                } else {
+                    alert('Failed to archive contact: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error archiving contact. Please try again.');
+            }
+        });
+    }
+}
+
+// Form confirmation
+$('form').on('submit', function(e) {
+    if ($(this).find('button[type="submit"]').hasClass('btn-danger')) {
+        // Final confirmation for deletion
+        e.preventDefault();
+        
+        showModal(`
+            <div class="text-center p-4">
+                <div class="warning-icon mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <h3 class="mb-3">Final Confirmation</h3>
+                <p class="text-secondary mb-4">This action cannot be undone. Are you absolutely sure?</p>
+                
+                <div class="consequences-list mb-4">
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="consequence-text">
+                            All chat history will be permanently deleted
+                        </div>
+                    </div>
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Interaction history will be removed from your account
+                        </div>
+                    </div>
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <div class="consequence-text">
+                            You will need to re-add this contact to message them again
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2">
+                    <button class="btn btn-danger flex-1" onclick="confirmDeletion()">
+                        <i class="fas fa-check"></i> Yes, Delete Permanently
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">
+                        <i class="fas fa-times"></i> Cancel
+                    </button>
+                </div>
+            </div>
+        `);
+    }
+});
+
+function confirmDeletion() {
+    hideModal();
+    $('form').off('submit').submit();
+}
+
+// Show message
+function showMessage(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type}">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `);
+    
+    $('.messages-container').append(alert);
+    
+    setTimeout(() => {
+        alert.fadeOut(300, () => alert.remove());
+    }, 5000);
+}
+</script>
 {% endblock %}

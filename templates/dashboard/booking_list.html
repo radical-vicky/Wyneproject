@@ -1,9 +1,759 @@
-<!-- main/templates/dashboard/booking_list.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Bookings - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Bookings specific styles */
+.bookings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.bookings-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.filter-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+.filter-btn.active {
+    background: var(--coop-green);
+    color: white;
+    border-color: var(--coop-green);
+}
+
+.booking-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.booking-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--coop-green);
+}
+
+.booking-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.booking-id {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 5px;
+}
+
+.booking-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.booking-status {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+}
+
+.status-confirmed {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+}
+
+.status-completed {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.status-cancelled {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+}
+
+.booking-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius);
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+.detail-value.highlight {
+    color: var(--coop-green);
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--coop-green);
+}
+
+.user-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-details {
+    flex: 1;
+}
+
+.user-name {
+    font-weight: 600;
+}
+
+.user-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.booking-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.rating-stars {
+    display: flex;
+    gap: 2px;
+    margin-top: 5px;
+}
+
+.star {
+    color: #ffc107;
+    font-size: 0.9rem;
+}
+
+.star.empty {
+    color: var(--text-muted);
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+/* Timeline for booking progress */
+.booking-timeline {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 25px 0;
+    padding: 0 20px;
+}
+
+.booking-timeline::before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.timeline-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.timeline-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.timeline-step.active .timeline-dot {
+    background: var(--coop-green);
+    color: white;
+}
+
+.timeline-step.completed .timeline-dot {
+    background: var(--success);
+    color: white;
+}
+
+.timeline-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.timeline-step.active .timeline-label {
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+.timeline-step.completed .timeline-label {
+    color: var(--success);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .booking-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .booking-details {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .booking-actions {
+        flex-direction: column;
+    }
+    
+    .booking-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .booking-timeline {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .booking-timeline::before {
+        display: none;
+    }
+    
+    .timeline-step {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .timeline-dot {
+        margin-bottom: 0;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: booking_list.html</h1>
-    <p>Content coming soon...</p>
+<div class="bookings-header">
+    <div>
+        <h1 class="card-title">Bookings</h1>
+        <p class="card-subtitle">Manage your service bookings and appointments</p>
+    </div>
+    <a href="{% url 'search' %}" class="btn btn-primary">
+        <i class="fas fa-search"></i> Find Services
+    </a>
 </div>
+
+<!-- Bookings Filter -->
+<div class="bookings-filter">
+    <button class="filter-btn active" data-filter="all">All Bookings</button>
+    <button class="filter-btn" data-filter="pending">Pending</button>
+    <button class="filter-btn" data-filter="confirmed">Confirmed</button>
+    <button class="filter-btn" data-filter="completed">Completed</button>
+    <button class="filter-btn" data-filter="cancelled">Cancelled</button>
+</div>
+
+<!-- Bookings List -->
+<div class="bookings-list">
+    {% if page_obj %}
+        {% for booking in page_obj %}
+        <div class="booking-card" data-status="{{ booking.status }}">
+            <div class="booking-header">
+                <div>
+                    <div class="booking-id">Booking #{{ booking.id }}</div>
+                    <div class="booking-title">
+                        {% if booking.service_type %}
+                            {{ booking.service_type }}
+                        {% else %}
+                            Service Booking
+                        {% endif %}
+                    </div>
+                    <div class="user-info">
+                        {% if request.user == booking.client %}
+                            <!-- View as client -->
+                            <div class="user-avatar">
+                                {% if booking.service_provider.profile.photos.first %}
+                                <img src="{{ booking.service_provider.profile.photos.first.image.url }}" alt="{{ booking.service_provider.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--primary-gradient);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">{{ booking.service_provider.username }}</div>
+                                <div class="user-meta">Service Provider</div>
+                            </div>
+                        {% else %}
+                            <!-- View as service provider -->
+                            <div class="user-avatar">
+                                {% if booking.client.profile.photos.first %}
+                                <img src="{{ booking.client.profile.photos.first.image.url }}" alt="{{ booking.client.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--primary-gradient);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="user-details">
+                                <div class="user-name">{{ booking.client.username }}</div>
+                                <div class="user-meta">Client</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <div>
+                    <span class="booking-status status-{{ booking.status }}">{{ booking.status|title }}</span>
+                    <div class="detail-value highlight mt-2">KES {{ booking.total_amount|default:"0.00" }}</div>
+                </div>
+            </div>
+            
+            <!-- Booking Timeline -->
+            <div class="booking-timeline">
+                <div class="timeline-step {% if booking.status != 'cancelled' %}completed{% endif %}">
+                    <div class="timeline-dot">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="timeline-label">Requested</div>
+                </div>
+                
+                <div class="timeline-step {% if booking.status in 'confirmed,completed' %}completed{% elif booking.status == 'pending' %}active{% endif %}">
+                    <div class="timeline-dot">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="timeline-label">Confirmed</div>
+                </div>
+                
+                <div class="timeline-step {% if booking.status == 'completed' %}completed{% elif booking.status == 'confirmed' %}active{% endif %}">
+                    <div class="timeline-dot">
+                        <i class="fas fa-check-double"></i>
+                    </div>
+                    <div class="timeline-label">Completed</div>
+                </div>
+                
+                {% if booking.status == 'cancelled' %}
+                <div class="timeline-step active">
+                    <div class="timeline-dot">
+                        <i class="fas fa-times-circle"></i>
+                    </div>
+                    <div class="timeline-label">Cancelled</div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Booking Details -->
+            <div class="booking-details">
+                <div class="detail-item">
+                    <div class="detail-label">Date & Time</div>
+                    <div class="detail-value">{{ booking.date }} at {{ booking.time }}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Duration</div>
+                    <div class="detail-value">{{ booking.duration_hours }} hour{{ booking.duration_hours|pluralize }}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Location Type</div>
+                    <div class="detail-value">{{ booking.location_type|title }}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Created</div>
+                    <div class="detail-value">{{ booking.created_at|date:"M d, Y" }}</div>
+                </div>
+            </div>
+            
+            <!-- Booking Notes -->
+            {% if booking.special_requests %}
+            <div class="detail-item mb-3">
+                <div class="detail-label">Special Requests</div>
+                <div class="detail-value">{{ booking.special_requests }}</div>
+            </div>
+            {% endif %}
+            
+            <!-- Rating (if completed) -->
+            {% if booking.status == 'completed' and booking.rating %}
+            <div class="detail-item mb-3">
+                <div class="detail-label">Your Rating</div>
+                <div class="rating-stars">
+                    {% for i in "12345" %}
+                        {% if forloop.counter <= booking.rating %}
+                            <i class="fas fa-star star"></i>
+                        {% else %}
+                            <i class="far fa-star star empty"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                {% if booking.review %}
+                <div class="mt-2">{{ booking.review }}</div>
+                {% endif %}
+            </div>
+            {% endif %}
+            
+            <!-- Booking Actions -->
+            <div class="booking-actions">
+                {% if booking.status == 'pending' %}
+                    {% if request.user == booking.service_provider %}
+                        <!-- Service Provider actions for pending booking -->
+                        <form method="POST" action="{% url 'booking_detail' booking.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="confirm">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> Confirm Booking
+                            </button>
+                        </form>
+                        
+                        <button class="btn btn-danger" onclick="cancelBooking({{ booking.id }})">
+                            <i class="fas fa-times"></i> Decline
+                        </button>
+                    {% else %}
+                        <!-- Client actions for pending booking -->
+                        <button class="btn btn-primary" onclick="payBooking({{ booking.id }})">
+                            <i class="fas fa-credit-card"></i> Pay Now
+                        </button>
+                        
+                        <button class="btn btn-danger" onclick="cancelBooking({{ booking.id }})">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    {% endif %}
+                    
+                {% elif booking.status == 'confirmed' %}
+                    {% if request.user == booking.service_provider %}
+                        <!-- Service Provider actions for confirmed booking -->
+                        <form method="POST" action="{% url 'booking_detail' booking.id %}" style="display: inline;">
+                            {% csrf_token %}
+                            <input type="hidden" name="action" value="complete">
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check-double"></i> Mark as Completed
+                            </button>
+                        </form>
+                        
+                        <button class="btn btn-danger" onclick="cancelBooking({{ booking.id }})">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    {% endif %}
+                    
+                    <!-- Both can view details -->
+                    <a href="{% url 'booking_detail' booking.id %}" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i> View Details
+                    </a>
+                    
+                {% elif booking.status == 'completed' %}
+                    <!-- View details and rate for completed bookings -->
+                    <a href="{% url 'booking_detail' booking.id %}" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i> View Details
+                    </a>
+                    
+                    {% if not booking.rating and request.user == booking.client %}
+                        <button class="btn btn-primary" onclick="rateBooking({{ booking.id }})">
+                            <i class="fas fa-star"></i> Rate Service
+                        </button>
+                    {% endif %}
+                    
+                {% elif booking.status == 'cancelled' %}
+                    <!-- View details for cancelled bookings -->
+                    <a href="{% url 'booking_detail' booking.id %}" class="btn btn-secondary">
+                        <i class="fas fa-info-circle"></i> View Details
+                    </a>
+                {% endif %}
+                
+                <!-- Always available -->
+                <a href="{% url 'conversation_user' booking.service_provider.username %}" class="btn btn-secondary">
+                    <i class="fas fa-comment"></i> Message
+                </a>
+                
+                <a href="{% url 'profile_view' booking.service_provider.username %}" class="btn btn-secondary">
+                    <i class="fas fa-user"></i> View Profile
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-calendar-alt"></i>
+            </div>
+            <h3 class="mb-2">No Bookings Yet</h3>
+            <p class="text-secondary mb-4">Start by booking a service from our premium service providers</p>
+            <a href="{% url 'search' %}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Discover Services
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for i in page_obj.paginator.page_range %}
+        {% if page_obj.number == i %}
+        <li class="page-item active">
+            <span class="page-link">{{ i }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ i }}{% if status_filter %}&status={{ status_filter }}{% endif %}">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if status_filter %}&status={{ status_filter }}{% endif %}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+$(document).ready(function() {
+    // Filter functionality
+    $('.filter-btn').click(function() {
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+        
+        const filter = $(this).data('filter');
+        window.location.href = '?status=' + filter;
+    });
+    
+    // Set active filter based on URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const statusFilter = urlParams.get('status');
+    if (statusFilter) {
+        $('.filter-btn').removeClass('active');
+        $(`[data-filter="${statusFilter}"]`).addClass('active');
+    }
+    
+    // Booking actions
+    window.cancelBooking = function(bookingId) {
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h3>Cancel Booking</h3>
+                <p>Are you sure you want to cancel this booking? This action cannot be undone.</p>
+                <div class="mt-4">
+                    <form method="POST" action="/bookings/${bookingId}/" id="cancelForm">
+                        <input type="hidden" name="action" value="cancel">
+                        <div class="form-group mb-3">
+                            <label class="form-label">Reason for cancellation (optional)</label>
+                            <textarea class="form-control" name="cancellation_reason" rows="3" placeholder="Please provide a reason for cancellation..."></textarea>
+                        </div>
+                        <div class="d-flex gap-3">
+                            <button type="submit" class="btn btn-danger flex-1">
+                                <i class="fas fa-times"></i> Confirm Cancel
+                            </button>
+                            <button type="button" class="btn btn-secondary flex-1" onclick="hideModal()">Go Back</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        `);
+        
+        // Handle form submission
+        $('#cancelForm').submit(function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            $.ajax({
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function() {
+                    alert('Error cancelling booking. Please try again.');
+                }
+            });
+        });
+    };
+    
+    window.payBooking = function(bookingId) {
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-credit-card fa-3x text-info mb-3"></i>
+                <h3>Complete Payment</h3>
+                <p>You will be redirected to the payment page to complete your booking.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <a href="/bookings/${bookingId}/pay/" class="btn btn-primary flex-1">
+                        <i class="fas fa-credit-card"></i> Proceed to Payment
+                    </a>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">Cancel</button>
+                </div>
+            </div>
+        `);
+    };
+    
+    window.rateBooking = function(bookingId) {
+        showModal(`
+            <div class="p-4">
+                <h3 class="card-title mb-3">Rate Service</h3>
+                <form id="rateForm" action="/bookings/${bookingId}/rate/" method="POST">
+                    <div class="form-group mb-3">
+                        <label class="form-label">Rating</label>
+                        <div class="rating-stars mb-2" id="ratingStars">
+                            {% for i in "12345" %}
+                            <i class="far fa-star star" data-rating="{{ forloop.counter }}" style="cursor: pointer; font-size: 2rem;"></i>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="ratingValue" value="5">
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Review (Optional)</label>
+                        <textarea class="form-control" name="review" rows="4" placeholder="Share your experience..."></textarea>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-star"></i> Submit Rating
+                        </button>
+                        <button type="button" class="btn btn-secondary flex-1" onclick="hideModal()">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        `);
+        
+        // Star rating interaction
+        $('#ratingStars .star').click(function() {
+            const rating = $(this).data('rating');
+            $('#ratingValue').val(rating);
+            
+            // Update stars
+            $('#ratingStars .star').each(function(index) {
+                if (index < rating) {
+                    $(this).removeClass('far').addClass('fas');
+                } else {
+                    $(this).removeClass('fas').addClass('far');
+                }
+            });
+        });
+        
+        // Initialize with 5 stars
+        $('#ratingStars .star').slice(0, 5).removeClass('far').addClass('fas');
+        
+        // Handle form submission
+        $('#rateForm').submit(function(e) {
+            e.preventDefault();
+            const formData = new FormData(this);
+            
+            $.ajax({
+                url: $(this).attr('action'),
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                headers: {
+                    'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+                },
+                success: function(response) {
+                    location.reload();
+                },
+                error: function() {
+                    alert('Error submitting rating. Please try again.');
+                }
+            });
+        });
+    };
+});
+</script>
 {% endblock %}

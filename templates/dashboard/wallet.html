@@ -1,254 +1,943 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Wallet | ConnectPlus{% endblock %}
+{% block title %}Wallet - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.wallet-balance {
+    text-align: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, var(--coop-green), var(--coop-blue));
+    border-radius: var(--radius-lg);
+    color: white;
+    margin-bottom: 30px;
+}
+
+.balance-amount {
+    font-size: 3rem;
+    font-weight: 700;
+    margin: 20px 0;
+}
+
+.balance-label {
+    font-size: 1.1rem;
+    opacity: 0.9;
+}
+
+.wallet-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.action-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 25px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.action-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--coop-green);
+    box-shadow: var(--shadow);
+}
+
+.action-icon {
+    font-size: 2.5rem;
+    margin-bottom: 15px;
+    color: var(--coop-green);
+}
+
+.action-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.action-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.transaction-list {
+    margin-top: 30px;
+}
+
+.transaction-item {
+    display: flex;
+    align-items: center;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    transition: background 0.3s ease;
+}
+
+.transaction-item:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.transaction-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 15px;
+    font-size: 1.2rem;
+}
+
+.transaction-icon.deposit {
+    background: rgba(76,175,80,0.2);
+    color: var(--success);
+}
+
+.transaction-icon.withdrawal {
+    background: rgba(244,67,54,0.2);
+    color: var(--danger);
+}
+
+.transaction-icon.payment {
+    background: rgba(33,150,243,0.2);
+    color: var(--info);
+}
+
+.transaction-icon.refund {
+    background: rgba(255,193,7,0.2);
+    color: var(--warning);
+}
+
+.transaction-details {
+    flex: 1;
+}
+
+.transaction-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.transaction-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.transaction-amount {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.transaction-amount.positive {
+    color: var(--success);
+}
+
+.transaction-amount.negative {
+    color: var(--danger);
+}
+
+.transaction-status {
+    margin-left: 15px;
+}
+
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.method-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 25px;
+    border: 2px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.method-card:hover {
+    border-color: var(--coop-green);
+}
+
+.method-card.selected {
+    border-color: var(--coop-green);
+    background: rgba(0,168,89,0.05);
+}
+
+.method-icon {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: var(--coop-green);
+}
+
+.method-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.method-description {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.method-details {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.bank-transfer-details {
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.bank-detail {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.bank-label {
+    color: var(--text-secondary);
+}
+
+.bank-value {
+    font-weight: 500;
+    font-family: monospace;
+}
+
+.copy-btn {
+    background: var(--coop-green);
+    color: white;
+    border: none;
+    padding: 5px 15px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: background 0.3s ease;
+}
+
+.copy-btn:hover {
+    background: #008f4d;
+}
+
+.qr-code {
+    text-align: center;
+    margin: 20px 0;
+}
+
+.qr-placeholder {
+    width: 150px;
+    height: 150px;
+    background: white;
+    margin: 0 auto;
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: black;
+    font-size: 0.8rem;
+}
+
+.recent-activity {
+    margin-top: 40px;
+}
+
+.activity-chart {
+    height: 200px;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.chart-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="wallet-container">
-    <!-- Balance Overview -->
-    <div class="balance-overview glass-card p-5 mb-4">
-        <div class="balance-header text-center mb-4">
-            <h2 class="balance-title">Your Wallet</h2>
-            <p class="balance-subtitle">Total available balance</p>
-        </div>
-        
-        <div class="balance-amount text-center mb-4">
-            <span class="amount-symbol">KES</span>
-            <span class="amount-value">{{ wallet.balance|floatformat:2 }}</span>
-        </div>
-        
-        <div class="balance-actions">
-            <a href="{% url 'deposit' %}" class="btn btn-primary btn-lg">
-                <i class="ri-add-line"></i> Deposit
-            </a>
-            <a href="{% url 'withdrawal' %}" class="btn btn-outline btn-lg">
-                <i class="ri-arrow-up-line"></i> Withdraw
-            </a>
-        </div>
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">My Wallet</h1>
+        <p class="card-subtitle">Manage your funds and transactions</p>
     </div>
     
-    <!-- M-Pesa Balance -->
-    <div class="mpesa-balance glass-card p-4 mb-4">
-        <div class="mpesa-header d-flex justify-between align-center mb-3">
-            <h3 class="mpesa-title">
-                <i class="ri-wallet-3-line"></i> M-Pesa Balance
-            </h3>
-            <span class="mpesa-amount">KES {{ wallet.mpesa_balance|floatformat:2 }}</span>
-        </div>
-        <p class="text-muted">Linked M-Pesa account balance</p>
-    </div>
-    
-    <!-- Quick Actions -->
-    <div class="quick-actions grid grid-4 gap-3 mb-4">
-        <button class="action-btn glass-card" onclick="depositViaMpesa()">
-            <div class="action-icon">
-                <i class="ri-smartphone-line"></i>
-            </div>
-            <div class="action-label">M-Pesa</div>
-        </button>
-        
-        <button class="action-btn glass-card" onclick="transferFunds()">
-            <div class="action-icon">
-                <i class="ri-exchange-line"></i>
-            </div>
-            <div class="action-label">Transfer</div>
-        </button>
-        
-        <button class="action-btn glass-card" onclick="viewTransactions()">
-            <div class="action-icon">
-                <i class="ri-history-line"></i>
-            </div>
-            <div class="action-label">History</div>
-        </button>
-        
-        <button class="action-btn glass-card" onclick="withdrawToBank()">
-            <div class="action-icon">
-                <i class="ri-bank-line"></i>
-            </div>
-            <div class="action-label">Bank</div>
-        </button>
-    </div>
-    
-    <!-- Recent Transactions -->
-    <div class="transactions-section">
-        <div class="section-header d-flex justify-between align-center mb-4">
-            <h3 class="section-title">Recent Transactions</h3>
-            <a href="#" class="btn btn-outline btn-sm">View All</a>
-        </div>
-        
-        {% if transactions %}
-        <div class="transaction-list">
-            {% for transaction in transactions %}
-            <div class="transaction-item glass-card">
-                <div class="transaction-icon">
-                    {% if transaction.transaction_type == 'deposit' %}
-                    <i class="ri-arrow-down-line"></i>
-                    {% elif transaction.transaction_type == 'withdrawal' %}
-                    <i class="ri-arrow-up-line"></i>
-                    {% elif transaction.transaction_type == 'payment' %}
-                    <i class="ri-shopping-bag-line"></i>
-                    {% else %}
-                    <i class="ri-exchange-line"></i>
-                    {% endif %}
-                </div>
-                
-                <div class="transaction-info">
-                    <div class="transaction-title">
-                        {{ transaction.get_transaction_type_display }}
-                    </div>
-                    <div class="transaction-meta">
-                        {{ transaction.initiated_at|date:"M d, Y H:i" }}
-                        {% if transaction.mpesa_receipt %}
-                        • Receipt: {{ transaction.mpesa_receipt }}
-                        {% endif %}
+    <div class="card-body">
+        <!-- Balance Overview -->
+        <div class="wallet-balance">
+            <div class="balance-label">Total Balance</div>
+            <div class="balance-amount">KES {{ wallet.balance|floatformat:2 }}</div>
+            <div class="balance-label">Available for withdrawal</div>
+            
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="text-center">
+                        <div class="text-sm">M-Pesa Balance</div>
+                        <div class="text-lg font-bold">KES {{ wallet.mpesa_balance|floatformat:2 }}</div>
                     </div>
                 </div>
-                
-                <div class="transaction-amount 
-                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}
-                    positive
-                    {% else %}
-                    negative
-                    {% endif %}">
-                    {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}
-                    + KES {{ transaction.amount|floatformat:2 }}
-                    {% else %}
-                    - KES {{ transaction.amount|floatformat:2 }}
-                    {% endif %}
-                </div>
-                
-                <div class="transaction-status">
-                    <span class="status-badge {{ transaction.status }}">
-                        {{ transaction.get_status_display }}
-                    </span>
+                <div class="col-md-6">
+                    <div class="text-center">
+                        <div class="text-sm">Platform Balance</div>
+                        <div class="text-lg font-bold">KES {{ wallet.balance|floatformat:2 }}</div>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
         </div>
-        {% else %}
-        <div class="empty-state text-center p-5">
-            <i class="ri-wallet-line text-muted" style="font-size: 3rem;"></i>
-            <p class="text-muted mt-2">No transactions yet</p>
+        
+        <!-- Quick Actions -->
+        <div class="wallet-actions">
+            <div class="action-card" onclick="showDepositModal()">
+                <div class="action-icon">
+                    <i class="fas fa-plus-circle"></i>
+                </div>
+                <div class="action-title">Deposit Funds</div>
+                <div class="action-description">Add money to your wallet</div>
+            </div>
+            
+            <div class="action-card" onclick="showWithdrawalModal()">
+                <div class="action-icon">
+                    <i class="fas fa-minus-circle"></i>
+                </div>
+                <div class="action-title">Withdraw Funds</div>
+                <div class="action-description">Transfer to M-Pesa</div>
+            </div>
+            
+            <div class="action-card" onclick="showTransferModal()">
+                <div class="action-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div class="action-title">Transfer</div>
+                <div class="action-description">Send to another user</div>
+            </div>
+            
+            <div class="action-card" onclick="showHistory()">
+                <div class="action-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <div class="action-title">Transaction History</div>
+                <div class="action-description">View all transactions</div>
+            </div>
         </div>
-        {% endif %}
+        
+        <!-- Recent Transactions -->
+        <div class="recent-activity">
+            <h3 class="card-title mb-4">Recent Transactions</h3>
+            
+            {% if transactions %}
+            <div class="transaction-list">
+                {% for transaction in transactions %}
+                <div class="transaction-item">
+                    <div class="transaction-icon {{ transaction.transaction_type }}">
+                        <i class="fas 
+                            {% if transaction.transaction_type == 'deposit' %}fa-arrow-down
+                            {% elif transaction.transaction_type == 'withdrawal' %}fa-arrow-up
+                            {% elif transaction.transaction_type == 'payment' %}fa-shopping-cart
+                            {% else %}fa-exchange-alt{% endif %}"></i>
+                    </div>
+                    
+                    <div class="transaction-details">
+                        <div class="transaction-title">
+                            {{ transaction.get_transaction_type_display }}
+                            {% if transaction.mpesa_receipt %}
+                            <span class="text-secondary text-sm">({{ transaction.mpesa_receipt }})</span>
+                            {% endif %}
+                        </div>
+                        <div class="transaction-description">
+                            {{ transaction.description }}
+                            <br>
+                            <small>{{ transaction.initiated_at|date:"M d, Y H:i" }}</small>
+                        </div>
+                    </div>
+                    
+                    <div class="transaction-amount {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}positive{% else %}negative{% endif %}">
+                        {% if transaction.transaction_type == 'deposit' or transaction.transaction_type == 'refund' %}+{% else %}-{% endif %}
+                        KES {{ transaction.amount|floatformat:2 }}
+                    </div>
+                    
+                    <div class="transaction-status">
+                        <span class="badge badge-{{ transaction.status }}">
+                            {{ transaction.get_status_display }}
+                        </span>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <div class="text-center mt-4">
+                <a href="#" class="btn btn-secondary" onclick="showAllTransactions()">
+                    <i class="fas fa-list"></i> View All Transactions
+                </a>
+            </div>
+            
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <h4>No transactions yet</h4>
+                <p>Your transaction history will appear here</p>
+                <button class="btn btn-primary mt-3" onclick="showDepositModal()">
+                    <i class="fas fa-plus-circle"></i> Make Your First Deposit
+                </button>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Payment Methods -->
+        <div class="payment-methods-section mt-5">
+            <h3 class="card-title mb-4">Payment Methods</h3>
+            
+            <div class="payment-methods">
+                <div class="method-card selected" id="mpesaMethod">
+                    <div class="method-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="method-title">M-Pesa</div>
+                    <div class="method-description">
+                        Instant deposits and withdrawals via Safaricom M-Pesa
+                    </div>
+                    <div class="method-details">
+                        <div class="d-flex justify-between align-center">
+                            <span class="text-secondary">Linked Number:</span>
+                            <span class="font-bold">{{ user.profile.phone_number }}</span>
+                        </div>
+                        <button class="btn btn-sm btn-secondary w-100 mt-3" onclick="changeMpesaNumber()">
+                            <i class="fas fa-edit"></i> Change Number
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="method-card" id="bankMethod">
+                    <div class="method-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="method-title">Bank Transfer</div>
+                    <div class="method-description">
+                        Direct bank transfer to Co-operative Bank
+                    </div>
+                    <div class="method-details">
+                        <button class="btn btn-sm btn-secondary w-100" onclick="showBankDetails()">
+                            <i class="fas fa-info-circle"></i> View Bank Details
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="method-card" id="cardMethod">
+                    <div class="method-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="method-title">Card Payment</div>
+                    <div class="method-description">
+                        Visa, MasterCard, and other card payments
+                    </div>
+                    <div class="method-details">
+                        <button class="btn btn-sm btn-secondary w-100" onclick="addCard()">
+                            <i class="fas fa-plus"></i> Add Card
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Activity Chart -->
+        <div class="activity-chart-section mt-5">
+            <h3 class="card-title mb-4">Monthly Activity</h3>
+            <div class="activity-chart">
+                <div class="chart-placeholder">
+                    <i class="fas fa-chart-line fa-3x"></i>
+                    <div class="ml-3">
+                        <div>Transaction chart will appear here</div>
+                        <div class="text-sm text-secondary">After you have transaction history</div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
-<!-- M-Pesa Deposit Modal -->
-<div class="modal-overlay" id="mpesaModal">
+<!-- Deposit Modal -->
+<div class="modal" id="depositModal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">M-Pesa Deposit</h3>
-            <button class="modal-close" onclick="closeMpesaModal()">&times;</button>
+        <button class="modal-close" onclick="hideModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="card-title mb-3">Deposit Funds</h3>
+        
+        <form id="depositForm" onsubmit="processDeposit(event)">
+            <div class="form-group">
+                <label class="form-label">Amount (KES)</label>
+                <div class="input-group">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" class="form-control" id="depositAmount" 
+                           min="10" max="100000" step="1" value="100" required>
+                </div>
+                <small class="text-secondary">Minimum: KES 10, Maximum: KES 100,000</small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">M-Pesa Phone Number</label>
+                <input type="tel" class="form-control" id="mpesaPhone" 
+                       value="{{ user.profile.phone_number }}" required>
+                <small class="text-secondary">Safaricom number registered with M-Pesa</small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Payment Method</label>
+                <div class="payment-options">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" name="paymentMethod" 
+                               id="stkPush" value="stk" checked>
+                        <label class="form-check-label" for="stkPush">
+                            <i class="fas fa-mobile-alt"></i> M-Pesa STK Push
+                            <div class="text-secondary text-sm">Receive prompt on your phone</div>
+                        </label>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="paymentMethod" 
+                               id="paybill" value="paybill">
+                        <label class="form-check-label" for="paybill">
+                            <i class="fas fa-money-bill-wave"></i> PayBill Number
+                            <div class="text-secondary text-sm">Manual payment via PayBill</div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+            
+            <div id="paybillDetails" style="display: none;">
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>PayBill Number: 123456</strong><br>
+                        <strong>Account Number: {{ user.id }}</strong><br>
+                        Use your user ID as the account number
+                    </div>
+                </div>
+            </div>
+            
+            <div class="alert alert-warning mt-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Processing Fee: KES 0</strong><br>
+                    No fees for deposits on CoopConnect Premium
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-lock"></i> Secure Deposit
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="hideModal()">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Withdrawal Modal -->
+<div class="modal" id="withdrawalModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="hideModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="card-title mb-3">Withdraw Funds</h3>
+        
+        <div class="alert alert-info mb-4">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Available Balance: KES {{ wallet.balance|floatformat:2 }}</strong><br>
+                Minimum withdrawal: KES 100<br>
+                Processing time: 2-24 hours
+            </div>
         </div>
-        <div class="modal-body">
-            <form id="mpesaForm">
-                {% csrf_token %}
-                <div class="form-group">
-                    <label>Phone Number</label>
-                    <input type="tel" class="form-control" name="phone" 
-                           placeholder="07XXXXXXXX" required>
+        
+        <form id="withdrawalForm" onsubmit="processWithdrawal(event)">
+            <div class="form-group">
+                <label class="form-label">Amount (KES)</label>
+                <div class="input-group">
+                    <span class="input-group-text">KES</span>
+                    <input type="number" class="form-control" id="withdrawalAmount" 
+                           min="100" max="{{ wallet.balance }}" step="1" 
+                           value="100" required>
                 </div>
-                <div class="form-group">
-                    <label>Amount (KES)</label>
-                    <input type="number" class="form-control" name="amount" 
-                           min="10" step="10" required>
+                <small class="text-secondary">Enter amount between KES 100 and {{ wallet.balance }}</small>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">M-Pesa Phone Number</label>
+                <input type="tel" class="form-control" id="withdrawalPhone" 
+                       value="{{ user.profile.phone_number }}" required>
+            </div>
+            
+            <div class="alert alert-warning mt-3">
+                <i class="fas fa-exclamation-triangle"></i>
+                <div>
+                    <strong>Processing Fee: KES 0</strong><br>
+                    No fees for withdrawals on CoopConnect Premium
                 </div>
-                <div class="form-group">
-                    <label>M-Pesa PIN</label>
-                    <input type="password" class="form-control" name="pin" 
-                           placeholder="Enter M-Pesa PIN" required maxlength="4">
-                </div>
-            </form>
+            </div>
+            
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Request Withdrawal
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="hideModal()">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Bank Details Modal -->
+<div class="modal" id="bankDetailsModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="hideModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="card-title mb-3">Bank Transfer Details</h3>
+        
+        <div class="bank-transfer-details">
+            <div class="bank-detail">
+                <span class="bank-label">Bank Name:</span>
+                <span class="bank-value">Co-operative Bank of Kenya</span>
+            </div>
+            
+            <div class="bank-detail">
+                <span class="bank-label">Account Name:</span>
+                <span class="bank-value">CoopConnect Premium</span>
+            </div>
+            
+            <div class="bank-detail">
+                <span class="bank-label">Account Number:</span>
+                <span class="bank-value">1234567890</span>
+                <button class="copy-btn" onclick="copyToClipboard('1234567890')">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            
+            <div class="bank-detail">
+                <span class="bank-label">Branch:</span>
+                <span class="bank-value">Co-operative House</span>
+            </div>
+            
+            <div class="bank-detail">
+                <span class="bank-label">SWIFT Code:</span>
+                <span class="bank-value">COOPKENA</span>
+                <button class="copy-btn" onclick="copyToClipboard('COOPKENA')">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
+            
+            <div class="bank-detail">
+                <span class="bank-label">Reference:</span>
+                <span class="bank-value">USER{{ user.id }}</span>
+                <button class="copy-btn" onclick="copyToClipboard('USER{{ user.id }}')">
+                    <i class="fas fa-copy"></i> Copy
+                </button>
+            </div>
         </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" onclick="closeMpesaModal()">Cancel</button>
-            <button class="btn btn-primary" onclick="processMpesaDeposit()">
-                Deposit
+        
+        <div class="alert alert-info mt-4">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Important Instructions:</strong><br>
+                1. Always use <strong>USER{{ user.id }}</strong> as reference<br>
+                2. Bank transfers take 1-3 business days<br>
+                3. Email receipt to payments@coopconnect.com<br>
+                4. Your balance will update automatically
+            </div>
+        </div>
+        
+        <div class="qr-code">
+            <div class="qr-placeholder">
+                QR Code for Bank App
+            </div>
+            <div class="text-secondary text-sm mt-2">Scan with your bank's mobile app</div>
+        </div>
+        
+        <div class="d-flex justify-center mt-4">
+            <button class="btn btn-secondary" onclick="hideModal()">
+                Close
             </button>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-function depositViaMpesa() {
-    $('#mpesaModal').addClass('active');
-}
-
-function closeMpesaModal() {
-    $('#mpesaModal').removeClass('active');
-    $('#mpesaForm')[0].reset();
-}
-
-function processMpesaDeposit() {
-    const form = $('#mpesaForm');
-    const formData = form.serialize();
+$(document).ready(function() {
+    // Payment method selection
+    $('.method-card').click(function() {
+        $('.method-card').removeClass('selected');
+        $(this).addClass('selected');
+    });
     
-    $.ajax({
-        url: '{% url "api_mpesa_deposit" %}',
-        type: 'POST',
-        data: JSON.stringify({
-            phone: $('[name="phone"]').val(),
-            amount: $('[name="amount"]').val(),
-            pin: $('[name="pin"]').val()
-        }),
-        contentType: 'application/json',
-        success: function(response) {
-            closeMpesaModal();
-            showToast(response.message, 'success');
-            // Simulate payment processing
-            simulatePayment(response.transaction_id);
-        },
-        error: function(xhr) {
-            showToast(xhr.responseJSON.error, 'error');
+    // Show/hide PayBill details
+    $('input[name="paymentMethod"]').change(function() {
+        if ($(this).val() === 'paybill') {
+            $('#paybillDetails').show();
+        } else {
+            $('#paybillDetails').hide();
         }
     });
+});
+
+function showDepositModal() {
+    showModal($('#depositModal').html());
 }
 
-function simulatePayment(transactionId) {
-    showToast('Processing payment...', 'info');
+function showWithdrawalModal() {
+    if ({{ wallet.balance }} < 100) {
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-exclamation-circle fa-3x text-warning mb-3"></i>
+                <h3>Insufficient Balance</h3>
+                <p>Minimum withdrawal amount is KES 100</p>
+                <p>Your current balance: KES {{ wallet.balance|floatformat:2 }}</p>
+                <div class="d-flex gap-3 justify-center mt-4">
+                    <button class="btn btn-primary" onclick="hideModal(); showDepositModal();">
+                        <i class="fas fa-plus-circle"></i> Deposit Funds
+                    </button>
+                    <button class="btn btn-secondary" onclick="hideModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `);
+        return;
+    }
     
-    setTimeout(() => {
-        showToast('Payment successful! Funds added to wallet.', 'success');
-        // Refresh page after 2 seconds
-        setTimeout(() => location.reload(), 2000);
-    }, 3000);
+    showModal($('#withdrawalModal').html());
 }
 
-function transferFunds() {
-    showToast('Transfer feature coming soon!', 'info');
+function showBankDetails() {
+    showModal($('#bankDetailsModal').html());
 }
 
-function viewTransactions() {
-    window.location.href = '#transactions';
+function showTransferModal() {
+    showModal(`
+        <div class="p-4">
+            <h3 class="card-title mb-3">Transfer to User</h3>
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                Transfer funds to another CoopConnect user
+            </div>
+            
+            <form id="transferForm" onsubmit="processTransfer(event)">
+                <div class="form-group">
+                    <label class="form-label">Recipient Username</label>
+                    <input type="text" class="form-control" id="recipientUsername" required>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Amount (KES)</label>
+                    <div class="input-group">
+                        <span class="input-group-text">KES</span>
+                        <input type="number" class="form-control" id="transferAmount" 
+                               min="10" max="{{ wallet.balance }}" step="1" required>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">Message (Optional)</label>
+                    <textarea class="form-control" id="transferMessage" rows="2"></textarea>
+                </div>
+                
+                <div class="alert alert-warning mt-3">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    Transfers are instant and cannot be reversed
+                </div>
+                
+                <div class="d-flex gap-3 mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-paper-plane"></i> Send Transfer
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="hideModal()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    `);
 }
 
-function withdrawToBank() {
-    showToast('Bank withdrawal feature coming soon!', 'info');
-}
-
-function showToast(message, type) {
-    const toast = $(`
-        <div class="toast toast-${type} glass-card">
-            <span>${message}</span>
-            <button class="toast-close">&times;</button>
+function processDeposit(event) {
+    event.preventDefault();
+    
+    const amount = $('#depositAmount').val();
+    const phone = $('#mpesaPhone').val();
+    const method = $('input[name="paymentMethod"]:checked').val();
+    
+    if (amount < 10 || amount > 100000) {
+        alert('Amount must be between KES 10 and KES 100,000');
+        return;
+    }
+    
+    if (!phone.match(/^(07|01|2547|2541)\d{8}$/)) {
+        alert('Please enter a valid Kenyan phone number');
+        return;
+    }
+    
+    // Show processing
+    showModal(`
+        <div class="text-center p-4">
+            <div class="spinner mb-3"></div>
+            <h3>Processing Deposit</h3>
+            <p>Please wait while we process your deposit request...</p>
+            <p class="text-secondary">KES ${amount} to ${phone}</p>
         </div>
     `);
     
-    $('.main-content').append(toast);
-    
+    // Simulate API call
     setTimeout(() => {
-        toast.fadeOut(() => toast.remove());
-    }, 3000);
+        hideModal();
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h3>Deposit Initiated!</h3>
+                <p>Check your phone to complete the M-Pesa payment.</p>
+                <p class="text-secondary">You will receive a confirmation shortly.</p>
+                <button class="btn btn-primary mt-3" onclick="hideModal()">
+                    OK
+                </button>
+            </div>
+        `);
+    }, 2000);
 }
 
-// Close modal on click outside
-$('#mpesaModal').on('click', function(e) {
-    if (e.target === this) {
-        closeMpesaModal();
+function processWithdrawal(event) {
+    event.preventDefault();
+    
+    const amount = $('#withdrawalAmount').val();
+    const phone = $('#withdrawalPhone').val();
+    
+    if (amount < 100) {
+        alert('Minimum withdrawal amount is KES 100');
+        return;
     }
-});
+    
+    if (amount > {{ wallet.balance }}) {
+        alert('Amount exceeds your available balance');
+        return;
+    }
+    
+    if (!phone.match(/^(07|01|2547|2541)\d{8}$/)) {
+        alert('Please enter a valid Kenyan phone number');
+        return;
+    }
+    
+    showModal(`
+        <div class="text-center p-4">
+            <div class="spinner mb-3"></div>
+            <h3>Processing Withdrawal</h3>
+            <p>Your withdrawal request is being processed...</p>
+            <p class="text-secondary">KES ${amount} to ${phone}</p>
+        </div>
+    `);
+    
+    setTimeout(() => {
+        hideModal();
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h3>Withdrawal Requested!</h3>
+                <p>Your withdrawal of KES ${amount} has been submitted.</p>
+                <p class="text-secondary">Funds will be sent within 24 hours.</p>
+                <button class="btn btn-primary mt-3" onclick="hideModal(); location.reload();">
+                    OK
+                </button>
+            </div>
+        `);
+    }, 2000);
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text)
+        .then(() => {
+            const btn = event.target.closest('.copy-btn');
+            const original = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-check"></i> Copied!';
+            setTimeout(() => {
+                btn.innerHTML = original;
+            }, 2000);
+        })
+        .catch(err => {
+            console.error('Failed to copy: ', err);
+        });
+}
+
+function changeMpesaNumber() {
+    showModal(`
+        <div class="p-4">
+            <h3 class="card-title mb-3">Change M-Pesa Number</h3>
+            
+            <div class="form-group">
+                <label class="form-label">Current Number</label>
+                <input type="text" class="form-control" value="{{ user.profile.phone_number }}" disabled>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">New M-Pesa Number</label>
+                <input type="tel" class="form-control" id="newMpesaNumber" 
+                       placeholder="07XXXXXXXX" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Confirm New Number</label>
+                <input type="tel" class="form-control" id="confirmMpesaNumber" 
+                       placeholder="07XXXXXXXX" required>
+            </div>
+            
+            <div class="alert alert-info mt-3">
+                <i class="fas fa-info-circle"></i>
+                You will receive a verification code on the new number
+            </div>
+            
+            <div class="d-flex gap-3 mt-4">
+                <button class="btn btn-primary" onclick="verifyNewNumber()">
+                    <i class="fas fa-save"></i> Update Number
+                </button>
+                <button class="btn btn-secondary" onclick="hideModal()">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    `);
+}
+
+function verifyNewNumber() {
+    const newNum = $('#newMpesaNumber').val();
+    const confirmNum = $('#confirmMpesaNumber').val();
+    
+    if (newNum !== confirmNum) {
+        alert('Phone numbers do not match');
+        return;
+    }
+    
+    if (!newNum.match(/^(07|01|2547|2541)\d{8}$/)) {
+        alert('Please enter a valid Kenyan phone number');
+        return;
+    }
+    
+    hideModal();
+    alert('Verification code sent to ' + newNum + '. Feature in development.');
+}
 </script>
 {% endblock %}

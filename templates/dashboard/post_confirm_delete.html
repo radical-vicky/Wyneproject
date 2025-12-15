@@ -1,9 +1,1029 @@
-<!-- main/templates/dashboard/post_confirm_delete.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Post - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Delete Post Specific Styles */
+.delete-confirmation-container {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.confirmation-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.warning-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+    border: 2px solid rgba(244, 67, 54, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    color: var(--danger);
+    font-size: 3rem;
+}
+
+.post-preview {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 25px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.preview-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--border-color);
+}
+
+.preview-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-author {
+    flex: 1;
+}
+
+.preview-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.preview-time {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.preview-content {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: 20px;
+    max-height: 150px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.preview-media {
+    margin: 20px 0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    max-height: 300px;
+}
+
+.preview-media img, .preview-media video {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    background: var(--dark-bg);
+}
+
+.preview-stats {
+    display: flex;
+    gap: 20px;
+    padding: 15px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.consequences-section {
+    background: rgba(244, 67, 54, 0.05);
+    border: 1px solid rgba(244, 67, 54, 0.2);
+    border-radius: var(--radius);
+    padding: 25px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.consequence-title {
+    color: var(--danger);
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.consequences-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.consequence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.consequence-icon {
+    color: var(--danger);
+    font-size: 1.1rem;
+    min-width: 20px;
+    padding-top: 2px;
+}
+
+.consequence-text {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.alternative-options {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+
+.alternative-title {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.alternative-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.alternative-card {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.alternative-card:hover {
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.alternative-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 168, 89, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: var(--coop-green);
+    font-size: 1.5rem;
+}
+
+.alternative-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.alternative-desc {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.recovery-options {
+    margin-top: 30px;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+}
+
+.recovery-title {
+    color: var(--info);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+
+.backup-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+    justify-content: center;
+}
+
+.backup-btn {
+    padding: 10px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.backup-btn:hover {
+    background: rgba(0, 168, 89, 0.1);
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+.statistics-summary {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 25px 0;
+    text-align: center;
+}
+
+.statistics-title {
+    color: var(--text-secondary);
+    margin-bottom: 15px;
+    font-size: 0.9rem;
+}
+
+.statistics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 15px;
+}
+
+.stat-box {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--coop-green);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.final-warning {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 25px 0;
+    text-align: center;
+}
+
+.warning-text {
+    color: var(--danger);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.warning-note {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .delete-confirmation-container {
+        margin: 20px auto;
+        padding: 10px;
+    }
+    
+    .confirmation-card {
+        padding: 25px;
+    }
+    
+    .warning-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .preview-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .preview-avatar {
+        margin: 0 auto;
+    }
+    
+    .alternative-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .backup-actions {
+        flex-direction: column;
+    }
+    
+    .backup-btn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .confirmation-card {
+        padding: 20px;
+    }
+    
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+    
+    .preview-content {
+        max-height: 200px;
+    }
+    
+    .preview-stats {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .statistics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: post_confirm_delete.html</h1>
-    <p>Content coming soon...</p>
+<div class="fade-in">
+    <div class="delete-confirmation-container">
+        <div class="confirmation-card">
+            <!-- Warning Icon -->
+            <div class="warning-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="mb-2">Delete Post</h1>
+            <p class="text-secondary mb-4">Are you sure you want to delete this post?</p>
+            
+            <!-- Post Preview -->
+            <div class="post-preview">
+                <div class="preview-header">
+                    <div class="preview-avatar">
+                        {% if post.author.profile.photos.first %}
+                        <img src="{{ post.author.profile.photos.first.image.url }}" alt="{{ post.author.username }}">
+                        {% else %}
+                        <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="preview-author">
+                        <div class="preview-name">{{ post.author.username }}</div>
+                        <div class="preview-time">
+                            <i class="fas fa-clock"></i> Posted {{ post.created_at|timesince }} ago
+                        </div>
+                    </div>
+                </div>
+                
+                {% if post.title %}
+                <h4 class="mb-3">{{ post.title }}</h4>
+                {% endif %}
+                
+                <div class="preview-content">
+                    {{ post.content|linebreaks }}
+                </div>
+                
+                <!-- Post Media -->
+                {% if post.media.exists %}
+                <div class="preview-media">
+                    {% if post.media.first.file_type == 'image' %}
+                    <img src="{{ post.media.first.file.url }}" alt="Post image">
+                    {% elif post.media.first.file_type == 'video' %}
+                    <video controls style="width: 100%; max-height: 300px;">
+                        <source src="{{ post.media.first.file.url }}" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <!-- Post Stats -->
+                <div class="preview-stats">
+                    <div class="stat-item">
+                        <i class="fas fa-heart text-danger"></i>
+                        <span>{{ post.likes.count }} likes</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-comment text-info"></i>
+                        <span>{{ post.comments.count }} comments</span>
+                    </div>
+                    <div class="stat-item">
+                        <i class="fas fa-share text-success"></i>
+                        <span>{{ post.shares.count }} shares</span>
+                    </div>
+                    {% if post.views > 0 %}
+                    <div class="stat-item">
+                        <i class="fas fa-eye text-warning"></i>
+                        <span>{{ post.views }} views</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Post Tags -->
+                {% if post.tags.exists %}
+                <div class="d-flex flex-wrap gap-2">
+                    {% for tag in post.tags.all %}
+                    <span class="badge badge-secondary">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Statistics Summary -->
+            <div class="statistics-summary">
+                <div class="statistics-title">This post has received:</div>
+                <div class="statistics-grid">
+                    <div class="stat-box">
+                        <div class="stat-value">{{ post.likes.count }}</div>
+                        <div class="stat-label">Likes</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ post.comments.count }}</div>
+                        <div class="stat-label">Comments</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value">{{ post.shares.count }}</div>
+                        <div class="stat-label">Shares</div>
+                    </div>
+                    {% if post.views > 0 %}
+                    <div class="stat-box">
+                        <div class="stat-value">{{ post.views }}</div>
+                        <div class="stat-label">Views</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Consequences Warning -->
+            <div class="consequences-section">
+                <div class="consequence-title">
+                    <i class="fas fa-exclamation-circle"></i>
+                    This will permanently:
+                </div>
+                <div class="consequences-list">
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Delete this post from CoopConnect
+                        </div>
+                    </div>
+                    
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Remove all {{ post.comments.count }} comments and replies
+                        </div>
+                    </div>
+                    
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Delete all {{ post.likes.count }} likes and reactions
+                        </div>
+                    </div>
+                    
+                    {% if post.media.exists %}
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Delete {{ post.media.count }} media file(s)
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Remove this post from your profile history
+                        </div>
+                    </div>
+                    
+                    {% if post.is_pinned %}
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-thumbtack"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Remove pin status from this post
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Final Warning -->
+            <div class="final-warning">
+                <div class="warning-text">
+                    <i class="fas fa-ban"></i> This action cannot be undone
+                </div>
+                <div class="warning-note">
+                    Once deleted, this post cannot be recovered through normal means.
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> Yes, Delete Permanently
+                    </button>
+                </form>
+                
+                <a href="{{ request.META.HTTP_REFERER|default:'/' }}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+            
+            <!-- Recovery Options -->
+            <div class="recovery-options">
+                <div class="recovery-title">
+                    <i class="fas fa-life-ring text-info"></i>
+                    Want to backup before deleting?
+                </div>
+                <div class="backup-actions">
+                    <button class="backup-btn" onclick="savePostText()">
+                        <i class="fas fa-save"></i> Save Text Content
+                    </button>
+                    
+                    {% if post.media.exists %}
+                    <button class="backup-btn" onclick="downloadMedia()">
+                        <i class="fas fa-download"></i> Download Media
+                    </button>
+                    {% endif %}
+                    
+                    <button class="backup-btn" onclick="archivePost()">
+                        <i class="fas fa-archive"></i> Archive Instead
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alternative Options -->
+            <div class="alternative-options">
+                <div class="alternative-title">
+                    <i class="fas fa-lightbulb text-warning"></i>
+                    Consider these alternatives instead:
+                </div>
+                <div class="alternative-grid">
+                    <div class="alternative-card" onclick="editPost()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="alternative-name">Edit Post</div>
+                        <div class="alternative-desc">Update content instead of deleting</div>
+                    </div>
+                    
+                    <div class="alternative-card" onclick="hidePost()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-eye-slash"></i>
+                        </div>
+                        <div class="alternative-name">Hide from Timeline</div>
+                        <div class="alternative-desc">Make post visible only to you</div>
+                    </div>
+                    
+                    <div class="alternative-card" onclick="archivePost()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div class="alternative-name">Archive Post</div>
+                        <div class="alternative-desc">Move to archive for later reference</div>
+                    </div>
+                    
+                    <div class="alternative-card" onclick="scheduleDeletion()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="alternative-name">Schedule Deletion</div>
+                        <div class="alternative-desc">Delete automatically after some time</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Save Text Modal -->
+<div id="saveTextModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Save Post Content</h3>
+    <div class="form-group">
+        <textarea class="form-control" rows="10" id="postTextContent" readonly>{{ post.content }}</textarea>
+    </div>
+    <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary flex-1" onclick="copyPostText()">
+            <i class="fas fa-copy"></i> Copy to Clipboard
+        </button>
+        <button class="btn btn-secondary" onclick="downloadPostText()">
+            <i class="fas fa-download"></i> Download as File
+        </button>
+    </div>
+</div>
+
+<!-- Archive Post Modal -->
+<div id="archiveModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Archive Post</h3>
+    <form id="archiveForm" onsubmit="processArchive(event)">
+        <div class="form-group">
+            <label class="form-label">Archive Reason (Optional)</label>
+            <textarea class="form-control" name="reason" rows="3" placeholder="Why are you archiving this post?"></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Archive Category</label>
+            <select class="form-control" name="category">
+                <option value="">General Archive</option>
+                <option value="memories">Memories</option>
+                <option value="drafts">Future Drafts</option>
+                <option value="reference">Reference Material</option>
+                <option value="temporary">Temporary Storage</option>
+            </select>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>About Archiving</strong>
+                <div class="text-sm">Archived posts are hidden from your timeline but can be restored later.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-archive"></i> Archive Post
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Schedule Deletion Modal -->
+<div id="scheduleModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Schedule Post Deletion</h3>
+    <form id="scheduleForm" onsubmit="processSchedule(event)">
+        <div class="form-group">
+            <label class="form-label">Delete After</label>
+            <select class="form-control" name="duration">
+                <option value="1">24 Hours</option>
+                <option value="7">7 Days</option>
+                <option value="30">30 Days</option>
+                <option value="90">90 Days</option>
+                <option value="custom">Custom Date</option>
+            </select>
+        </div>
+        
+        <div id="customDateField" class="form-group d-none">
+            <label class="form-label">Custom Deletion Date</label>
+            <input type="date" class="form-control" name="custom_date">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Notification</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="notify_before" checked>
+                    <span class="form-check-label">Notify me 24 hours before deletion</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="notify_after" checked>
+                    <span class="form-check-label">Notify me when post is deleted</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Scheduled Deletion</strong>
+                <div class="text-sm">Post will be automatically deleted on the selected date.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-clock"></i> Schedule Deletion
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize form handlers
+    initializeForms();
+});
+
+// Initialize form handlers
+function initializeForms() {
+    // Handle schedule duration change
+    $('select[name="duration"]').change(function() {
+        const duration = $(this).val();
+        if (duration === 'custom') {
+            $('#customDateField').removeClass('d-none');
+        } else {
+            $('#customDateField').addClass('d-none');
+        }
+    });
+    
+    // Form submission confirmation
+    $('form').on('submit', function(e) {
+        if ($(this).find('button[type="submit"]').hasClass('btn-danger')) {
+            // Final confirmation for deletion
+            e.preventDefault();
+            
+            showModal(`
+                <div class="text-center p-4">
+                    <div class="warning-icon mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="mb-3">Final Confirmation</h3>
+                    <p class="text-secondary mb-4">This is your last chance to cancel. Are you absolutely sure?</p>
+                    
+                    <div class="consequences-list mb-4">
+                        <div class="consequence-item">
+                            <div class="consequence-icon">
+                                <i class="fas fa-skull-crossbones"></i>
+                            </div>
+                            <div class="consequence-text">
+                                This action is <strong>PERMANENT</strong> and <strong>IRREVERSIBLE</strong>
+                            </div>
+                        </div>
+                        <div class="consequence-item">
+                            <div class="consequence-icon">
+                                <i class="fas fa-comments"></i>
+                            </div>
+                            <div class="consequence-text">
+                                {{ post.comments.count }} comments will be lost forever
+                            </div>
+                        </div>
+                        <div class="consequence-item">
+                            <div class="consequence-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="consequence-text">
+                                This post will be removed from all interaction histories
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="final-warning mb-4">
+                        <div class="warning-text">
+                            <i class="fas fa-ban"></i> NO UNDO - NO RECOVERY
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-danger flex-1" onclick="confirmDeletion()">
+                            <i class="fas fa-check"></i> DELETE FOREVER
+                        </button>
+                        <button class="btn btn-secondary flex-1" onclick="hideModal()">
+                            <i class="fas fa-times"></i> CANCEL
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+    });
+}
+
+// Confirm deletion
+function confirmDeletion() {
+    hideModal();
+    $('form').off('submit').submit();
+}
+
+// Alternative actions
+function editPost() {
+    window.location.href = "{% url 'post_edit' post.id %}";
+}
+
+function hidePost() {
+    if (confirm('Hide this post from your timeline? Only you will be able to see it.')) {
+        $.ajax({
+            url: '/api/posts/{{ post.id }}/hide/',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Post hidden successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 1500);
+                } else {
+                    alert('Failed to hide post: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error hiding post. Please try again.');
+            }
+        });
+    }
+}
+
+function archivePost() {
+    showModal($('#archiveModalContent').html());
+}
+
+function processArchive(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '/api/posts/{{ post.id }}/archive/',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Post archived successfully!', 'success');
+                hideModal();
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                alert('Failed to archive post: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error archiving post. Please try again.');
+        }
+    });
+}
+
+function scheduleDeletion() {
+    showModal($('#scheduleModalContent').html());
+}
+
+function processSchedule(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '/api/posts/{{ post.id }}/schedule-delete/',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Deletion scheduled successfully!', 'success');
+                hideModal();
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 1500);
+            } else {
+                alert('Failed to schedule deletion: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error scheduling deletion. Please try again.');
+        }
+    });
+}
+
+// Backup actions
+function savePostText() {
+    showModal($('#saveTextModalContent').html());
+}
+
+function copyPostText() {
+    const textarea = document.getElementById('postTextContent');
+    textarea.select();
+    document.execCommand('copy');
+    showMessage('Text copied to clipboard!', 'success');
+    hideModal();
+}
+
+function downloadPostText() {
+    const text = `Post by {{ post.author.username }}\n\n{{ post.title }}\n\n{{ post.content }}\n\nSaved on ${new Date().toLocaleDateString()}`;
+    const blob = new Blob([text], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `post-{{ post.id }}-{{ post.author.username }}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showMessage('Text downloaded successfully!', 'success');
+    hideModal();
+}
+
+function downloadMedia() {
+    // Show processing modal
+    showModal(`
+        <div class="text-center p-4">
+            <div class="processing-icon mb-4">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+            </div>
+            <h4 class="mb-2">Preparing Media Download</h4>
+            <p class="text-secondary">Compressing {{ post.media.count }} file(s)...</p>
+        </div>
+    `);
+    
+    // In a real application, this would download actual media files
+    setTimeout(() => {
+        const zipBlob = new Blob(['Media files would be downloaded here'], { type: 'application/zip' });
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `post-media-{{ post.id }}.zip`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        showMessage('Media downloaded successfully!', 'success');
+        hideModal();
+    }, 2000);
+}
+
+// Show message
+function showMessage(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type}">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `);
+    
+    $('.messages-container').append(alert);
+    
+    setTimeout(() => {
+        alert.fadeOut(300, () => alert.remove());
+    }, 5000);
+}
+</script>
 {% endblock %}

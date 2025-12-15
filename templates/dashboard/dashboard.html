@@ -1,301 +1,220 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Dashboard | ConnectPlus{% endblock %}
+{% block title %}Dashboard - CoopConnect Premium{% endblock %}
 
 {% block content %}
-<div class="dashboard-container">
-    <!-- Welcome Section -->
-    <div class="dashboard-widget glass-card">
-        <div class="widget-header">
-            <h2 class="widget-title">Welcome back, {{ user.username }}!</h2>
-            <div class="widget-actions">
-                <button class="btn btn-primary btn-sm" onclick="refreshStats()">
-                    <i class="ri-refresh-line"></i> Refresh
-                </button>
+<div class="row mb-3">
+    <!-- Welcome Card -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h1 class="card-title">Welcome back, {{ user.username }}!</h1>
+                <p class="card-subtitle">Here's what's happening with your account today.</p>
             </div>
-        </div>
-        
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon text-primary">
-                    <i class="ri-eye-line"></i>
-                </div>
-                <div class="stat-value">{{ profile.total_views }}</div>
-                <div class="stat-label">Profile Views</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon text-success">
-                    <i class="ri-calendar-check-line"></i>
-                </div>
-                <div class="stat-value">{{ stats.total_bookings }}</div>
-                <div class="stat-label">Bookings</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon text-info">
-                    <i class="ri-chat-3-line"></i>
-                </div>
-                <div class="stat-value">{{ stats.total_contacts }}</div>
-                <div class="stat-label">Contacts</div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon text-warning">
-                    <i class="ri-wallet-3-line"></i>
-                </div>
-                <div class="stat-value">KES {{ wallet.balance|floatformat:2 }}</div>
-                <div class="stat-label">Wallet Balance</div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Quick Actions -->
-    <div class="grid grid-2 gap-3">
-        <!-- Recent Activity -->
-        <div class="dashboard-widget glass-card">
-            <div class="widget-header">
-                <h3 class="widget-title">Recent Activity</h3>
-                <a href="{% url 'booking_list' %}" class="btn btn-outline btn-sm">
-                    View All
-                </a>
-            </div>
-            
-            <div class="activity-list">
-                {% for booking in pending_bookings %}
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="ri-calendar-line"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-text">
-                            {% if booking.client == user %}
-                            Booking request sent to {{ booking.service_provider.username }}
-                            {% else %}
-                            New booking from {{ booking.client.username }}
-                            {% endif %}
-                        </div>
-                        <div class="activity-time">
-                            {{ booking.created_at|timesince }} ago
-                        </div>
-                    </div>
-                    <span class="badge badge-{{ booking.status }}">
-                        {{ booking.status|title }}
-                    </span>
-                </div>
-                {% empty %}
-                <p class="text-muted text-center p-3">No recent activity</p>
-                {% endfor %}
-                
-                {% for message in recent_messages %}
-                <div class="activity-item">
-                    <div class="activity-icon">
-                        <i class="ri-message-2-line"></i>
-                    </div>
-                    <div class="activity-content">
-                        <div class="activity-text">
-                            New message from {{ message.sender.username }}
-                        </div>
-                        <div class="activity-time">
-                            {{ message.sent_at|timesince }} ago
-                        </div>
+            <div class="row mt-3">
+                <div class="col-md-3 col-sm-6">
+                    <div class="text-center p-3">
+                        <div class="stat-value">{{ stats.total_posts|default:"0" }}</div>
+                        <div class="stat-label">Total Posts</div>
                     </div>
                 </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        <!-- Quick Stats -->
-        <div class="dashboard-widget glass-card">
-            <div class="widget-header">
-                <h3 class="widget-title">Profile Stats</h3>
-                <a href="{% url 'profile' %}" class="btn btn-outline btn-sm">
-                    View Profile
-                </a>
-            </div>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <i class="ri-star-line stat-icon"></i>
-                    <div class="stat-value">{{ profile.rating|floatformat:1 }}</div>
-                    <div class="stat-label">Rating</div>
-                </div>
-                
-                <div class="stat-card">
-                    <i class="ri-phone-line stat-icon"></i>
-                    <div class="stat-value">{{ profile.total_calls }}</div>
-                    <div class="stat-label">Total Calls</div>
-                </div>
-                
-                <div class="stat-card">
-                    <i class="ri-thumb-up-line stat-icon"></i>
-                    <div class="stat-value">{{ posts.count }}</div>
-                    <div class="stat-label">Posts</div>
-                </div>
-                
-                <div class="stat-card">
-                    <i class="ri-check-double-line stat-icon"></i>
-                    <div class="stat-value">
-                        {% if profile.is_verified %}
-                        Verified
-                        {% else %}
-                        Pending
-                        {% endif %}
-                    </div>
-                    <div class="stat-label">Status</div>
-                </div>
-            </div>
-            
-            <div class="mt-3">
-                <h4 class="mb-2">Service Tags</h4>
-                <div class="profile-services">
-                    {% for service in profile.get_services_list %}
-                    <span class="service-tag">{{ service }}</span>
-                    {% empty %}
-                    <span class="text-muted">No services added</span>
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Recent Posts -->
-    <div class="dashboard-widget glass-card">
-        <div class="widget-header">
-            <h3 class="widget-title">Your Recent Posts</h3>
-            <a href="{% url 'post_create' %}" class="btn btn-primary btn-sm">
-                <i class="ri-add-line"></i> New Post
-            </a>
-        </div>
-        
-        {% if recent_posts %}
-        <div class="grid grid-3 gap-3">
-            {% for post in recent_posts %}
-            <div class="post-card">
-                <div class="post-header">
-                    <div class="post-avatar">
-                        {% if profile.photos.first %}
-                        <img src="{{ profile.photos.first.image.url }}" alt="{{ user.username }}">
-                        {% else %}
-                        <div class="avatar-placeholder">{{ user.username|first|upper }}</div>
-                        {% endif %}
-                    </div>
-                    <div class="post-user">
-                        <div class="post-username">{{ user.username }}</div>
-                        <div class="post-time">{{ post.created_at|timesince }} ago</div>
+                <div class="col-md-3 col-sm-6">
+                    <div class="text-center p-3">
+                        <div class="stat-value">{{ stats.total_contacts|default:"0" }}</div>
+                        <div class="stat-label">Contacts</div>
                     </div>
                 </div>
-                
-                <div class="post-content">
-                    <p class="post-text">{{ post.content|truncatechars:100 }}</p>
-                    {% if post.image %}
-                    <div class="post-media">
-                        <img src="{{ post.image.url }}" alt="Post image">
+                <div class="col-md-3 col-sm-6">
+                    <div class="text-center p-3">
+                        <div class="stat-value">{{ stats.total_bookings|default:"0" }}</div>
+                        <div class="stat-label">Bookings</div>
                     </div>
-                    {% endif %}
                 </div>
-                
-                <div class="post-stats">
-                    <span class="post-stat">
-                        <i class="ri-heart-line"></i> {{ post.likes }}
-                    </span>
-                    <span class="post-stat">
-                        <i class="ri-chat-3-line"></i> {{ post.comments_count }}
-                    </span>
-                </div>
-                
-                <div class="post-actions">
-                    <a href="{% url 'post_detail' post.id %}" class="btn btn-outline btn-sm w-100">
-                        View Post
-                    </a>
+                <div class="col-md-3 col-sm-6">
+                    <div class="text-center p-3">
+                        <div class="stat-value">KES {{ stats.wallet_balance|default:"0.00" }}</div>
+                        <div class="stat-label">Wallet Balance</div>
+                    </div>
                 </div>
             </div>
-            {% endfor %}
-        </div>
-        {% else %}
-        <div class="text-center p-4">
-            <i class="ri-file-text-line text-muted" style="font-size: 3rem;"></i>
-            <p class="text-muted mt-2">No posts yet. Create your first post!</p>
-            <a href="{% url 'post_create' %}" class="btn btn-primary mt-2">
-                Create First Post
-            </a>
-        </div>
-        {% endif %}
-    </div>
-    
-    <!-- Quick Links -->
-    <div class="dashboard-widget glass-card">
-        <h3 class="widget-title mb-3">Quick Actions</h3>
-        <div class="grid grid-4">
-            <a href="{% url 'upload_photo' %}" class="quick-action-btn">
-                <i class="ri-camera-line"></i>
-                <span>Add Photos</span>
-            </a>
-            
-            <a href="{% url 'wallet' %}" class="quick-action-btn">
-                <i class="ri-wallet-3-line"></i>
-                <span>Wallet</span>
-            </a>
-            
-            <a href="{% url 'search' %}" class="quick-action-btn">
-                <i class="ri-search-line"></i>
-                <span>Search</span>
-            </a>
-            
-            <a href="{% url 'settings' %}" class="quick-action-btn">
-                <i class="ri-settings-3-line"></i>
-                <span>Settings</span>
-            </a>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
-<script>
-function refreshStats() {
-    $('.loading-spinner').show();
-    $.ajax({
-        url: '{% url "api_get_notifications" %}',
-        type: 'GET',
-        success: function(data) {
-            // Update notification badge
-            $('.notification-badge').text(data.total);
-            // You can add more updates here
-            showToast('Stats updated!', 'success');
-        },
-        complete: function() {
-            $('.loading-spinner').hide();
-        }
-    });
-}
+<div class="row">
+    <!-- Recent Activity -->
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Activity</h2>
+                <a href="{% url 'post_create' %}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> New Post
+                </a>
+            </div>
+            <div class="mt-3">
+                {% if recent_posts %}
+                <div class="activity-list">
+                    {% for post in recent_posts %}
+                    <div class="activity-item p-3 mb-2 rounded" style="background: rgba(255,255,255,0.02);">
+                        <div class="d-flex align-center gap-3">
+                            <div class="user-avatar" style="width: 40px; height: 40px;">
+                                {% if post.user.profile.photos.first %}
+                                <img src="{{ post.user.profile.photos.first.image.url }}" alt="{{ post.user.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-1">
+                                <div class="d-flex justify-between align-center">
+                                    <div>
+                                        <strong>{{ post.user.username }}</strong>
+                                        <span class="text-secondary text-sm">posted</span>
+                                    </div>
+                                    <span class="text-secondary text-sm">{{ post.created_at|timesince }} ago</span>
+                                </div>
+                                <p class="mt-1 text-secondary">{{ post.content|truncatewords:30 }}</p>
+                                <div class="d-flex gap-2 mt-2">
+                                    <button class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-heart"></i> {{ post.likes }}
+                                    </button>
+                                    <button class="btn btn-sm btn-secondary">
+                                        <i class="fas fa-comment"></i> {{ post.comments_count }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center p-5">
+                    <i class="fas fa-newspaper fa-3x text-secondary mb-3"></i>
+                    <p class="text-secondary">No recent activity</p>
+                    <a href="{% url 'post_create' %}" class="btn btn-primary mt-2">Create your first post</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
 
-function showToast(message, type) {
-    const toast = document.createElement('div');
-    toast.className = `toast toast-${type} glass-card`;
-    toast.innerHTML = `
-        <span>${message}</span>
-        <button class="toast-close">&times;</button>
-    `;
-    document.querySelector('.main-content').appendChild(toast);
-    
-    setTimeout(() => {
-        toast.remove();
-    }, 3000);
-}
+    <!-- Quick Stats & Actions -->
+    <div class="col-md-4" style="margin-left: 100px;">
+        <!-- Notifications Card -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h3 class="card-title">Notifications</h3>
+            </div>
+            <div class="p-3">
+                <div class="notification-item d-flex align-center gap-3 mb-3">
+                    <div class="notification-icon" style="background: rgba(0,168,89,0.2); color: var(--coop-green); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-comment"></i>
+                    </div>
+                    <div>
+                        <div class="text-primary">Messages</div>
+                        <div class="text-secondary text-sm">{{ notifications.unread_messages|default:"0" }} unread</div>
+                    </div>
+                </div>
+                
+                <div class="notification-item d-flex align-center gap-3 mb-3">
+                    <div class="notification-icon" style="background: rgba(33,150,243,0.2); color: var(--info); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-calendar-check"></i>
+                    </div>
+                    <div>
+                        <div class="text-primary">Bookings</div>
+                        <div class="text-secondary text-sm">{{ notifications.pending_bookings|default:"0" }} pending</div>
+                    </div>
+                </div>
+                
+                <div class="notification-item d-flex align-center gap-3">
+                    <div class="notification-icon" style="background: rgba(255,193,7,0.2); color: var(--warning); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                        <i class="fas fa-money-check-alt"></i>
+                    </div>
+                    <div>
+                        <div class="text-primary">Transactions</div>
+                        <div class="text-secondary text-sm">{{ notifications.pending_transactions|default:"0" }} pending</div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-// Update online status
-window.addEventListener('focus', function() {
-    $.get('{% url "api_update_online_status" %}?status=online');
-});
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Quick Actions</h3>
+            </div>
+            <div class="p-3">
+                <div class="d-flex flex-column gap-2">
+                    <a href="{% url 'deposit' %}" class="btn btn-primary">
+                        <i class="fas fa-plus-circle"></i> Deposit Funds
+                    </a>
+                    <a href="{% url 'booking_create' user.username %}" class="btn btn-secondary">
+                        <i class="fas fa-calendar-plus"></i> Book Service
+                    </a>
+                    <a href="{% url 'profile_edit' %}" class="btn btn-secondary">
+                        <i class="fas fa-user-edit"></i> Edit Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
-window.addEventListener('blur', function() {
-    setTimeout(() => {
-        if (!document.hasFocus()) {
-            $.get('{% url "api_update_online_status" %}?status=offline');
-        }
-    }, 30000); // 30 seconds after losing focus
-});
-</script>
+<!-- Recent Messages -->
+<div class="row mt-3">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Recent Messages</h2>
+                <a href="{% url 'inbox' %}" class="btn btn-primary btn-sm">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>From</th>
+                            <th>Message</th>
+                            <th>Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if recent_messages %}
+                        {% for message in recent_messages %}
+                        <tr>
+                            <td>
+                                <div class="d-flex align-center gap-2">
+                                    <div class="user-avatar" style="width: 30px; height: 30px;">
+                                        {% if message.sender.profile.photos.first %}
+                                        <img src="{{ message.sender.profile.photos.first.image.url }}" alt="{{ message.sender.username }}">
+                                        {% else %}
+                                        <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <span>{{ message.sender.username }}</span>
+                                </div>
+                            </td>
+                            <td>{{ message.content|truncatechars:50 }}</td>
+                            <td>{{ message.sent_at|timesince }} ago</td>
+                            <td>
+                                <a href="{% url 'conversation_user' message.sender.username %}" class="btn btn-sm btn-primary">Reply</a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                        {% else %}
+                        <tr>
+                            <td colspan="4" class="text-center text-secondary p-4">
+                                No recent messages
+                            </td>
+                        </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

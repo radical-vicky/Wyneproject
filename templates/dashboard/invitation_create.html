@@ -1,9 +1,1139 @@
-<!-- main/templates/dashboard/invitation_create.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Send Invitation - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Invitation Create specific styles */
+.invitation-create-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.form-container {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    text-align: center;
+}
+
+.form-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 30px;
+    text-align: center;
+    font-size: 1rem;
+}
+
+.form-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.form-tab {
+    padding: 10px 25px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.form-tab:hover {
+    color: var(--text-primary);
+}
+
+.form-tab.active {
+    color: var(--coop-green);
+    border-bottom-color: var(--coop-green);
+}
+
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.form-section {
+    margin-bottom: 30px;
+}
+
+.section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--coop-green);
+}
+
+/* Invitation rewards */
+.rewards-card {
+    background: linear-gradient(135deg, rgba(0,168,89,0.1), rgba(0,102,179,0.1));
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 25px;
+    border: 1px solid rgba(0,168,89,0.3);
+}
+
+.rewards-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.rewards-icon {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.5rem;
+}
+
+.rewards-info {
+    flex: 1;
+}
+
+.rewards-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.rewards-description {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.rewards-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-top: 15px;
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+}
+
+.reward-icon {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: var(--coop-blue);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1rem;
+}
+
+.reward-info {
+    flex: 1;
+}
+
+.reward-title {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 2px;
+}
+
+.reward-amount {
+    font-size: 0.85rem;
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+/* Form groups with icons */
+.form-group-icon {
+    position: relative;
+}
+
+.form-group-icon .form-control {
+    padding-left: 50px;
+}
+
+.form-group-icon i {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1.2rem;
+}
+
+/* Recipient selection */
+.recipient-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.recipient-option {
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.recipient-option:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--coop-green);
+}
+
+.recipient-option.selected {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+}
+
+.recipient-icon {
+    font-size: 2rem;
+    color: var(--coop-green);
+    margin-bottom: 10px;
+}
+
+.recipient-title {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.recipient-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+/* Preview section */
+.preview-section {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 25px;
+    margin-top: 30px;
+}
+
+.preview-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.preview-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.preview-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.preview-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--coop-green);
+}
+
+.preview-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.preview-info {
+    flex: 1;
+}
+
+.preview-name {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.preview-email {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.preview-message {
+    padding: 15px;
+    background: rgba(255,255,255,0.03);
+    border-radius: var(--radius);
+    font-style: italic;
+    margin-top: 15px;
+    position: relative;
+}
+
+.preview-message:before {
+    content: '"';
+    font-size: 3rem;
+    color: var(--coop-green);
+    opacity: 0.3;
+    position: absolute;
+    top: -15px;
+    left: 10px;
+}
+
+.preview-message:after {
+    content: '"';
+    font-size: 3rem;
+    color: var(--coop-green);
+    opacity: 0.3;
+    position: absolute;
+    bottom: -25px;
+    right: 10px;
+}
+
+/* Progress indicator */
+.progress-indicator {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.progress-indicator:before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+}
+
+.progress-step.active .step-dot {
+    background: var(--coop-green);
+    color: white;
+}
+
+.progress-step.completed .step-dot {
+    background: var(--success);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.progress-step.active .step-label {
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+.progress-step.completed .step-label {
+    color: var(--success);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .form-container {
+        padding: 20px;
+    }
+    
+    .form-tabs {
+        flex-direction: column;
+    }
+    
+    .form-tab {
+        text-align: center;
+    }
+    
+    .recipient-options {
+        grid-template-columns: 1fr;
+    }
+    
+    .rewards-list {
+        grid-template-columns: 1fr;
+    }
+    
+    .progress-indicator {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .progress-indicator:before {
+        display: none;
+    }
+    
+    .progress-step {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .step-dot {
+        margin-bottom: 0;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: invitation_create.html</h1>
-    <p>Content coming soon...</p>
+<div class="invitation-create-header">
+    <div>
+        <h1 class="card-title">Send Invitation</h1>
+        <p class="card-subtitle">Invite friends to join CoopConnect Premium</p>
+    </div>
+    <a href="{% url 'invitations' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Invitations
+    </a>
 </div>
+
+<!-- Rewards Card -->
+<div class="rewards-card">
+    <div class="rewards-header">
+        <div class="rewards-icon">
+            <i class="fas fa-gift"></i>
+        </div>
+        <div class="rewards-info">
+            <div class="rewards-title">Earn Rewards for Each Invitation!</div>
+            <div class="rewards-description">Get rewarded when your friends join and verify their profiles</div>
+        </div>
+    </div>
+    
+    <div class="rewards-list">
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-user-check"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">Profile Verification</div>
+                <div class="reward-amount">KES 100</div>
+            </div>
+        </div>
+        
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">First Booking</div>
+                <div class="reward-amount">KES 200</div>
+            </div>
+        </div>
+        
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">VIP Upgrade</div>
+                <div class="reward-amount">KES 500</div>
+            </div>
+        </div>
+        
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">5+ Friends</div>
+                <div class="reward-amount">VIP Status</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="form-container">
+    <!-- Progress Indicator -->
+    <div class="progress-indicator">
+        <div class="progress-step active" id="step1">
+            <div class="step-dot">1</div>
+            <div class="step-label">Recipient</div>
+        </div>
+        
+        <div class="progress-step" id="step2">
+            <div class="step-dot">2</div>
+            <div class="step-label">Message</div>
+        </div>
+        
+        <div class="progress-step" id="step3">
+            <div class="step-dot">3</div>
+            <div class="step-label">Review</div>
+        </div>
+        
+        <div class="progress-step" id="step4">
+            <div class="step-dot">4</div>
+            <div class="step-label">Send</div>
+        </div>
+    </div>
+    
+    <!-- Form Tabs -->
+    <div class="form-tabs">
+        <button class="form-tab active" data-tab="single">Single Invitation</button>
+        <button class="form-tab" data-tab="bulk">Bulk Invitations</button>
+        <button class="form-tab" data-tab="contacts">From Contacts</button>
+    </div>
+    
+    <!-- Single Invitation Tab -->
+    <div class="tab-content active" id="singleTab">
+        <form id="singleInvitationForm" method="POST" action="{% url 'invitation_create' %}">
+            {% csrf_token %}
+            
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-user-plus"></i>
+                    Recipient Information
+                </div>
+                
+                <div class="recipient-options mb-4">
+                    <div class="recipient-option selected" data-type="email">
+                        <div class="recipient-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <div class="recipient-title">Email</div>
+                        <div class="recipient-description">Send via email</div>
+                    </div>
+                    
+                    <div class="recipient-option" data-type="phone">
+                        <div class="recipient-icon">
+                            <i class="fas fa-phone"></i>
+                        </div>
+                        <div class="recipient-title">SMS</div>
+                        <div class="recipient-description">Send via text message</div>
+                    </div>
+                    
+                    <div class="recipient-option" data-type="both">
+                        <div class="recipient-icon">
+                            <i class="fas fa-comments"></i>
+                        </div>
+                        <div class="recipient-title">Both</div>
+                        <div class="recipient-description">Send via email & SMS</div>
+                    </div>
+                </div>
+                
+                <input type="hidden" name="invitation_type" id="invitationType" value="email">
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group form-group-icon">
+                            <i class="fas fa-user"></i>
+                            <input type="text" class="form-control" name="invitee_name" id="inviteeName" placeholder="Friend's Name (Optional)">
+                            <div class="text-sm text-secondary mt-1">Add a personal touch with their name</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group form-group-icon">
+                            <i class="fas fa-envelope"></i>
+                            <input type="email" class="form-control" name="invitee_email" id="inviteeEmail" placeholder="Email Address" required>
+                            <div class="text-sm text-secondary mt-1">We'll send the invitation to this email</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group form-group-icon">
+                            <i class="fas fa-phone"></i>
+                            <input type="tel" class="form-control" name="invitee_phone" id="inviteePhone" placeholder="Phone Number (Optional)">
+                            <div class="text-sm text-secondary mt-1">For SMS invitation</div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group form-group-icon">
+                            <i class="fas fa-map-marker-alt"></i>
+                            <input type="text" class="form-control" name="invitee_location" id="inviteeLocation" placeholder="Location (Optional)">
+                            <div class="text-sm text-secondary mt-1">City or country</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="form-section">
+                <div class="section-title">
+                    <i class="fas fa-comment"></i>
+                    Personal Message
+                </div>
+                
+                <div class="form-group">
+                    <textarea class="form-control" name="message" id="invitationMessage" rows="5" placeholder="Write a personal message to your friend...">Hey! I'd like to invite you to join CoopConnect Premium, the premium dating and companionship platform. Use my invitation code: {{ user.username }}
+
+Sign up here and get started with premium features!</textarea>
+                    <div class="text-sm text-secondary mt-1">This message will be included in your invitation</div>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" name="include_code" id="includeCode" checked class="mr-2">
+                        Include my invitation code ({{ user.username }})
+                    </label>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label">
+                        <input type="checkbox" name="include_link" id="includeLink" checked class="mr-2">
+                        Include signup link
+                    </label>
+                </div>
+            </div>
+            
+            <div class="preview-section">
+                <div class="preview-title">Preview</div>
+                <div class="preview-card">
+                    <div class="preview-header">
+                        <div class="preview-avatar">
+                            {% if user.profile.photos.first %}
+                            <img src="{{ user.profile.photos.first.image.url }}" alt="{{ user.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--primary-gradient);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="preview-info">
+                            <div class="preview-name">{{ user.username }}</div>
+                            <div class="preview-email">{{ user.email }}</div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-message" id="messagePreview">
+                        Loading preview...
+                    </div>
+                </div>
+            </div>
+            
+            <div class="d-flex gap-3 mt-4">
+                <button type="submit" class="btn btn-primary flex-1 btn-lg">
+                    <i class="fas fa-paper-plane"></i> Send Invitation
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                    Cancel
+                </button>
+            </div>
+        </form>
+    </div>
+    
+    <!-- Bulk Invitations Tab -->
+    <div class="tab-content" id="bulkTab">
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-users"></i>
+                Bulk Invitations
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Email Addresses</label>
+                <textarea class="form-control" id="bulkEmails" rows="6" placeholder="Enter email addresses, one per line or separated by commas
+
+Example:
+john@example.com
+jane@example.com
+mike@example.com"></textarea>
+                <div class="text-sm text-secondary mt-1">You can enter up to 50 email addresses at once</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Default Message</label>
+                <textarea class="form-control" id="bulkMessage" rows="4" placeholder="Write a message that will be sent to all recipients...">Hey! Join me on CoopConnect Premium - the premium dating and companionship platform. Use my invitation code: {{ user.username }}</textarea>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <button type="button" class="btn btn-primary flex-1" onclick="sendBulkInvitations()">
+                    <i class="fas fa-paper-plane"></i> Send Bulk Invitations
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="switchTab('single')">
+                    Back to Single
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- From Contacts Tab -->
+    <div class="tab-content" id="contactsTab">
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-address-book"></i>
+                Invite from Contacts
+            </div>
+            
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                Select contacts from your address book to invite
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Select Contacts</label>
+                <div class="contacts-list" id="contactsList" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--radius); padding: 10px;">
+                    <!-- Contacts will be loaded here -->
+                    <div class="text-center p-4 text-secondary">
+                        <i class="fas fa-spinner fa-spin"></i> Loading contacts...
+                    </div>
+                </div>
+                <div class="text-sm text-secondary mt-1">Select contacts to invite (maximum 20 at once)</div>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Message for Contacts</label>
+                <textarea class="form-control" id="contactsMessage" rows="4" placeholder="Write a personalized message for your contacts...">Hey! I thought you might be interested in joining CoopConnect Premium. Use my invitation code: {{ user.username }}</textarea>
+            </div>
+            
+            <div class="d-flex gap-3">
+                <button type="button" class="btn btn-primary flex-1" onclick="sendContactsInvitations()">
+                    <i class="fas fa-paper-plane"></i> Invite Selected Contacts
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="switchTab('single')">
+                    Back to Single
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Tab switching
+    $('.form-tab').click(function() {
+        $('.form-tab').removeClass('active');
+        $(this).addClass('active');
+        
+        const tab = $(this).data('tab');
+        $('.tab-content').removeClass('active');
+        $(`#${tab}Tab`).addClass('active');
+        
+        // Update progress steps
+        updateProgressSteps(tab);
+    });
+    
+    window.switchTab = function(tabName) {
+        $(`.form-tab[data-tab="${tabName}"]`).click();
+    };
+    
+    // Recipient type selection
+    $('.recipient-option').click(function() {
+        $('.recipient-option').removeClass('selected');
+        $(this).addClass('selected');
+        
+        const type = $(this).data('type');
+        $('#invitationType').val(type);
+        
+        // Update form validation based on type
+        if (type === 'email') {
+            $('#inviteeEmail').prop('required', true);
+            $('#inviteePhone').prop('required', false);
+        } else if (type === 'phone') {
+            $('#inviteeEmail').prop('required', false);
+            $('#inviteePhone').prop('required', true);
+        } else if (type === 'both') {
+            $('#inviteeEmail').prop('required', true);
+            $('#inviteePhone').prop('required', true);
+        }
+    });
+    
+    // Update message preview
+    function updateMessagePreview() {
+        const name = $('#inviteeName').val() || 'Friend';
+        const message = $('#invitationMessage').val();
+        const includeCode = $('#includeCode').prop('checked');
+        const includeLink = $('#includeLink').prop('checked');
+        
+        let preview = message.replace(/\[name\]/g, name);
+        
+        if (includeCode) {
+            preview += `\n\nInvitation Code: {{ user.username }}`;
+        }
+        
+        if (includeLink) {
+            preview += `\n\nSign up here: {{ request.scheme }}://{{ request.get_host }}{% url 'account_signup' %}?ref={{ user.username }}`;
+        }
+        
+        $('#messagePreview').text(preview);
+    }
+    
+    // Update preview on input
+    $('#inviteeName, #invitationMessage, #includeCode, #includeLink').on('input change', updateMessagePreview);
+    
+    // Initial preview
+    setTimeout(updateMessagePreview, 100);
+    
+    // Progress steps
+    function updateProgressSteps(activeTab) {
+        // Reset all steps
+        $('.progress-step').removeClass('active completed');
+        
+        if (activeTab === 'single') {
+            $('#step1').addClass('active');
+        } else if (activeTab === 'bulk' || activeTab === 'contacts') {
+            $('#step1').addClass('completed');
+            $('#step2').addClass('active');
+        }
+    }
+    
+    // Initialize progress
+    updateProgressSteps('single');
+    
+    // Form validation for single invitation
+    $('#singleInvitationForm').submit(function(e) {
+        e.preventDefault();
+        
+        const type = $('#invitationType').val();
+        const email = $('#inviteeEmail').val().trim();
+        const phone = $('#inviteePhone').val().trim();
+        
+        // Validate based on invitation type
+        if (type === 'email' && !email) {
+            alert('Please enter an email address');
+            $('#inviteeEmail').focus();
+            return;
+        }
+        
+        if (type === 'phone' && !phone) {
+            alert('Please enter a phone number');
+            $('#inviteePhone').focus();
+            return;
+        }
+        
+        if (type === 'both' && (!email || !phone)) {
+            alert('Please enter both email and phone number');
+            return;
+        }
+        
+        // Show sending confirmation
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-paper-plane fa-3x text-info mb-3"></i>
+                <h3>Sending Invitation</h3>
+                <p>Your invitation is being sent...</p>
+                <div class="mt-3">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                </div>
+            </div>
+        `);
+        
+        // Submit the form
+        this.submit();
+    });
+    
+    // Bulk invitations
+    window.sendBulkInvitations = function() {
+        const emailsText = $('#bulkEmails').val().trim();
+        const message = $('#bulkMessage').val().trim();
+        
+        if (!emailsText) {
+            alert('Please enter at least one email address');
+            $('#bulkEmails').focus();
+            return;
+        }
+        
+        // Parse emails
+        const emails = emailsText.split(/[\n,]+/).map(email => email.trim()).filter(email => email);
+        
+        if (emails.length > 50) {
+            alert('You can only send up to 50 invitations at once');
+            return;
+        }
+        
+        // Validate emails
+        const invalidEmails = emails.filter(email => !isValidEmail(email));
+        if (invalidEmails.length > 0) {
+            alert(`Invalid email addresses:\n${invalidEmails.join('\n')}`);
+            return;
+        }
+        
+        showModal(`
+            <div class="p-4">
+                <h3 class="card-title mb-3">Confirm Bulk Invitations</h3>
+                <p>You are about to send invitations to <strong>${emails.length}</strong> email addresses.</p>
+                <div class="mt-3">
+                    <div class="text-secondary mb-2">First few recipients:</div>
+                    <div class="p-3 rounded" style="background: rgba(255,255,255,0.05); max-height: 150px; overflow-y: auto;">
+                        ${emails.slice(0, 5).map(email => `<div>${email}</div>`).join('')}
+                        ${emails.length > 5 ? `<div class="text-secondary">... and ${emails.length - 5} more</div>` : ''}
+                    </div>
+                </div>
+                <div class="d-flex gap-3 mt-4">
+                    <button class="btn btn-primary flex-1" onclick="confirmBulkSend(${JSON.stringify(emails)}, '${message.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-paper-plane"></i> Send All
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `);
+    };
+    
+    window.confirmBulkSend = function(emails, message) {
+        $.ajax({
+            url: '{% url "invitation_create" %}',
+            method: 'POST',
+            data: {
+                emails: emails.join(','),
+                message: message,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            beforeSend: function() {
+                $('#modalContent').html(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-spinner fa-spin fa-3x text-info mb-3"></i>
+                        <h3>Sending Invitations</h3>
+                        <p>Sending ${emails.length} invitations...</p>
+                        <div class="progress mt-3" style="height: 10px;">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 0%"></div>
+                        </div>
+                    </div>
+                `);
+            },
+            success: function(response) {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3>Invitations Sent!</h3>
+                        <p>Successfully sent ${emails.length} invitations.</p>
+                        <button class="btn btn-primary mt-3" onclick="location.href='{% url 'invitations' %}'">
+                            <i class="fas fa-list"></i> View All Invitations
+                        </button>
+                    </div>
+                `);
+            },
+            error: function(xhr) {
+                const error = xhr.responseJSON?.error || 'Failed to send invitations';
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                        <h3>Error</h3>
+                        <p>${error}</p>
+                        <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                    </div>
+                `);
+            }
+        });
+    };
+    
+    // Load contacts for contacts tab
+    function loadContacts() {
+        $.ajax({
+            url: '{% url "contacts" %}',
+            method: 'GET',
+            success: function(response) {
+                // Parse the HTML response to extract contacts
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(response, 'text/html');
+                const contactCards = doc.querySelectorAll('.contact-card');
+                
+                let contactsHtml = '';
+                
+                if (contactCards.length > 0) {
+                    contactCards.forEach((card, index) => {
+                        const name = card.querySelector('.contact-name')?.textContent.trim() || 'Contact';
+                        const email = card.querySelector('.contact-email')?.textContent.trim() || '';
+                        const phone = card.querySelector('.contact-phone')?.textContent.trim() || '';
+                        
+                        contactsHtml += `
+                            <div class="contact-select-item p-3 mb-2 rounded" style="background: rgba(255,255,255,0.03); cursor: pointer;" onclick="toggleContactSelect(this)">
+                                <div class="d-flex align-center justify-between">
+                                    <div>
+                                        <div class="font-weight-bold">${name}</div>
+                                        <div class="text-sm text-secondary">
+                                            ${email ? email + ' • ' : ''}${phone}
+                                        </div>
+                                    </div>
+                                    <div class="contact-checkbox">
+                                        <i class="far fa-square"></i>
+                                    </div>
+                                </div>
+                                <input type="hidden" class="contact-email" value="${email}">
+                                <input type="hidden" class="contact-phone" value="${phone}">
+                                <input type="hidden" class="contact-name" value="${name}">
+                            </div>
+                        `;
+                    });
+                } else {
+                    contactsHtml = `
+                        <div class="text-center p-4">
+                            <i class="fas fa-users fa-3x text-secondary mb-3"></i>
+                            <p class="text-secondary">No contacts found</p>
+                            <a href="{% url 'contacts' %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-user-plus"></i> Add Contacts First
+                            </a>
+                        </div>
+                    `;
+                }
+                
+                $('#contactsList').html(contactsHtml);
+            },
+            error: function() {
+                $('#contactsList').html(`
+                    <div class="text-center p-4 text-danger">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <p>Failed to load contacts</p>
+                    </div>
+                `);
+            }
+        });
+    }
+    
+    // Load contacts when contacts tab is clicked
+    $('.form-tab[data-tab="contacts"]').click(loadContacts);
+    
+    // Contact selection
+    window.toggleContactSelect = function(element) {
+        $(element).toggleClass('selected');
+        const checkbox = $(element).find('.contact-checkbox i');
+        if ($(element).hasClass('selected')) {
+            checkbox.removeClass('far fa-square').addClass('fas fa-check-square text-success');
+        } else {
+            checkbox.removeClass('fas fa-check-square text-success').addClass('far fa-square');
+        }
+    };
+    
+    // Send invitations to selected contacts
+    window.sendContactsInvitations = function() {
+        const selectedContacts = $('.contact-select-item.selected');
+        const message = $('#contactsMessage').val().trim();
+        
+        if (selectedContacts.length === 0) {
+            alert('Please select at least one contact');
+            return;
+        }
+        
+        if (selectedContacts.length > 20) {
+            alert('You can only select up to 20 contacts at once');
+            return;
+        }
+        
+        const contactsData = [];
+        selectedContacts.each(function() {
+            const email = $(this).find('.contact-email').val();
+            const phone = $(this).find('.contact-phone').val();
+            const name = $(this).find('.contact-name').val();
+            
+            if (email || phone) {
+                contactsData.push({ email, phone, name });
+            }
+        });
+        
+        showModal(`
+            <div class="p-4">
+                <h3 class="card-title mb-3">Confirm Contact Invitations</h3>
+                <p>You are about to send invitations to <strong>${contactsData.length}</strong> contacts.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <button class="btn btn-primary flex-1" onclick="confirmContactsSend(${JSON.stringify(contactsData)}, '${message.replace(/'/g, "\\'")}')">
+                        <i class="fas fa-paper-plane"></i> Send to Contacts
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `);
+    };
+    
+    window.confirmContactsSend = function(contactsData, message) {
+        $.ajax({
+            url: '{% url "invitation_create" %}',
+            method: 'POST',
+            data: {
+                contacts: JSON.stringify(contactsData),
+                message: message,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3>Invitations Sent!</h3>
+                        <p>Successfully sent invitations to ${contactsData.length} contacts.</p>
+                        <button class="btn btn-primary mt-3" onclick="location.href='{% url 'invitations' %}'">
+                            <i class="fas fa-list"></i> View All Invitations
+                        </button>
+                    </div>
+                `);
+            },
+            error: function(xhr) {
+                const error = xhr.responseJSON?.error || 'Failed to send invitations';
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                        <h3>Error</h3>
+                        <p>${error}</p>
+                        <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                    </div>
+                `);
+            }
+        });
+    };
+    
+    // Email validation helper
+    function isValidEmail(email) {
+        const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        return re.test(email);
+    }
+});
+</script>
 {% endblock %}

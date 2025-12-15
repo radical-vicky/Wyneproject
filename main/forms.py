@@ -128,19 +128,37 @@ class ContactAddForm(forms.ModelForm):
         except User.DoesNotExist:
             raise forms.ValidationError("User does not exist")
         return username
+    
+
 
 class MessageForm(forms.ModelForm):
+    content = forms.CharField(required=False, widget=forms.Textarea(attrs={
+        'rows': 1,
+        'placeholder': 'Type your message...',
+        'class': 'message-textarea'
+    }))
+    media_file = forms.FileField(required=False, widget=forms.FileInput(attrs={
+        'style': 'display: none;'
+    }))
+    
     class Meta:
         model = Message
-        fields = ['content', 'message_type', 'media_file']
+        fields = ['content', 'media_file']
         widgets = {
-            'content': forms.Textarea(attrs={
-                'rows': 2,
-                'placeholder': 'Type your message...',
-                'class': 'form-control'
-            }),
             'message_type': forms.HiddenInput(),
         }
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        content = cleaned_data.get('content')
+        media_file = cleaned_data.get('media_file')
+        
+        if not content and not media_file:
+            raise forms.ValidationError("Either message content or media file is required.")
+        
+        return cleaned_data
+
+
 
 class ConversationCreateForm(forms.Form):
     participants = forms.ModelMultipleChoiceField(

@@ -1,414 +1,1040 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Search | ConnectPlus{% endblock %}
+{% block title %}Search - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.search-header {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.filter-sidebar {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    height: fit-content;
+    position: sticky;
+    top: 20px;
+}
+
+.filter-section {
+    margin-bottom: 25px;
+}
+
+.filter-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--coop-green);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.filter-options {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.filter-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.filter-option:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.filter-option.active {
+    background: rgba(0,168,89,0.1);
+    color: var(--coop-green);
+}
+
+.range-slider {
+    margin: 15px 0;
+}
+
+.range-values {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.search-results {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.profile-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.profile-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--coop-green);
+    box-shadow: var(--shadow-lg);
+}
+
+.profile-card-header {
+    position: relative;
+    height: 150px;
+    background: linear-gradient(135deg, var(--coop-green), var(--coop-blue));
+}
+
+.profile-card-avatar {
+    position: absolute;
+    bottom: -30px;
+    left: 20px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid var(--card-bg);
+    background: var(--card-bg);
+}
+
+.profile-card-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.profile-card-badges {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 5px;
+}
+
+.profile-card-body {
+    padding: 40px 20px 20px;
+}
+
+.profile-card-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.profile-card-location {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.profile-card-services {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin-bottom: 15px;
+}
+
+.service-tag {
+    background: rgba(0,168,89,0.1);
+    color: var(--coop-green);
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+}
+
+.profile-card-stats {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid var(--border-color);
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-weight: 600;
+    color: var(--coop-green);
+}
+
+.stat-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.profile-card-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.pagination-container {
+    margin-top: 40px;
+    text-align: center;
+}
+
+.pagination {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.page-item {
+    padding: 8px 15px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-width: 40px;
+    text-align: center;
+}
+
+.page-item:hover {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+}
+
+.page-item.active {
+    background: var(--coop-green);
+    color: white;
+    border-color: var(--coop-green);
+}
+
+.page-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.map-view {
+    height: 400px;
+    background: var(--darker-bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.map-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+}
+
+.view-toggle {
+    display: flex;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 5px;
+    margin-bottom: 20px;
+    width: fit-content;
+}
+
+.view-toggle-btn {
+    padding: 10px 20px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.view-toggle-btn.active {
+    background: var(--coop-green);
+    color: white;
+}
+
+.search-sort {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.sort-select {
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 8px 15px;
+    color: var(--text-primary);
+    cursor: pointer;
+}
+
+.save-search-btn {
+    margin-left: auto;
+}
+
+.empty-results {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-results-icon {
+    font-size: 4rem;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.quick-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+.quick-filter {
+    padding: 8px 15px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.quick-filter:hover {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+}
+
+.quick-filter.active {
+    background: var(--coop-green);
+    color: white;
+    border-color: var(--coop-green);
+}
+
+@media (max-width: 768px) {
+    .search-results {
+        grid-template-columns: 1fr;
+    }
+    
+    .profile-card {
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .view-toggle {
+        flex-wrap: wrap;
+    }
+    
+    .search-sort {
+        flex-wrap: wrap;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="search-container">
-    <!-- Search Header -->
-    <div class="search-header glass-card p-4 mb-4">
-        <h1 class="search-title">Find Your Perfect Match</h1>
-        <p class="search-subtitle">Search through thousands of verified profiles</p>
-        
-        <!-- Search Form -->
-        <form method="get" class="search-form mt-4">
-            <div class="grid grid-4 gap-3">
+<div class="search-header">
+    <h1 class="card-title mb-3">Find Your Perfect Match</h1>
+    <p class="card-subtitle mb-4">Browse thousands of verified profiles</p>
+    
+    <form method="GET" action="{% url 'search' %}" class="search-form">
+        <div class="row">
+            <div class="col-md-8">
                 <div class="form-group">
-                    <input type="text" name="query" class="form-control" 
-                           placeholder="Search by name or services..." 
-                           value="{{ form.query.value|default:'' }}">
-                </div>
-                
-                <div class="form-group">
-                    <select name="gender" class="form-control">
-                        <option value="">Any Gender</option>
-                        {% for value, label in profile_gender_choices %}
-                        <option value="{{ value }}" 
-                                {% if form.gender.value == value %}selected{% endif %}>
-                            {{ label }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                
-                <div class="form-group">
-                    <input type="text" name="county" class="form-control" 
-                           placeholder="County" 
-                           value="{{ form.county.value|default:'' }}">
-                </div>
-                
-                <div class="form-group">
-                    <button type="submit" class="btn btn-primary w-100">
-                        <i class="ri-search-line"></i> Search
-                    </button>
-                </div>
-            </div>
-            
-            <!-- Advanced Filters -->
-            <div class="advanced-filters mt-3">
-                <a href="#" class="filter-toggle" onclick="toggleFilters()">
-                    <i class="ri-filter-3-line"></i> Advanced Filters
-                </a>
-                
-                <div class="filter-content" id="filterContent" style="display: none;">
-                    <div class="grid grid-4 gap-3 mt-3">
-                        <div class="form-group">
-                            <label>Min Age</label>
-                            <input type="number" name="min_age" class="form-control" 
-                                   min="18" max="100" 
-                                   value="{{ form.min_age.value|default:'' }}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Max Age</label>
-                            <input type="number" name="max_age" class="form-control" 
-                                   min="18" max="100" 
-                                   value="{{ form.max_age.value|default:'' }}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label>Services</label>
-                            <input type="text" name="services" class="form-control" 
-                                   placeholder="Dinner date, travel..." 
-                                   value="{{ form.services.value|default:'' }}">
-                        </div>
-                        
-                        <div class="form-group">
-                            <label class="checkbox-label">
-                                <input type="checkbox" name="is_vip" 
-                                       {% if form.is_vip.value %}checked{% endif %}>
-                                <span>VIP Only</span>
-                            </label>
-                        </div>
+                    <div class="search-box">
+                        <i class="fas fa-search search-icon"></i>
+                        <input type="text" class="search-input" name="query" 
+                               value="{{ form.query.value|default:'' }}" 
+                               placeholder="Search by username, location, services...">
                     </div>
                 </div>
             </div>
-        </form>
-    </div>
+            
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100 h-100">
+                    <i class="fas fa-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </form>
     
-    <!-- Results Count -->
-    <div class="results-info mb-4">
-        <p class="results-count">
-            Found <strong>{{ page_obj.paginator.count }}</strong> profiles
-            {% if form.query.value %}
-            for "{{ form.query.value }}"
-            {% endif %}
-        </p>
-        
-        <div class="results-actions">
-            <button class="btn btn-outline btn-sm" onclick="saveSearch()">
-                <i class="ri-bookmark-line"></i> Save Search
-            </button>
-            <div class="view-toggle">
-                <button class="view-btn active" onclick="setView('grid')">
-                    <i class="ri-grid-line"></i>
+    <!-- Quick Filters -->
+    <div class="quick-filters mt-4">
+        <div class="quick-filter {% if not form.query.value and not form.gender.value and not form.county.value and not form.is_vip.value and not form.is_verified.value %}active{% endif %}" onclick="clearFilters()">
+            All
+        </div>
+        <div class="quick-filter {% if form.is_vip.value %}active{% endif %}" onclick="setFilter('is_vip', 'true')">
+            <i class="fas fa-crown"></i> VIP Only
+        </div>
+        <div class="quick-filter {% if form.gender.value == 'Female' %}active{% endif %}" onclick="setFilter('gender', 'Female')">
+            <i class="fas fa-venus"></i> Female
+        </div>
+        <div class="quick-filter {% if form.gender.value == 'Male' %}active{% endif %}" onclick="setFilter('gender', 'Male')">
+            <i class="fas fa-mars"></i> Male
+        </div>
+        <div class="quick-filter {% if form.county.value == 'Nairobi' %}active{% endif %}" onclick="setFilter('county', 'Nairobi')">
+            <i class="fas fa-map-marker-alt"></i> Nairobi
+        </div>
+        <div class="quick-filter {% if 'Dinner Date' in form.services.value %}active{% endif %}" onclick="addServiceFilter('Dinner Date')">
+            <i class="fas fa-utensils"></i> Dinner Date
+        </div>
+        <div class="quick-filter {% if form.is_verified.value %}active{% endif %}" onclick="setFilter('is_verified', 'true')">
+            <i class="fas fa-check-circle"></i> Verified Only
+        </div>
+        <div class="quick-filter {% if form.is_online.value %}active{% endif %}" onclick="setFilter('is_online', 'true')">
+            <i class="fas fa-circle"></i> Online Now
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Filters Sidebar -->
+    <div class="col-md-3">
+        <div class="filter-sidebar">
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-filter"></i>
+                    <span>Filters</span>
+                </div>
+                
+                <button class="btn btn-secondary w-100 mb-3" onclick="clearAllFilters()">
+                    <i class="fas fa-times"></i> Clear All Filters
                 </button>
-                <button class="view-btn" onclick="setView('list')">
-                    <i class="ri-list-check"></i>
+            </div>
+            
+            <!-- Gender Filter -->
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-venus-mars"></i>
+                    <span>Gender</span>
+                </div>
+                <div class="filter-options">
+                    <label class="filter-option {% if not form.gender.value %}active{% endif %}">
+                        <input type="radio" name="gender" value="" {% if not form.gender.value %}checked{% endif %} 
+                               onchange="updateFilter('gender', '')">
+                        <span>All Genders</span>
+                    </label>
+                    {% for value, label in form.fields.gender.choices %}
+                    <label class="filter-option {% if form.gender.value == value %}active{% endif %}">
+                        <input type="radio" name="gender" value="{{ value }}" 
+                               {% if form.gender.value == value %}checked{% endif %}
+                               onchange="updateFilter('gender', '{{ value }}')">
+                        <span>{{ label }}</span>
+                    </label>
+                    {% endfor %}
+                </div>
+            </div>
+            
+            <!-- Age Range -->
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-birthday-cake"></i>
+                    <span>Age Range</span>
+                </div>
+                <div class="range-slider">
+                    <input type="range" class="form-range" id="ageMin" min="18" max="70" 
+                           value="{{ form.min_age.value|default:'18' }}" 
+                           oninput="updateAgeRange()">
+                    <input type="range" class="form-range" id="ageMax" min="18" max="70" 
+                           value="{{ form.max_age.value|default:'70' }}" 
+                           oninput="updateAgeRange()">
+                    <div class="range-values">
+                        <span id="ageMinValue">{{ form.min_age.value|default:'18' }}</span>
+                        <span id="ageMaxValue">{{ form.max_age.value|default:'70' }}</span>
+                    </div>
+                    <input type="hidden" id="minAge" name="min_age" value="{{ form.min_age.value|default:'18' }}">
+                    <input type="hidden" id="maxAge" name="max_age" value="{{ form.max_age.value|default:'70' }}">
+                </div>
+            </div>
+            
+            <!-- Location -->
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Location</span>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="countyFilter" 
+                           placeholder="County" value="{{ form.county.value|default:'' }}"
+                           oninput="updateFilter('county', this.value)">
+                </div>
+            </div>
+            
+            <!-- Services -->
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-concierge-bell"></i>
+                    <span>Services</span>
+                </div>
+                <div class="form-group">
+                    <input type="text" class="form-control" id="servicesFilter" 
+                           placeholder="Service keywords" value="{{ form.services.value|default:'' }}"
+                           oninput="updateFilter('services', this.value)">
+                </div>
+                <div class="service-tags mt-2">
+                    <span class="service-tag" onclick="addServiceFilter('Dinner Date')">Dinner Date</span>
+                    <span class="service-tag" onclick="addServiceFilter('Travel Companion')">Travel Companion</span>
+                    <span class="service-tag" onclick="addServiceFilter('Event Date')">Event Date</span>
+                </div>
+            </div>
+            
+            <!-- Verification -->
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Verification</span>
+                </div>
+                <div class="filter-options">
+                    <label class="filter-option {% if form.is_verified.value %}active{% endif %}">
+                        <input type="checkbox" name="is_verified" value="true" 
+                               {% if form.is_verified.value %}checked{% endif %}
+                               onchange="updateCheckboxFilter('is_verified', this.checked)">
+                        <span>Verified Only</span>
+                    </label>
+                    <label class="filter-option {% if form.is_vip.value %}active{% endif %}">
+                        <input type="checkbox" name="is_vip" value="true" 
+                               {% if form.is_vip.value %}checked{% endif %}
+                               onchange="updateCheckboxFilter('is_vip', this.checked)">
+                        <span>VIP Only</span>
+                    </label>
+                    <label class="filter-option {% if form.is_available.value %}active{% endif %}">
+                        <input type="checkbox" name="is_available" value="true" 
+                               {% if form.is_available.value %}checked{% endif %}
+                               onchange="updateCheckboxFilter('is_available', this.checked)">
+                        <span>Available Now</span>
+                    </label>
+                </div>
+            </div>
+            
+            <!-- Sort Options -->
+            <div class="filter-section">
+                <div class="filter-title">
+                    <i class="fas fa-sort-amount-down"></i>
+                    <span>Sort By</span>
+                </div>
+                <div class="filter-options">
+                    {% with sort_value=request.GET.sort|default:'recent' %}
+                    <label class="filter-option {% if sort_value == 'recent' %}active{% endif %}">
+                        <input type="radio" name="sort" value="recent" {% if sort_value == 'recent' %}checked{% endif %} onchange="sortResults('recent')">
+                        <span>Most Recent</span>
+                    </label>
+                    <label class="filter-option {% if sort_value == 'popular' %}active{% endif %}">
+                        <input type="radio" name="sort" value="popular" {% if sort_value == 'popular' %}checked{% endif %} onchange="sortResults('popular')">
+                        <span>Most Popular</span>
+                    </label>
+                    <label class="filter-option {% if sort_value == 'rating' %}active{% endif %}">
+                        <input type="radio" name="sort" value="rating" {% if sort_value == 'rating' %}checked{% endif %} onchange="sortResults('rating')">
+                        <span>Highest Rated</span>
+                    </label>
+                    <label class="filter-option {% if sort_value == 'price_low' %}active{% endif %}">
+                        <input type="radio" name="sort" value="price_low" {% if sort_value == 'price_low' %}checked{% endif %} onchange="sortResults('price_low')">
+                        <span>Price: Low to High</span>
+                    </label>
+                    <label class="filter-option {% if sort_value == 'price_high' %}active{% endif %}">
+                        <input type="radio" name="sort" value="price_high" {% if sort_value == 'price_high' %}checked{% endif %} onchange="sortResults('price_high')">
+                        <span>Price: High to Low</span>
+                    </label>
+                    {% endwith %}
+                </div>
+            </div>
+            
+            <!-- Save Search -->
+            <div class="filter-section">
+                <button class="btn btn-primary w-100" onclick="saveCurrentSearch()">
+                    <i class="fas fa-bookmark"></i> Save This Search
                 </button>
+                <small class="text-secondary d-block text-center mt-2">
+                    Get notified when new profiles match your criteria
+                </small>
             </div>
         </div>
     </div>
     
-    <!-- Profiles Grid -->
-    <div class="profiles-grid" id="profilesView">
-        {% if page_obj %}
-        <div class="grid grid-4 gap-4">
+    <!-- Results Section -->
+    <div class="col-md-9">
+        <!-- View Toggle -->
+        <div class="d-flex justify-between align-center mb-4">
+            <div class="view-toggle">
+                <div class="view-toggle-btn active" onclick="setView('grid')">
+                    <i class="fas fa-th-large"></i> Grid
+                </div>
+                <div class="view-toggle-btn" onclick="setView('list')">
+                    <i class="fas fa-list"></i> List
+                </div>
+                <div class="view-toggle-btn" onclick="setView('map')">
+                    <i class="fas fa-map"></i> Map
+                </div>
+            </div>
+            
+            <div class="search-sort">
+                <span class="text-secondary">Sort by:</span>
+                <select class="sort-select" onchange="sortResults(this.value)">
+                    <option value="recent" {% if request.GET.sort == 'recent' or not request.GET.sort %}selected{% endif %}>Most Recent</option>
+                    <option value="popular" {% if request.GET.sort == 'popular' %}selected{% endif %}>Most Popular</option>
+                    <option value="rating" {% if request.GET.sort == 'rating' %}selected{% endif %}>Highest Rated</option>
+                    <option value="price_low" {% if request.GET.sort == 'price_low' %}selected{% endif %}>Price: Low to High</option>
+                    <option value="price_high" {% if request.GET.sort == 'price_high' %}selected{% endif %}>Price: High to Low</option>
+                </select>
+                
+                <button class="btn btn-secondary save-search-btn" onclick="saveCurrentSearch()">
+                    <i class="fas fa-bookmark"></i> Save
+                </button>
+            </div>
+        </div>
+        
+        <!-- Results Count -->
+        <div class="mb-4">
+            <h3>
+                {% if page_obj.paginator.count > 0 %}
+                {{ page_obj.paginator.count }} profiles found
+                {% else %}
+                No profiles found
+                {% endif %}
+            </h3>
+            {% if form.query.value %}
+            <p class="text-secondary">Results for "{{ form.query.value }}"</p>
+            {% endif %}
+        </div>
+        
+        <!-- Grid View -->
+        <div id="gridView" class="search-results">
             {% for profile in page_obj %}
-            <div class="profile-card glass-card">
-                <div class="profile-header">
-                    {% with photo=profile.photos.first %}
-                    {% if photo %}
-                    <img src="{{ photo.image.url }}" alt="{{ profile.user.username }}" class="profile-cover">
-                    {% else %}
-                    <div class="profile-cover-placeholder">
-                        <i class="ri-image-line"></i>
-                    </div>
-                    {% endif %}
-                    {% endwith %}
-                    
-                    {% if profile.is_vip %}
-                    <span class="profile-badge vip">
-                        <i class="ri-vip-crown-fill"></i> VIP
-                    </span>
-                    {% endif %}
-                    
-                    {% if profile.is_online %}
-                    <span class="online-badge">
-                        <i class="ri-checkbox-blank-circle-fill"></i> Online
-                    </span>
-                    {% endif %}
-                    
-                    <div class="profile-avatar-container">
-                        {% with photo=profile.photos.first %}
-                        {% if photo %}
-                        <img src="{{ photo.image.url }}" alt="{{ profile.user.username }}">
+            <div class="profile-card" onclick="viewProfile('{{ profile.user.username }}')">
+                <div class="profile-card-header">
+                    <div class="profile-card-avatar">
+                        {% if profile.photos.first %}
+                        <img src="{{ profile.photos.first.image.url }}" alt="{{ profile.user.username }}">
                         {% else %}
-                        <div class="avatar-placeholder">
-                            {{ profile.user.username|first|upper }}
+                        <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                            <i class="fas fa-user"></i>
                         </div>
                         {% endif %}
-                        {% endwith %}
+                    </div>
+                    
+                    <div class="profile-card-badges">
+                        {% if profile.is_vip %}
+                        <span class="badge badge-vip">
+                            <i class="fas fa-crown"></i> VIP
+                        </span>
+                        {% endif %}
+                        
+                        {% if profile.is_verified %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-check-circle"></i>
+                        </span>
+                        {% endif %}
+                        
+                        {% if profile.is_online %}
+                        <span class="badge badge-success">
+                            <i class="fas fa-circle"></i> Online
+                        </span>
+                        {% endif %}
                     </div>
                 </div>
                 
-                <div class="profile-body">
-                    <h3 class="profile-name">
-                        <a href="{% url 'profile_view' profile.user.username %}">
-                            {{ profile.user.username }}
-                        </a>
-                    </h3>
-                    
-                    <div class="profile-location">
-                        <i class="ri-map-pin-line"></i>
+                <div class="profile-card-body">
+                    <div class="profile-card-name">{{ profile.user.username }}</div>
+                    <div class="profile-card-location">
+                        <i class="fas fa-map-marker-alt"></i>
                         {{ profile.city_town }}, {{ profile.county }}
                     </div>
                     
-                    <div class="profile-meta">
-                        <span class="meta-item">
-                            <i class="ri-user-line"></i> {{ profile.age }}
-                        </span>
-                        <span class="meta-item">
-                            <i class="ri-genderless-line"></i> {{ profile.get_gender_display }}
-                        </span>
-                    </div>
-                    
-                    {% if profile.services_offered %}
-                    <div class="profile-services">
+                    <div class="profile-card-services">
                         {% for service in profile.get_services_list|slice:":3" %}
                         <span class="service-tag">{{ service }}</span>
                         {% endfor %}
+                        {% if profile.get_services_list|length > 3 %}
+                        <span class="service-tag">+{{ profile.get_services_list|length|add:"-3" }}</span>
+                        {% endif %}
                     </div>
-                    {% endif %}
                     
-                    <div class="profile-stats">
+                    <div class="profile-card-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">{{ profile.age }}</div>
+                            <div class="stat-label">Age</div>
+                        </div>
                         <div class="stat-item">
                             <div class="stat-value">{{ profile.total_views }}</div>
                             <div class="stat-label">Views</div>
                         </div>
                         <div class="stat-item">
-                            <div class="stat-value">{{ profile.rating|floatformat:1 }}</div>
+                            <div class="stat-value">{{ profile.rating|default:"0.0" }}</div>
                             <div class="stat-label">Rating</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-value">
-                                {% if profile.hourly_rate_incall %}
-                                KES {{ profile.hourly_rate_incall|floatformat:0 }}
-                                {% else %}
-                                N/A
-                                {% endif %}
-                            </div>
-                            <div class="stat-label">Rate</div>
                         </div>
                     </div>
                     
-                    <div class="profile-footer">
-                        <a href="{% url 'profile_view' profile.user.username %}" 
-                           class="btn btn-outline btn-sm w-100">
-                            View Profile
+                    <div class="profile-card-actions">
+                        <a href="{% url 'conversation_user' profile.user.username %}" 
+                           class="btn btn-primary btn-sm w-100" onclick="event.stopPropagation()">
+                            <i class="fas fa-comment"></i> Message
                         </a>
-                        <button onclick="quickContact('{{ profile.user.username }}')" 
-                                class="btn btn-primary btn-sm w-100 mt-2">
-                            <i class="ri-message-2-line"></i> Message
-                        </button>
+                        <a href="{% url 'profile_view' profile.user.username %}" 
+                           class="btn btn-secondary btn-sm w-100" onclick="event.stopPropagation()">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-results">
+                <div class="empty-results-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h3>No profiles found</h3>
+                <p class="text-secondary">Try adjusting your search filters</p>
+                <button class="btn btn-primary mt-3" onclick="clearAllFilters()">
+                    <i class="fas fa-times"></i> Clear All Filters
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- List View (Hidden by default) -->
+        <div id="listView" class="d-none">
+            {% for profile in page_obj %}
+            <div class="card mb-3" onclick="viewProfile('{{ profile.user.username }}')" style="cursor: pointer;">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-2">
+                            <div class="profile-avatar" style="width: 80px; height: 80px; border-radius: 50%; overflow: hidden;">
+                                {% if profile.photos.first %}
+                                <img src="{{ profile.photos.first.image.url }}" alt="{{ profile.user.username }}" 
+                                     style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <div class="d-flex align-center gap-2 mb-2">
+                                <h4>{{ profile.user.username }}</h4>
+                                {% if profile.is_vip %}
+                                <span class="badge badge-vip">VIP</span>
+                                {% endif %}
+                                {% if profile.is_verified %}
+                                <span class="badge badge-success">Verified</span>
+                                {% endif %}
+                                {% if profile.is_online %}
+                                <span class="badge badge-success">Online</span>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="mb-2">
+                                <span class="text-secondary">
+                                    <i class="fas fa-map-marker-alt"></i> {{ profile.city_town }}, {{ profile.county }}
+                                </span>
+                                <span class="mx-2">•</span>
+                                <span class="text-secondary">
+                                    <i class="fas fa-birthday-cake"></i> {{ profile.age }} years
+                                </span>
+                            </div>
+                            
+                            <div class="service-tags">
+                                {% for service in profile.get_services_list|slice:":5" %}
+                                <span class="service-tag">{{ service }}</span>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-4">
+                            <div class="text-right">
+                                <div class="mb-2">
+                                    <span class="text-primary font-bold">
+                                        KES {% if profile.hourly_rate_incall %}{{ profile.hourly_rate_incall }}{% else %}N/A{% endif %}
+                                    </span>
+                                    <div class="text-secondary text-sm">per hour</div>
+                                </div>
+                                
+                                <div class="d-flex gap-2 justify-end">
+                                    <a href="{% url 'conversation_user' profile.user.username %}" 
+                                       class="btn btn-primary btn-sm" onclick="event.stopPropagation()">
+                                        <i class="fas fa-comment"></i>
+                                    </a>
+                                    <a href="{% url 'profile_view' profile.user.username %}" 
+                                       class="btn btn-secondary btn-sm" onclick="event.stopPropagation()">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
             {% endfor %}
         </div>
         
-        <!-- Pagination -->
-        {% if page_obj.has_other_pages %}
-        <div class="pagination mt-5">
-            <nav>
-                <ul class="pagination-list">
-                    {% if page_obj.has_previous %}
-                    <li class="page-item">
-                        <a href="?page={{ page_obj.previous_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
-                           class="page-link">
-                            <i class="ri-arrow-left-line"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                    
-                    {% for num in page_obj.paginator.page_range %}
-                        {% if page_obj.number == num %}
-                        <li class="page-item active">
-                            <span class="page-link">{{ num }}</span>
-                        </li>
-                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
-                        <li class="page-item">
-                            <a href="?page={{ num }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
-                               class="page-link">{{ num }}</a>
-                        </li>
-                        {% endif %}
-                    {% endfor %}
-                    
-                    {% if page_obj.has_next %}
-                    <li class="page-item">
-                        <a href="?page={{ page_obj.next_page_number }}{% for key,value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}" 
-                           class="page-link">
-                            <i class="ri-arrow-right-line"></i>
-                        </a>
-                    </li>
-                    {% endif %}
-                </ul>
-            </nav>
+        <!-- Map View (Hidden by default) -->
+        <div id="mapView" class="d-none">
+            <div class="map-view">
+                <div class="map-placeholder">
+                    <i class="fas fa-map-marked-alt fa-3x"></i>
+                    <div class="ml-3">
+                        <div>Interactive map view</div>
+                        <div class="text-sm text-secondary">Coming soon</div>
+                    </div>
+                </div>
+            </div>
         </div>
-        {% endif %}
         
-        {% else %}
-        <div class="empty-results text-center p-5">
-            <i class="ri-search-line text-muted" style="font-size: 4rem;"></i>
-            <h3 class="mt-3">No profiles found</h3>
-            <p class="text-muted">Try adjusting your search filters</p>
-            <button class="btn btn-primary mt-3" onclick="clearFilters()">
-                Clear Filters
-            </button>
+        <!-- Pagination -->
+        {% if page_obj.paginator.num_pages > 1 %}
+        <div class="pagination-container">
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page=1{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}" class="page-item" title="First Page">
+                    <i class="fas fa-angle-double-left"></i>
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}" class="page-item" title="Previous">
+                    <i class="fas fa-chevron-left"></i>
+                </a>
+                {% else %}
+                <span class="page-item disabled">
+                    <i class="fas fa-angle-double-left"></i>
+                </span>
+                <span class="page-item disabled">
+                    <i class="fas fa-chevron-left"></i>
+                </span>
+                {% endif %}
+                
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                    <span class="page-item active">{{ num }}</span>
+                    {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <a href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}" class="page-item">{{ num }}</a>
+                    {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                    <a href="?page={{ num }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}" class="page-item">{{ num }}</a>
+                    {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                    <span class="page-item disabled">...</span>
+                    {% endif %}
+                {% endfor %}
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}" class="page-item" title="Next">
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.urlencode %}&{{ request.GET.urlencode|safe }}{% endif %}" class="page-item" title="Last Page">
+                    <i class="fas fa-angle-double-right"></i>
+                </a>
+                {% else %}
+                <span class="page-item disabled">
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+                <span class="page-item disabled">
+                    <i class="fas fa-angle-double-right"></i>
+                </span>
+                {% endif %}
+            </div>
+            
+            <div class="text-secondary mt-2">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                <span class="mx-2">•</span>
+                {{ page_obj.paginator.count }} total results
+            </div>
         </div>
         {% endif %}
-    </div>
-    
-    <!-- Quick Contact Modal -->
-    <div class="modal-overlay" id="quickContactModal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h3 class="modal-title">Quick Message</h3>
-                <button class="modal-close" onclick="closeQuickContact()">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="form-group">
-                    <label>To:</label>
-                    <input type="text" class="form-control" id="contactUsername" readonly>
-                </div>
-                <div class="form-group">
-                    <label>Message:</label>
-                    <textarea class="form-control" id="quickMessage" rows="4" 
-                              placeholder="Type your message here..."></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="closeQuickContact()">Cancel</button>
-                <button class="btn btn-primary" onclick="sendQuickMessage()">Send</button>
-            </div>
-        </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-let currentView = 'grid';
-let currentUsername = '';
+$(document).ready(function() {
+    // Initialize age range sliders
+    updateAgeRangeDisplay();
+    
+    // Set active sort radio button
+    const sortValue = '{{ request.GET.sort|default:"recent" }}';
+    $(`input[name="sort"][value="${sortValue}"]`).prop('checked', true);
+});
 
-function toggleFilters() {
-    const content = $('#filterContent');
-    content.slideToggle();
-}
+let currentView = 'grid';
 
 function setView(view) {
     currentView = view;
-    const viewBtns = $('.view-btn');
-    viewBtns.removeClass('active');
-    $(`.view-btn:contains("${view === 'grid' ? 'Grid' : 'List'}")`).addClass('active');
     
-    if (view === 'grid') {
-        $('#profilesView').removeClass('list-view').addClass('grid-view');
-    } else {
-        $('#profilesView').removeClass('grid-view').addClass('list-view');
-    }
-}
-
-function saveSearch() {
-    const filters = {
-        query: $('[name="query"]').val(),
-        gender: $('[name="gender"]').val(),
-        county: $('[name="county"]').val(),
-        min_age: $('[name="min_age"]').val(),
-        max_age: $('[name="max_age"]').val(),
-        services: $('[name="services"]').val(),
-        is_vip: $('[name="is_vip"]').is(':checked')
-    };
+    // Update toggle buttons
+    $('.view-toggle-btn').removeClass('active');
+    $(`.view-toggle-btn:contains(${view.charAt(0).toUpperCase() + view.slice(1)})`).addClass('active');
     
-    $.ajax({
-        url: '{% url "api_save_search" %}',
-        type: 'POST',
-        data: JSON.stringify({
-            query: $('[name="query"]').val(),
-            filters: filters
-        }),
-        contentType: 'application/json',
-        success: function(response) {
-            showToast('Search saved successfully!', 'success');
-        },
-        error: function(xhr) {
-            showToast(xhr.responseJSON.error, 'error');
-        }
-    });
+    // Show selected view
+    $('#gridView, #listView, #mapView').addClass('d-none');
+    $(`#${view}View`).removeClass('d-none');
 }
 
-function quickContact(username) {
-    currentUsername = username;
-    $('#contactUsername').val(username);
-    $('#quickContactModal').addClass('active');
-    $('#quickMessage').focus();
-}
-
-function closeQuickContact() {
-    $('#quickContactModal').removeClass('active');
-    currentUsername = '';
-    $('#quickMessage').val('');
-}
-
-function sendQuickMessage() {
-    const message = $('#quickMessage').val().trim();
+function updateAgeRange() {
+    const minAge = $('#ageMin').val();
+    const maxAge = $('#ageMax').val();
     
-    if (!message) {
-        showToast('Please enter a message', 'error');
+    // Ensure min <= max
+    if (parseInt(minAge) > parseInt(maxAge)) {
+        $('#ageMin').val(maxAge);
+        $('#ageMax').val(minAge);
+        updateAgeRange();
         return;
     }
     
-    $.ajax({
-        url: `/conversation/user/${currentUsername}/`,
-        type: 'POST',
-        data: {
-            'content': message,
-            'csrfmiddlewaretoken': '{{ csrf_token }}'
-        },
-        success: function() {
-            closeQuickContact();
-            showToast('Message sent!', 'success');
-        },
-        error: function(xhr) {
-            showToast('Failed to send message', 'error');
-        }
-    });
+    $('#ageMinValue').text($('#ageMin').val());
+    $('#ageMaxValue').text($('#ageMax').val());
+    $('#minAge').val($('#ageMin').val());
+    $('#maxAge').val($('#ageMax').val());
+    
+    // Update URL with new filters
+    updateSearch();
+}
+
+function updateAgeRangeDisplay() {
+    $('#ageMinValue').text($('#ageMin').val());
+    $('#ageMaxValue').text($('#ageMax').val());
+}
+
+function updateFilter(name, value) {
+    const url = new URL(window.location.href);
+    
+    if (value) {
+        url.searchParams.set(name, value);
+    } else {
+        url.searchParams.delete(name);
+    }
+    
+    // Reset to page 1 when changing filters
+    url.searchParams.delete('page');
+    
+    window.location.href = url.toString();
+}
+
+function updateCheckboxFilter(name, checked) {
+    const url = new URL(window.location.href);
+    
+    if (checked) {
+        url.searchParams.set(name, 'true');
+    } else {
+        url.searchParams.delete(name);
+    }
+    
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+function setFilter(name, value) {
+    const url = new URL(window.location.href);
+    url.searchParams.set(name, value);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
 }
 
 function clearFilters() {
     window.location.href = '{% url "search" %}';
 }
 
-function showToast(message, type) {
-    const toast = $(`
-        <div class="toast toast-${type} glass-card">
-            <span>${message}</span>
-            <button class="toast-close">&times;</button>
-        </div>
-    `);
+function clearAllFilters() {
+    const url = new URL(window.location.href);
+    const params = ['query', 'gender', 'min_age', 'max_age', 'county', 'services', 'is_vip', 'is_verified', 'is_available', 'is_online', 'sort'];
     
-    $('.main-content').append(toast);
+    params.forEach(param => {
+        url.searchParams.delete(param);
+    });
     
-    setTimeout(() => {
-        toast.fadeOut(() => toast.remove());
-    }, 3000);
+    window.location.href = url.toString();
 }
 
-// Close modal on click outside
-$('.modal-overlay').on('click', function(e) {
-    if (e.target === this) {
-        $(this).removeClass('active');
-    }
-});
+function addServiceFilter(service) {
+    const current = $('#servicesFilter').val();
+    if (current.includes(service)) return;
+    
+    const newValue = current ? current + ', ' + service : service;
+    $('#servicesFilter').val(newValue);
+    updateFilter('services', newValue);
+}
+
+function sortResults(sortBy) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('sort', sortBy);
+    url.searchParams.delete('page');
+    window.location.href = url.toString();
+}
+
+function viewProfile(username) {
+    window.location.href = `/profile/${username}/`;
+}
+
+function saveCurrentSearch() {
+    const filters = {
+        query: '{{ form.query.value|default:"" }}',
+        gender: '{{ form.gender.value|default:"" }}',
+        min_age: '{{ form.min_age.value|default:"18" }}',
+        max_age: '{{ form.max_age.value|default:"70" }}',
+        county: '{{ form.county.value|default:"" }}',
+        services: '{{ form.services.value|default:"" }}',
+        is_vip: '{{ form.is_vip.value|default:"" }}',
+        is_verified: '{{ form.is_verified.value|default:"" }}',
+        is_available: '{{ form.is_available.value|default:"" }}',
+        is_online: '{{ form.is_online.value|default:"" }}',
+        sort: '{{ request.GET.sort|default:"recent" }}'
+    };
+    
+    $.ajax({
+        url: '{% url "api_save_search" %}',
+        method: 'POST',
+        data: {
+            query: filters.query,
+            filters: filters,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-bookmark fa-3x text-success mb-3"></i>
+                        <h3>Search Saved!</h3>
+                        <p>Your search criteria has been saved.</p>
+                        <p class="text-secondary">You can access it from Saved Searches</p>
+                        <button class="btn btn-primary mt-3" onclick="hideModal()">
+                            OK
+                        </button>
+                    </div>
+                `);
+            }
+        },
+        error: function() {
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                    <h3>Error</h3>
+                    <p>Could not save search. Please try again.</p>
+                    <button class="btn btn-primary mt-3" onclick="hideModal()">
+                        OK
+                    </button>
+                </div>
+            `);
+        }
+    });
+}
+
+// Helper function to get query string without page parameter
+function getQueryStringWithoutPage() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('page');
+    const queryString = url.searchParams.toString();
+    return queryString ? '&' + queryString : '';
+}
 </script>
 {% endblock %}

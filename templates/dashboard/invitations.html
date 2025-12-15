@@ -1,9 +1,973 @@
-<!-- main/templates/dashboard/invitations.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Invitations - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Invitations specific styles */
+.invitations-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.invitations-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 15px;
+}
+
+.tab-btn {
+    padding: 10px 25px;
+    background: none;
+    border: none;
+    border-bottom: 3px solid transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    font-weight: 500;
+    position: relative;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+}
+
+.tab-btn.active {
+    color: var(--coop-green);
+    border-bottom-color: var(--coop-green);
+}
+
+.tab-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--coop-green);
+    color: white;
+    font-size: 0.7rem;
+    padding: 2px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+}
+
+.invitation-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.invitation-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow);
+    border-color: var(--coop-green);
+}
+
+.invitation-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+}
+
+.invitation-info {
+    flex: 1;
+}
+
+.invitation-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+}
+
+.invitation-email {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    word-break: break-all;
+}
+
+.invitation-meta {
+    display: flex;
+    gap: 15px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.invitation-status {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+}
+
+.status-accepted {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.status-expired {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+}
+
+.status-sent {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+}
+
+.invitation-message {
+    margin: 15px 0;
+    padding: 15px;
+    background: rgba(255,255,255,0.03);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--coop-green);
+}
+
+.invitation-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border-color);
+}
+
+.invitation-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: transform 0.3s ease;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: var(--coop-green);
+    margin-bottom: 10px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+/* Invitation form */
+.invitation-form-container {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid var(--border-color);
+}
+
+.form-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.form-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    font-size: 0.95rem;
+}
+
+.bulk-invite-section {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius);
+    border: 1px dashed var(--border-color);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .invitation-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .invitation-actions {
+        flex-direction: column;
+    }
+    
+    .invitation-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .invitations-tabs {
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        flex: 1;
+        min-width: 120px;
+        text-align: center;
+    }
+}
+
+/* Invite rewards */
+.rewards-section {
+    background: linear-gradient(135deg, rgba(0,168,89,0.1), rgba(0,102,179,0.1));
+    border-radius: var(--radius);
+    padding: 25px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0,168,89,0.3);
+}
+
+.rewards-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--coop-green);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.rewards-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.reward-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+}
+
+.reward-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.reward-info {
+    flex: 1;
+}
+
+.reward-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.reward-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: invitations.html</h1>
-    <p>Content coming soon...</p>
+<div class="invitations-header">
+    <div>
+        <h1 class="card-title">Invitations</h1>
+        <p class="card-subtitle">Invite friends and earn rewards</p>
+    </div>
+    <a href="{% url 'invitation_create' %}" class="btn btn-primary">
+        <i class="fas fa-user-plus"></i> Send Invitation
+    </a>
 </div>
+
+<!-- Invitation Rewards -->
+<div class="rewards-section">
+    <div class="rewards-title">
+        <i class="fas fa-gift"></i> Earn Rewards for Inviting Friends
+    </div>
+    <p class="text-secondary mb-0">Get rewarded for every friend who joins CoopConnect Premium through your invitation.</p>
+    
+    <div class="rewards-list">
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">KES 100 Bonus</div>
+                <div class="reward-description">For each friend who verifies their profile</div>
+            </div>
+        </div>
+        
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-crown"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">VIP Status</div>
+                <div class="reward-description">Get 5 friends to join for VIP status</div>
+            </div>
+        </div>
+        
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-bolt"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">Priority Support</div>
+                <div class="reward-description">Exclusive support for top inviters</div>
+            </div>
+        </div>
+        
+        <div class="reward-item">
+            <div class="reward-icon">
+                <i class="fas fa-star"></i>
+            </div>
+            <div class="reward-info">
+                <div class="reward-title">Featured Profile</div>
+                <div class="reward-description">Get featured on our homepage</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Invitation Statistics -->
+<div class="invitation-stats">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-paper-plane"></i>
+        </div>
+        <div class="stat-number">{{ total_invitations|default:"0" }}</div>
+        <div class="stat-label">Invitations Sent</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-user-check"></i>
+        </div>
+        <div class="stat-number">{{ accepted_invitations|default:"0" }}</div>
+        <div class="stat-label">Accepted</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-coins"></i>
+        </div>
+        <div class="stat-number">KES {{ total_rewards|default:"0" }}</div>
+        <div class="stat-label">Rewards Earned</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-trophy"></i>
+        </div>
+        <div class="stat-number">{{ pending_invitations|default:"0" }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+</div>
+
+<!-- Invitations Tabs -->
+<div class="invitations-tabs">
+    <button class="tab-btn active" data-tab="sent">
+        Sent Invitations
+        {% if sent_count > 0 %}
+        <span class="tab-badge">{{ sent_count }}</span>
+        {% endif %}
+    </button>
+    
+    <button class="tab-btn" data-tab="accepted">
+        Accepted
+        {% if accepted_count > 0 %}
+        <span class="tab-badge">{{ accepted_count }}</span>
+        {% endif %}
+    </button>
+    
+    <button class="tab-btn" data-tab="pending">
+        Pending
+        {% if pending_count > 0 %}
+        <span class="tab-badge">{{ pending_count }}</span>
+        {% endif %}
+    </button>
+    
+    <button class="tab-btn" data-tab="expired">
+        Expired
+        {% if expired_count > 0 %}
+        <span class="tab-badge">{{ expired_count }}</span>
+        {% endif %}
+    </button>
+</div>
+
+<!-- Quick Send Invitation Form -->
+<div class="invitation-form-container">
+    <div class="form-title">Quick Invite</div>
+    <div class="form-subtitle">Send invitations via email or SMS</div>
+    
+    <form id="quickInviteForm">
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-control" id="inviteEmail" placeholder="friend@example.com">
+                    <div class="text-sm text-secondary mt-1">We'll send an email invitation</div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Phone Number (Optional)</label>
+                    <input type="tel" class="form-control" id="invitePhone" placeholder="+2547XXXXXXXX">
+                    <div class="text-sm text-secondary mt-1">We'll send an SMS invitation</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="form-group mb-3">
+            <label class="form-label">Personal Message (Optional)</label>
+            <textarea class="form-control" id="inviteMessage" rows="3" placeholder="Hey! Join me on CoopConnect Premium...">Hey! Join me on CoopConnect Premium - the premium dating and companionship platform. Use my invitation code: {{ user.username }}</textarea>
+        </div>
+        
+        <div class="d-flex gap-3">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-paper-plane"></i> Send Invitation
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="copyInviteLink()">
+                <i class="fas fa-link"></i> Copy Invite Link
+            </button>
+        </div>
+    </form>
+    
+    <div class="bulk-invite-section">
+        <div class="form-title mb-3">Bulk Invite</div>
+        <div class="form-subtitle mb-3">Invite multiple friends at once</div>
+        
+        <div class="form-group mb-3">
+            <label class="form-label">Email Addresses (comma-separated)</label>
+            <textarea class="form-control" id="bulkEmails" rows="3" placeholder="friend1@example.com, friend2@example.com, friend3@example.com"></textarea>
+            <div class="text-sm text-secondary mt-1">Separate email addresses with commas</div>
+        </div>
+        
+        <button type="button" class="btn btn-secondary" onclick="sendBulkInvites()">
+            <i class="fas fa-users"></i> Send Bulk Invitations
+        </button>
+    </div>
+</div>
+
+<!-- Invitations List -->
+<div class="invitations-list">
+    {% if invitations %}
+        {% for invitation in invitations %}
+        <div class="invitation-card" data-status="{{ invitation.status }}">
+            <div class="invitation-header">
+                <div class="invitation-info">
+                    <div class="invitation-title">
+                        {% if invitation.invitee_name %}
+                            {{ invitation.invitee_name }}
+                        {% else %}
+                            {{ invitation.invitee_email }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="invitation-email">
+                        {{ invitation.invitee_email }}
+                        {% if invitation.invitee_phone %}
+                            • {{ invitation.invitee_phone }}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="invitation-meta">
+                        <span>
+                            <i class="far fa-calendar"></i>
+                            Sent {{ invitation.created_at|date:"M d, Y" }}
+                        </span>
+                        
+                        {% if invitation.accepted_at %}
+                        <span>
+                            <i class="fas fa-check-circle"></i>
+                            Accepted {{ invitation.accepted_at|date:"M d, Y" }}
+                        </span>
+                        {% endif %}
+                        
+                        {% if invitation.expires_at %}
+                        <span>
+                            <i class="fas fa-hourglass-half"></i>
+                            Expires {{ invitation.expires_at|date:"M d, Y" }}
+                        </span>
+                        {% endif %}
+                        
+                        <span>
+                            <i class="fas fa-redo"></i>
+                            Code: {{ invitation.invitation_code|default:"N/A" }}
+                        </span>
+                    </div>
+                    
+                    {% if invitation.message %}
+                    <div class="invitation-message">
+                        {{ invitation.message }}
+                    </div>
+                    {% endif %}
+                    
+                    {% if invitation.reward_earned %}
+                    <div class="mt-3">
+                        <span class="badge badge-success">
+                            <i class="fas fa-gift"></i>
+                            Reward: KES {{ invitation.reward_earned }}
+                        </span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div>
+                    <span class="invitation-status status-{{ invitation.status }}">
+                        {% if invitation.status == 'pending' %}
+                            <i class="fas fa-clock"></i>
+                        {% elif invitation.status == 'accepted' %}
+                            <i class="fas fa-check-circle"></i>
+                        {% elif invitation.status == 'expired' %}
+                            <i class="fas fa-hourglass-end"></i>
+                        {% endif %}
+                        {{ invitation.status|title }}
+                    </span>
+                </div>
+            </div>
+            
+            <div class="invitation-actions">
+                {% if invitation.status == 'pending' %}
+                    <button class="btn btn-primary" onclick="resendInvitation({{ invitation.id }})">
+                        <i class="fas fa-redo"></i> Resend
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="remindInvitation({{ invitation.id }})">
+                        <i class="fas fa-bell"></i> Remind
+                    </button>
+                {% endif %}
+                
+                <button class="btn btn-secondary" onclick="viewInvitationDetails({{ invitation.id }})">
+                    <i class="fas fa-info-circle"></i> Details
+                </button>
+                
+                {% if invitation.status == 'accepted' and invitation.referral_user %}
+                    <a href="{% url 'profile_view' invitation.referral_user.username %}" class="btn btn-secondary">
+                        <i class="fas fa-user"></i> View Profile
+                    </a>
+                {% endif %}
+                
+                <button class="btn btn-danger" onclick="deleteInvitation({{ invitation.id }})">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-user-plus"></i>
+            </div>
+            <h3 class="mb-2">No Invitations Yet</h3>
+            <p class="text-secondary mb-4">Start inviting friends to earn rewards and grow your network</p>
+            <a href="{% url 'invitation_create' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Send Your First Invitation
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if invitations.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if invitations.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ invitations.previous_page_number }}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for i in invitations.paginator.page_range %}
+        {% if invitations.number == i %}
+        <li class="page-item active">
+            <span class="page-link">{{ i }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ i }}">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if invitations.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ invitations.next_page_number }}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<!-- Your Referral Information -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h3 class="card-title">Your Referral Information</h3>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Your Invitation Code</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="invitationCode" value="{{ user.username }}" readonly>
+                        <button class="btn btn-primary" type="button" onclick="copyInvitationCode()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-6">
+                <div class="form-group">
+                    <label class="form-label">Your Invitation Link</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="invitationLink" value="{{ request.scheme }}://{{ request.get_host }}{% url 'account_signup' %}?ref={{ user.username }}" readonly>
+                        <button class="btn btn-primary" type="button" onclick="copyInvitationLink()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-4">
+            <h4 class="mb-3">Share Your Invitation</h4>
+            <div class="d-flex gap-3 flex-wrap">
+                <button class="btn btn-secondary" onclick="shareViaWhatsApp()">
+                    <i class="fab fa-whatsapp"></i> WhatsApp
+                </button>
+                <button class="btn btn-secondary" onclick="shareViaEmail()">
+                    <i class="fas fa-envelope"></i> Email
+                </button>
+                <button class="btn btn-secondary" onclick="shareViaSMS()">
+                    <i class="fas fa-sms"></i> SMS
+                </button>
+                <button class="btn btn-secondary" onclick="shareViaTelegram()">
+                    <i class="fab fa-telegram"></i> Telegram
+                </button>
+                <button class="btn btn-secondary" onclick="shareViaFacebook()">
+                    <i class="fab fa-facebook"></i> Facebook
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Tab functionality
+    $('.tab-btn').click(function() {
+        $('.tab-btn').removeClass('active');
+        $(this).addClass('active');
+        
+        const tab = $(this).data('tab');
+        
+        // Filter invitations by status
+        if (tab === 'all') {
+            $('.invitation-card').show();
+        } else {
+            $('.invitation-card').hide();
+            $(`.invitation-card[data-status="${tab}"]`).show();
+        }
+        
+        // Update URL without reloading
+        history.pushState(null, null, `?tab=${tab}`);
+    });
+    
+    // Set active tab based on URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab') || 'sent';
+    $(`[data-tab="${activeTab}"]`).click();
+    
+    // Quick invite form submission
+    $('#quickInviteForm').submit(function(e) {
+        e.preventDefault();
+        
+        const email = $('#inviteEmail').val().trim();
+        const phone = $('#invitePhone').val().trim();
+        const message = $('#inviteMessage').val().trim();
+        
+        if (!email && !phone) {
+            alert('Please enter either an email address or phone number');
+            return;
+        }
+        
+        $.ajax({
+            url: '{% url "invitation_create" %}',
+            method: 'POST',
+            data: {
+                email: email,
+                phone: phone,
+                message: message,
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            beforeSend: function() {
+                $('button[type="submit"]').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Sending...');
+            },
+            success: function(response) {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3>Invitation Sent!</h3>
+                        <p>Your invitation has been sent successfully.</p>
+                        <button class="btn btn-primary mt-3" onclick="location.reload()">OK</button>
+                    </div>
+                `);
+            },
+            error: function(xhr) {
+                const error = xhr.responseJSON?.error || 'Failed to send invitation';
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                        <h3>Error</h3>
+                        <p>${error}</p>
+                        <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                    </div>
+                `);
+            },
+            complete: function() {
+                $('button[type="submit"]').prop('disabled', false).html('<i class="fas fa-paper-plane"></i> Send Invitation');
+            }
+        });
+    });
+    
+    // Copy invite link
+    window.copyInviteLink = function() {
+        const link = $('#invitationLink').val();
+        navigator.clipboard.writeText(link).then(function() {
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3>Link Copied!</h3>
+                    <p>Invitation link copied to clipboard.</p>
+                    <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                </div>
+            `);
+        });
+    };
+    
+    // Bulk invites
+    window.sendBulkInvites = function() {
+        const emailsText = $('#bulkEmails').val().trim();
+        if (!emailsText) {
+            alert('Please enter at least one email address');
+            return;
+        }
+        
+        const emails = emailsText.split(',').map(email => email.trim()).filter(email => email);
+        
+        showModal(`
+            <div class="p-4">
+                <h3 class="card-title mb-3">Send Bulk Invitations</h3>
+                <p>You are about to send invitations to ${emails.length} email addresses.</p>
+                <div class="mt-4">
+                    <button class="btn btn-primary flex-1" onclick="confirmBulkInvites(${JSON.stringify(emails)})">
+                        <i class="fas fa-paper-plane"></i> Confirm Send
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">Cancel</button>
+                </div>
+            </div>
+        `);
+    };
+    
+    window.confirmBulkInvites = function(emails) {
+        $.ajax({
+            url: '{% url "invitation_create" %}',
+            method: 'POST',
+            data: {
+                emails: emails.join(','),
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3>Invitations Sent!</h3>
+                        <p>Your invitations have been sent to ${emails.length} email addresses.</p>
+                        <button class="btn btn-primary mt-3" onclick="location.reload()">OK</button>
+                    </div>
+                `);
+            },
+            error: function() {
+                alert('Error sending bulk invitations');
+            }
+        });
+    };
+    
+    // Invitation actions
+    window.resendInvitation = function(invitationId) {
+        $.ajax({
+            url: '/invitations/' + invitationId + '/resend/',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function() {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                        <h3>Invitation Resent!</h3>
+                        <p>The invitation has been resent successfully.</p>
+                        <button class="btn btn-primary mt-3" onclick="location.reload()">OK</button>
+                    </div>
+                `);
+            },
+            error: function() {
+                alert('Error resending invitation');
+            }
+        });
+    };
+    
+    window.remindInvitation = function(invitationId) {
+        $.ajax({
+            url: '/invitations/' + invitationId + '/remind/',
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function() {
+                showModal(`
+                    <div class="text-center p-4">
+                        <i class="fas fa-bell fa-3x text-warning mb-3"></i>
+                        <h3>Reminder Sent!</h3>
+                        <p>A reminder has been sent to the invitee.</p>
+                        <button class="btn btn-primary mt-3" onclick="location.reload()">OK</button>
+                    </div>
+                `);
+            },
+            error: function() {
+                alert('Error sending reminder');
+            }
+        });
+    };
+    
+    window.viewInvitationDetails = function(invitationId) {
+        showModal(`
+            <div class="p-4">
+                <h3 class="card-title mb-3">Invitation Details</h3>
+                <p class="text-secondary">Loading details...</p>
+                <button class="btn btn-primary mt-3" onclick="hideModal()">Close</button>
+            </div>
+        `);
+        
+        // In a real app, you would fetch invitation details via AJAX
+    };
+    
+    window.deleteInvitation = function(invitationId) {
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                <h3>Delete Invitation</h3>
+                <p>Are you sure you want to delete this invitation? This action cannot be undone.</p>
+                <div class="d-flex gap-3 mt-4">
+                    <button class="btn btn-danger flex-1" onclick="confirmDeleteInvitation(${invitationId})">
+                        <i class="fas fa-trash"></i> Delete
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">Cancel</button>
+                </div>
+            </div>
+        `);
+    };
+    
+    window.confirmDeleteInvitation = function(invitationId) {
+        $.ajax({
+            url: '{% url "invitation_delete" 999999999 %}'.replace('999999999', invitationId),
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            },
+            success: function() {
+                location.reload();
+            },
+            error: function() {
+                alert('Error deleting invitation');
+            }
+        });
+    };
+    
+    // Copy functions
+    window.copyInvitationCode = function() {
+        const code = $('#invitationCode').val();
+        navigator.clipboard.writeText(code).then(function() {
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3>Code Copied!</h3>
+                    <p>Invitation code copied to clipboard.</p>
+                    <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                </div>
+            `);
+        });
+    };
+    
+    // Share functions
+    window.shareViaWhatsApp = function() {
+        const text = `Join me on CoopConnect Premium! Use my invitation code: {{ user.username }} - {{ request.scheme }}://{{ request.get_host }}{% url 'account_signup' %}?ref={{ user.username }}`;
+        const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+        window.open(url, '_blank');
+    };
+    
+    window.shareViaEmail = function() {
+        const subject = 'Join me on CoopConnect Premium!';
+        const body = `Hi there!\n\nI'd like to invite you to join CoopConnect Premium, the premium dating and companionship platform.\n\nUse my invitation code: {{ user.username }}\n\nSign up here: {{ request.scheme }}://{{ request.get_host }}{% url 'account_signup' %}?ref={{ user.username }}\n\nLooking forward to seeing you there!\n\nBest regards,\n{{ user.username }}`;
+        const url = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+        window.location.href = url;
+    };
+    
+    // You would need to implement other share functions similarly
+});
+</script>
 {% endblock %}

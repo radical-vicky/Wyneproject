@@ -1,9 +1,1354 @@
-<!-- main/templates/dashboard/upload_video.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Upload Video - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Dark Theme Variables */
+:root {
+    --dark-bg: #121212;
+    --darker-bg: #0a0a0a;
+    --card-dark: #1e1e1e;
+    --card-darker: #171717;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-dark: #2a2a2a;
+    --primary-gradient: linear-gradient(135deg, #00a859 0%, #0056b3 100%);
+    --hover-gradient: linear-gradient(135deg, #00c06a 0%, #0066cc 100%);
+}
+
+/* Upload Container */
+.video-upload-container {
+    background: var(--dark-bg);
+    min-height: 100vh;
+    padding: 30px 0 50px;
+}
+
+/* Header Section */
+.video-upload-header {
+    background: var(--darker-bg);
+    padding: 30px 0;
+    border-bottom: 1px solid var(--border-dark);
+    margin-bottom: 30px;
+}
+
+.header-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.page-title {
+    font-size: 32px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.page-title i {
+    color: var(--coop-green);
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+/* Main Content */
+.video-upload-content {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Upload Card */
+.upload-card {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid var(--border-dark);
+    margin-bottom: 30px;
+    transition: all 0.3s ease;
+}
+
+.upload-card:hover {
+    border-color: rgba(0, 168, 89, 0.3);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Video Upload Area */
+.video-upload-area {
+    border: 3px dashed rgba(0, 168, 89, 0.3);
+    border-radius: 12px;
+    padding: 50px 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(0, 168, 89, 0.05);
+    position: relative;
+}
+
+.video-upload-area:hover {
+    background: rgba(0, 168, 89, 0.1);
+    border-color: rgba(0, 168, 89, 0.5);
+    transform: translateY(-2px);
+}
+
+.video-upload-area.dragover {
+    background: rgba(0, 168, 89, 0.2);
+    border-color: var(--coop-green);
+    transform: scale(1.01);
+}
+
+.video-upload-icon {
+    font-size: 64px;
+    color: var(--coop-green);
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+}
+
+.video-upload-area:hover .video-upload-icon {
+    transform: scale(1.1);
+}
+
+.video-upload-title {
+    font-size: 22px;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
+}
+
+.video-upload-subtitle {
+    color: var(--text-secondary);
+    font-size: 16px;
+    margin-bottom: 20px;
+}
+
+.video-requirements {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 15px;
+}
+
+.video-requirements i {
+    color: var(--coop-green);
+    margin-right: 5px;
+}
+
+/* Button Styling */
+.btn {
+    padding: 12px 28px;
+    border-radius: 10px;
+    font-weight: 600;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--coop-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #00c06a;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 168, 89, 0.3);
+}
+
+.btn-secondary {
+    background: var(--card-darker);
+    color: var(--text-primary);
+    border: 1px solid var(--border-dark);
+}
+
+.btn-secondary:hover {
+    background: var(--border-dark);
+    transform: translateY(-2px);
+}
+
+/* Video Preview */
+.video-preview-container {
+    margin-top: 30px;
+    display: none;
+}
+
+.video-preview {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #000;
+    position: relative;
+}
+
+.video-preview video {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+.preview-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.video-preview:hover .preview-overlay {
+    opacity: 1;
+}
+
+.preview-controls {
+    display: flex;
+    gap: 15px;
+}
+
+.preview-btn {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+}
+
+.preview-btn:hover {
+    background: rgba(255, 255, 255, 0.3);
+    transform: scale(1.1);
+}
+
+.duration-badge {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* File Info */
+.file-info-card {
+    background: var(--card-darker);
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 20px;
+    border: 1px solid var(--border-dark);
+}
+
+.file-info-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.file-info-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.file-info-title i {
+    color: var(--coop-green);
+}
+
+.file-info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+}
+
+@media (max-width: 576px) {
+    .file-info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.info-item {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid var(--border-dark);
+}
+
+.info-label {
+    color: var(--text-secondary);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 5px;
+}
+
+.info-value {
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    word-break: break-all;
+}
+
+/* Thumbnail Upload */
+.thumbnail-upload-area {
+    border: 2px dashed var(--border-dark);
+    border-radius: 12px;
+    padding: 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(255, 255, 255, 0.02);
+    margin-top: 20px;
+}
+
+.thumbnail-upload-area:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border-color: var(--coop-green);
+}
+
+.thumbnail-upload-icon {
+    font-size: 32px;
+    color: var(--coop-green);
+    margin-bottom: 10px;
+}
+
+.thumbnail-upload-title {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.thumbnail-preview {
+    width: 100%;
+    max-width: 200px;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-top: 15px;
+    display: none;
+}
+
+.thumbnail-preview img {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+/* Requirements Check */
+.requirements-check {
+    background: var(--card-darker);
+    border-radius: 12px;
+    padding: 25px;
+    margin-top: 25px;
+    border: 1px solid var(--border-dark);
+    display: none;
+}
+
+.requirements-header {
+    margin-bottom: 20px;
+}
+
+.requirements-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.requirements-title i {
+    color: var(--coop-green);
+}
+
+.requirements-subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.requirements-list {
+    display: grid;
+    gap: 10px;
+}
+
+.requirement-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-dark);
+    transition: all 0.3s ease;
+}
+
+.requirement-item.valid {
+    border-color: rgba(0, 168, 89, 0.3);
+    background: rgba(0, 168, 89, 0.05);
+}
+
+.requirement-item.invalid {
+    border-color: rgba(255, 68, 68, 0.3);
+    background: rgba(255, 68, 68, 0.05);
+}
+
+.requirement-icon {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+}
+
+.requirement-item.valid .requirement-icon {
+    background: rgba(0, 168, 89, 0.2);
+    color: var(--coop-green);
+}
+
+.requirement-item.invalid .requirement-icon {
+    background: rgba(255, 68, 68, 0.2);
+    color: #ff4444;
+}
+
+.requirement-text {
+    color: var(--text-primary);
+    font-size: 14px;
+    flex: 1;
+}
+
+/* Form Controls */
+.form-group {
+    margin-bottom: 25px;
+}
+
+.form-label {
+    display: block;
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-label i {
+    color: var(--coop-green);
+    font-size: 14px;
+}
+
+.required::after {
+    content: " *";
+    color: #ff4444;
+}
+
+.form-control {
+    width: 100%;
+    padding: 14px 16px;
+    background: var(--card-darker);
+    border: 1px solid var(--border-dark);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--coop-green);
+    box-shadow: 0 0 0 2px rgba(0, 168, 89, 0.2);
+}
+
+.form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+textarea.form-control {
+    min-height: 100px;
+    resize: vertical;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-dark);
+}
+
+/* Instructions Card */
+.instructions-card {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid var(--border-dark);
+    margin-top: 30px;
+}
+
+.instructions-header {
+    margin-bottom: 25px;
+}
+
+.instructions-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 10px;
+}
+
+.instructions-title i {
+    color: var(--coop-green);
+}
+
+.instructions-subtitle {
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.instructions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+}
+
+.instruction-item {
+    background: var(--card-darker);
+    padding: 20px;
+    border-radius: 10px;
+    border: 1px solid var(--border-dark);
+    transition: all 0.3s ease;
+}
+
+.instruction-item:hover {
+    border-color: rgba(0, 168, 89, 0.3);
+    transform: translateY(-2px);
+}
+
+.instruction-icon {
+    font-size: 24px;
+    color: var(--coop-green);
+    margin-bottom: 15px;
+}
+
+.instruction-text {
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+/* Progress Container */
+.progress-container {
+    margin-top: 25px;
+    display: none;
+}
+
+.progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.progress-title i {
+    color: var(--coop-green);
+}
+
+.progress-percentage {
+    color: var(--coop-green);
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.progress-bar {
+    height: 8px;
+    background: var(--card-darker);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-dark);
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--primary-gradient);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+    width: 0%;
+    position: relative;
+    overflow: hidden;
+}
+
+.progress-fill::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 100%;
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0.3) 50%,
+        transparent 100%
+    );
+    animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+/* Success Message */
+.success-message {
+    background: rgba(0, 168, 89, 0.1);
+    border: 1px solid rgba(0, 168, 89, 0.3);
+    color: var(--coop-green);
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
+    display: none;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .video-upload-header {
+        padding: 20px 0;
+    }
+    
+    .page-title {
+        font-size: 24px;
+    }
+    
+    .video-upload-area {
+        padding: 40px 20px;
+    }
+    
+    .video-upload-icon {
+        font-size: 48px;
+    }
+    
+    .video-upload-title {
+        font-size: 18px;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .instructions-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .upload-card {
+        padding: 20px;
+    }
+    
+    .video-preview {
+        max-width: 100%;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: upload_video.html</h1>
-    <p>Content coming soon...</p>
+<div class="video-upload-container">
+    <!-- Header -->
+    <div class="video-upload-header">
+        <div class="header-content">
+            <h1 class="page-title">
+                <i class="fas fa-video"></i>
+                Upload Video
+            </h1>
+            <p class="page-subtitle">
+                Add engaging videos to your profile to showcase your personality and services
+            </p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="video-upload-content">
+        {% if messages %}
+        <div class="success-message" id="successMessage">
+            <i class="fas fa-check-circle"></i>
+            {% for message in messages %}
+            {{ message }}
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <form method="POST" enctype="multipart/form-data" id="videoForm">
+            {% csrf_token %}
+            
+            <div class="upload-card">
+                <!-- Video Upload Area -->
+                <div class="video-upload-area" id="videoUploadArea">
+                    <div class="video-upload-icon">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                    </div>
+                    <h3 class="video-upload-title">Drag & Drop Video Here</h3>
+                    <p class="video-upload-subtitle">or click to browse files from your computer</p>
+                    
+                    <div class="file-input-container">
+                        <input type="file" id="videoInput" name="video_file" accept="video/*" class="file-input">
+                        <button type="button" class="btn btn-primary">
+                            <i class="fas fa-folder-open"></i> Browse Files
+                        </button>
+                    </div>
+                    
+                    <p class="video-requirements mt-3">
+                        <i class="fas fa-info-circle"></i>
+                        Maximum file size: 100MB • Maximum duration: 5 minutes
+                    </p>
+                </div>
+
+                <!-- Video Preview -->
+                <div class="video-preview-container" id="videoPreviewContainer">
+                    <div class="video-preview" id="videoPreview">
+                        <video controls id="previewVideo"></video>
+                        <div class="preview-overlay">
+                            <div class="preview-controls">
+                                <button type="button" class="preview-btn" onclick="playPauseVideo()">
+                                    <i class="fas fa-play" id="playIcon"></i>
+                                </button>
+                                <button type="button" class="preview-btn" onclick="restartVideo()">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="duration-badge" id="durationBadge">0:00</div>
+                    </div>
+                    
+                    <!-- File Info -->
+                    <div class="file-info-card" id="fileInfoCard">
+                        <div class="file-info-header">
+                            <h4 class="file-info-title">
+                                <i class="fas fa-info-circle"></i>
+                                File Information
+                            </h4>
+                        </div>
+                        <div class="file-info-grid" id="fileInfoGrid">
+                            <!-- File info will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Requirements Check -->
+                <div class="requirements-check" id="requirementsCheck">
+                    <div class="requirements-header">
+                        <h3 class="requirements-title">
+                            <i class="fas fa-clipboard-check"></i>
+                            Video Requirements
+                        </h3>
+                        <p class="requirements-subtitle">Your video must meet all requirements</p>
+                    </div>
+                    <div class="requirements-list" id="requirementsList">
+                        <!-- Requirements will be populated here -->
+                    </div>
+                </div>
+
+                <!-- Video Details -->
+                <div class="form-group">
+                    <label class="form-label required">
+                        <i class="fas fa-heading"></i>
+                        Video Title
+                    </label>
+                    <input type="text" class="form-control" name="title" 
+                           placeholder="Enter an engaging title for your video..." required>
+                    <small class="form-help">
+                        <i class="fas fa-lightbulb"></i>
+                        A good title helps attract viewers to your video
+                    </small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-align-left"></i>
+                        Video Description
+                    </label>
+                    <textarea class="form-control" name="description" rows="3" 
+                              placeholder="Describe what your video is about..."></textarea>
+                    <small class="form-help">
+                        <i class="fas fa-edit"></i>
+                        Optional: Add details about your video content
+                    </small>
+                </div>
+
+                <!-- Thumbnail Upload -->
+                <div class="form-group">
+                    <label class="form-label">
+                        <i class="fas fa-image"></i>
+                        Custom Thumbnail (Optional)
+                    </label>
+                    <div class="thumbnail-upload-area" id="thumbnailUploadArea">
+                        <div class="thumbnail-upload-icon">
+                            <i class="fas fa-image"></i>
+                        </div>
+                        <p class="thumbnail-upload-title">Click to upload custom thumbnail</p>
+                        <input type="file" id="thumbnailInput" name="thumbnail" accept="image/*" class="file-input">
+                    </div>
+                    <div class="thumbnail-preview" id="thumbnailPreview"></div>
+                    <small class="form-help">
+                        <i class="fas fa-camera"></i>
+                        Custom thumbnails increase click-through rates
+                    </small>
+                </div>
+
+                <!-- Progress Bar -->
+                <div class="progress-container" id="progressContainer">
+                    <div class="progress-header">
+                        <span class="progress-title">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            Processing Video
+                        </span>
+                        <span class="progress-percentage" id="progressPercentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <a href="{% url 'profile_edit' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Profile
+                    </a>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" disabled>
+                        <i class="fas fa-upload"></i> Upload Video
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <!-- Instructions -->
+        <div class="instructions-card">
+            <div class="instructions-header">
+                <h3 class="instructions-title">
+                    <i class="fas fa-graduation-cap"></i>
+                    Video Guidelines & Tips
+                </h3>
+                <p class="instructions-subtitle">Best practices for creating engaging profile videos</p>
+            </div>
+            
+            <div class="instructions-grid">
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Quality Matters:</strong> Use 720p resolution or higher for clear, professional-looking videos
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Keep it Concise:</strong> Videos should be 5 minutes or less to maintain viewer engagement
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-lightbulb"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Good Lighting:</strong> Film in well-lit areas to ensure clear visibility and professional appearance
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-volume-up"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Clear Audio:</strong> Ensure good audio quality by filming in quiet environments
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Content Guidelines:</strong> All videos must be appropriate and comply with community standards
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-compress-alt"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>File Size:</strong> Keep videos under 100MB for faster uploading and better streaming
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Supported Formats:</strong> Use MP4, MOV, AVI, or WMV formats for best compatibility
+                    </p>
+                </div>
+                
+                <div class="instruction-item">
+                    <div class="instruction-icon">
+                        <i class="fas fa-smile"></i>
+                    </div>
+                    <p class="instruction-text">
+                        <strong>Be Authentic:</strong> Show your personality and let clients get to know the real you
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<script>
+$(document).ready(function() {
+    const videoUploadArea = document.getElementById('videoUploadArea');
+    const videoInput = document.getElementById('videoInput');
+    const videoPreviewContainer = document.getElementById('videoPreviewContainer');
+    const videoPreview = document.getElementById('videoPreview');
+    const previewVideo = document.getElementById('previewVideo');
+    const durationBadge = document.getElementById('durationBadge');
+    const fileInfoCard = document.getElementById('fileInfoCard');
+    const fileInfoGrid = document.getElementById('fileInfoGrid');
+    const requirementsCheck = document.getElementById('requirementsCheck');
+    const requirementsList = document.getElementById('requirementsList');
+    const thumbnailUploadArea = document.getElementById('thumbnailUploadArea');
+    const thumbnailInput = document.getElementById('thumbnailInput');
+    const thumbnailPreview = document.getElementById('thumbnailPreview');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressPercentage = document.getElementById('progressPercentage');
+    const submitBtn = document.getElementById('submitBtn');
+    const titleInput = document.querySelector('input[name="title"]');
+    
+    let videoFile = null;
+    let thumbnailFile = null;
+    let isVideoPlaying = false;
+    
+    // Video file selection
+    videoInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            videoFile = this.files[0];
+            displayVideoPreview(videoFile);
+            checkRequirements(videoFile);
+        }
+    });
+    
+    // Thumbnail file selection
+    thumbnailInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            thumbnailFile = this.files[0];
+            displayThumbnailPreview(thumbnailFile);
+        }
+    });
+    
+    // Drag and drop for video
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        videoUploadArea.addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        videoUploadArea.addEventListener(eventName, highlight, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        videoUploadArea.addEventListener(eventName, unhighlight, false);
+    });
+    
+    function highlight() {
+        videoUploadArea.classList.add('dragover');
+    }
+    
+    function unhighlight() {
+        videoUploadArea.classList.remove('dragover');
+    }
+    
+    videoUploadArea.addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const droppedFiles = dt.files;
+        if (droppedFiles.length > 0) {
+            videoInput.files = droppedFiles;
+            videoInput.dispatchEvent(new Event('change'));
+        }
+    });
+    
+    function displayVideoPreview(file) {
+        const videoURL = URL.createObjectURL(file);
+        
+        previewVideo.src = videoURL;
+        videoPreviewContainer.style.display = 'block';
+        
+        // Get video duration and info
+        previewVideo.onloadedmetadata = function() {
+            const duration = previewVideo.duration;
+            durationBadge.textContent = formatDuration(duration);
+            
+            // Display file information
+            fileInfoGrid.innerHTML = `
+                <div class="info-item">
+                    <div class="info-label">File Name</div>
+                    <div class="info-value" title="${file.name}">${truncateFileName(file.name, 30)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">File Size</div>
+                    <div class="info-value">${formatFileSize(file.size)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Duration</div>
+                    <div class="info-value">${formatDuration(duration)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Format</div>
+                    <div class="info-value">${file.type || getFileExtension(file.name)}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Dimensions</div>
+                    <div class="info-value">${previewVideo.videoWidth}×${previewVideo.videoHeight}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">Bitrate</div>
+                    <div class="info-value">${calculateBitrate(file.size, duration)}</div>
+                </div>
+            `;
+            
+            fileInfoCard.style.display = 'block';
+        };
+    }
+    
+    function displayThumbnailPreview(file) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            thumbnailPreview.innerHTML = `<img src="${e.target.result}" alt="Thumbnail">`;
+            thumbnailPreview.style.display = 'block';
+        };
+        
+        reader.readAsDataURL(file);
+    }
+    
+    function checkRequirements(file) {
+        const requirements = [
+            {
+                check: () => file.size <= 100 * 1024 * 1024, // 100MB
+                message: 'File size ≤ 100MB',
+                id: 'size'
+            },
+            {
+                check: () => {
+                    const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/x-ms-wmv'];
+                    const validExtensions = ['.mp4', '.mov', '.avi', '.wmv'];
+                    const fileName = file.name.toLowerCase();
+                    
+                    if (file.type) {
+                        return validTypes.includes(file.type);
+                    } else {
+                        return validExtensions.some(ext => fileName.endsWith(ext));
+                    }
+                },
+                message: 'Supported format (MP4, MOV, AVI, WMV)',
+                id: 'format'
+            },
+            {
+                check: async () => {
+                    return new Promise((resolve) => {
+                        const video = document.createElement('video');
+                        video.preload = 'metadata';
+                        video.onloadedmetadata = function() {
+                            resolve(video.duration <= 300); // 5 minutes
+                        };
+                        video.src = URL.createObjectURL(file);
+                    });
+                },
+                message: 'Duration ≤ 5 minutes',
+                id: 'duration'
+            }
+        ];
+        
+        requirementsList.innerHTML = '';
+        let allValid = true;
+        
+        requirements.forEach(async (req, index) => {
+            const isValid = await req.check();
+            const requirementItem = document.createElement('div');
+            requirementItem.className = `requirement-item ${isValid ? 'valid' : 'invalid'}`;
+            requirementItem.innerHTML = `
+                <div class="requirement-icon">
+                    <i class="fas ${isValid ? 'fa-check' : 'fa-times'}"></i>
+                </div>
+                <div class="requirement-text">${req.message}</div>
+            `;
+            requirementsList.appendChild(requirementItem);
+            
+            if (!isValid) allValid = false;
+            
+            // After checking all requirements
+            if (index === requirements.length - 1) {
+                requirementsCheck.style.display = 'block';
+                submitBtn.disabled = !allValid;
+                
+                if (!allValid) {
+                    submitBtn.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Requirements Not Met';
+                    submitBtn.classList.remove('btn-primary');
+                    submitBtn.classList.add('btn-danger');
+                } else {
+                    submitBtn.innerHTML = '<i class="fas fa-upload"></i> Upload Video';
+                    submitBtn.classList.remove('btn-danger');
+                    submitBtn.classList.add('btn-primary');
+                }
+            }
+        });
+    }
+    
+    // Video control functions
+    function playPauseVideo() {
+        const playIcon = document.getElementById('playIcon');
+        if (isVideoPlaying) {
+            previewVideo.pause();
+            playIcon.className = 'fas fa-play';
+        } else {
+            previewVideo.play();
+            playIcon.className = 'fas fa-pause';
+        }
+        isVideoPlaying = !isVideoPlaying;
+    }
+    
+    function restartVideo() {
+        previewVideo.currentTime = 0;
+        if (!isVideoPlaying) {
+            previewVideo.play();
+            isVideoPlaying = true;
+            document.getElementById('playIcon').className = 'fas fa-pause';
+        }
+    }
+    
+    // Utility functions
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    function formatDuration(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = Math.floor(seconds % 60);
+        return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    }
+    
+    function truncateFileName(name, maxLength) {
+        if (name.length <= maxLength) return name;
+        const extension = name.substring(name.lastIndexOf('.'));
+        const nameWithoutExt = name.substring(0, name.lastIndexOf('.'));
+        const truncated = nameWithoutExt.substring(0, maxLength - extension.length - 3);
+        return truncated + '...' + extension;
+    }
+    
+    function getFileExtension(filename) {
+        return '.' + filename.split('.').pop().toUpperCase();
+    }
+    
+    function calculateBitrate(sizeInBytes, durationInSeconds) {
+        const sizeInBits = sizeInBytes * 8;
+        const bitrate = sizeInBits / durationInSeconds;
+        return formatBitrate(bitrate);
+    }
+    
+    function formatBitrate(bitsPerSecond) {
+        if (bitsPerSecond < 1000) return bitsPerSecond.toFixed(0) + ' bps';
+        if (bitsPerSecond < 1000000) return (bitsPerSecond / 1000).toFixed(0) + ' Kbps';
+        return (bitsPerSecond / 1000000).toFixed(1) + ' Mbps';
+    }
+    
+    // Form validation
+    $('#videoForm').on('submit', function(e) {
+        if (!videoFile) {
+            e.preventDefault();
+            showAlert('Please select a video file to upload', 'warning');
+            return false;
+        }
+        
+        if (!titleInput.value.trim()) {
+            e.preventDefault();
+            showAlert('Please enter a title for your video', 'warning');
+            titleInput.focus();
+            return false;
+        }
+        
+        // Show progress
+        progressContainer.style.display = 'block';
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+        
+        // Simulate processing progress
+        simulateProcessingProgress();
+        
+        return true;
+    });
+    
+    function simulateProcessingProgress() {
+        let progress = 0;
+        const interval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress > 100) progress = 100;
+            
+            progressFill.style.width = progress + '%';
+            progressPercentage.textContent = Math.round(progress) + '%';
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+            }
+        }, 300);
+    }
+    
+    // Click upload areas to trigger file inputs
+    videoUploadArea.addEventListener('click', function(e) {
+        if (!e.target.closest('.file-input-container')) {
+            videoInput.click();
+        }
+    });
+    
+    thumbnailUploadArea.addEventListener('click', function() {
+        thumbnailInput.click();
+    });
+    
+    // Alert function
+    function showAlert(message, type) {
+        const alert = $(`
+            <div class="alert-message alert-${type}">
+                <i class="fas fa-${type === 'error' ? 'exclamation-circle' : 'exclamation-triangle'}"></i>
+                ${message}
+                <button class="alert-close"><i class="fas fa-times"></i></button>
+            </div>
+        `);
+        
+        // Add styles if not already added
+        if (!$('#alert-styles').length) {
+            $('<style id="alert-styles">').text(`
+                .alert-message {
+                    position: fixed;
+                    top: 20px;
+                    right: 20px;
+                    padding: 15px 20px;
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: 500;
+                    z-index: 10000;
+                    animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s;
+                    max-width: 350px;
+                    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+                    display: flex;
+                    align-items: center;
+                    gap: 12px;
+                }
+                .alert-error { background: #ff4444; }
+                .alert-warning { background: #ff9800; }
+                .alert-success { background: var(--coop-green); }
+                .alert-close {
+                    background: none;
+                    border: none;
+                    color: white;
+                    cursor: pointer;
+                    margin-left: auto;
+                    padding: 0;
+                    font-size: 14px;
+                }
+                @keyframes fadeOut {
+                    from { opacity: 1; }
+                    to { opacity: 0; }
+                }
+            `).appendTo('head');
+        }
+        
+        $('body').append(alert);
+        
+        // Remove alert after 3 seconds
+        setTimeout(() => {
+            alert.remove();
+        }, 3000);
+        
+        // Close button
+        alert.find('.alert-close').click(() => alert.remove());
+    }
+});
+</script>
 {% endblock %}

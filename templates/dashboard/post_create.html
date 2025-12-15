@@ -1,209 +1,533 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Create Post - CoopConnect{% endblock %}
+{% block title %}Create Post - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.post-editor {
+    min-height: 200px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+}
+
+.post-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.media-preview {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-top: 20px;
+}
+
+.preview-item {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    aspect-ratio: 1;
+}
+
+.preview-item img, .preview-item video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.remove-preview {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background: var(--danger);
+    color: white;
+    border: none;
+    width: 25px;
+    height: 25px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+}
+
+.post-type-selector {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.post-type-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 15px;
+    background: var(--darker-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.post-type-btn:hover {
+    border-color: var(--coop-green);
+    background: rgba(0,168,89,0.05);
+}
+
+.post-type-btn.active {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+.post-type-icon {
+    font-size: 1.5rem;
+    margin-bottom: 10px;
+}
+
+.privacy-selector {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+.privacy-option {
+    padding: 8px 15px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.privacy-option:hover {
+    border-color: var(--coop-green);
+}
+
+.privacy-option.active {
+    background: var(--coop-green);
+    color: white;
+    border-color: var(--coop-green);
+}
+
+.character-count {
+    text-align: right;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-top: 5px;
+}
+
+.character-count.warning {
+    color: var(--warning);
+}
+
+.character-count.danger {
+    color: var(--danger);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <div class="card">
-        <div class="card-header">
-            <h4 class="mb-0">
-                <i class="fas fa-plus-circle me-2"></i>Create New Post
-            </h4>
-        </div>
-        <div class="card-body">
-            <form method="POST" enctype="multipart/form-data" id="postForm">
-                {% csrf_token %}
-                
-                <!-- Post Type -->
-                <div class="mb-4">
-                    <label class="form-label mb-3">Post Type</label>
-                    <div class="post-type-buttons d-flex gap-2">
-                        <button type="button" class="btn btn-secondary flex-1 post-type-btn active" data-type="text">
-                            <i class="fas fa-font me-2"></i>Text
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-1 post-type-btn" data-type="image">
-                            <i class="fas fa-image me-2"></i>Image
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-1 post-type-btn" data-type="video">
-                            <i class="fas fa-video me-2"></i>Video
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Create New Post</h1>
+        <p class="card-subtitle">Share your thoughts, photos, or videos with the community</p>
+    </div>
+    
+    <div class="card-body">
+        <form method="POST" enctype="multipart/form-data" id="postForm">
+            {% csrf_token %}
+            
+            <!-- Post Type Selector -->
+            <div class="post-type-selector">
+                <div class="post-type-btn active" data-type="text">
+                    <div class="post-type-icon">
+                        <i class="fas fa-font"></i>
+                    </div>
+                    <div>Text Post</div>
+                </div>
+                <div class="post-type-btn" data-type="image">
+                    <div class="post-type-icon">
+                        <i class="fas fa-image"></i>
+                    </div>
+                    <div>Image Post</div>
+                </div>
+                <div class="post-type-btn" data-type="video">
+                    <div class="post-type-icon">
+                        <i class="fas fa-video"></i>
+                    </div>
+                    <div>Video Post</div>
+                </div>
+            </div>
+            
+            <input type="hidden" name="post_type" id="postType" value="text">
+            
+            <!-- Content Editor -->
+            <div class="form-group">
+                <label class="form-label">What's on your mind?</label>
+                <textarea class="form-control" id="postContent" name="content" 
+                          rows="6" placeholder="Share your thoughts..." 
+                          maxlength="2000" required></textarea>
+                <div class="character-count" id="charCount">0/2000 characters</div>
+            </div>
+            
+            <!-- Media Upload (for image/video posts) -->
+            <div id="mediaUpload" style="display: none;">
+                <div class="form-group">
+                    <label class="form-label" id="mediaLabel">Upload Media</label>
+                    <div class="upload-area" style="padding: 30px 20px;">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <h4 id="mediaTitle">Select Files</h4>
+                        <p class="text-secondary mb-3" id="mediaDescription">Maximum file size: 10MB</p>
+                        <input type="file" id="mediaInput" name="image" accept="image/*" style="display: none;">
+                        <button type="button" class="btn btn-primary" onclick="document.getElementById('mediaInput').click()">
+                            <i class="fas fa-folder-open"></i> Browse Files
                         </button>
                     </div>
-                    <input type="hidden" name="post_type" id="id_post_type" value="text">
+                    <div id="mediaPreview" class="media-preview"></div>
                 </div>
-                
-                <!-- Content -->
-                <div class="form-group mb-4">
-                    <label for="id_content" class="form-label">What's on your mind?</label>
-                    <textarea name="content" id="id_content" rows="4" 
-                              class="form-control" 
-                              placeholder="Share your thoughts, experiences, or updates..." 
-                              required></textarea>
+            </div>
+            
+            <!-- Location -->
+            <div class="form-group">
+                <label class="form-label">Location (Optional)</label>
+                <input type="text" class="form-control" name="location" 
+                       placeholder="Add location...">
+                <small class="text-secondary">Let people know where you are</small>
+            </div>
+            
+            <!-- Privacy Settings -->
+            <div class="form-group">
+                <label class="form-label">Privacy Settings</label>
+                <div class="privacy-selector">
+                    <div class="privacy-option active" data-privacy="public">
+                        <i class="fas fa-globe"></i> Public
+                    </div>
+                    <div class="privacy-option" data-privacy="contacts">
+                        <i class="fas fa-users"></i> Contacts Only
+                    </div>
+                    <div class="privacy-option" data-privacy="private">
+                        <i class="fas fa-lock"></i> Only Me
+                    </div>
                 </div>
-                
-                <!-- Image Upload -->
-                <div id="imageSection" class="mb-4 d-none">
-                    <label class="form-label">Upload Image</label>
-                    <div class="border-dashed rounded-lg p-4 text-center mb-3">
-                        <i class="fas fa-image fa-3x text-secondary mb-3"></i>
-                        <p class="text-secondary">Select an image file</p>
-                        <label for="id_image" class="btn btn-primary">
-                            <i class="fas fa-folder-open me-2"></i>Choose Image
+                <input type="hidden" name="privacy" id="privacySetting" value="public">
+            </div>
+            
+            <!-- Additional Options -->
+            <div class="row mt-4">
+                <div class="col-md-6">
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_pinned" id="pinPost">
+                            <i class="fas fa-thumbtack"></i> Pin to profile
                         </label>
-                        <input type="file" name="image" id="id_image" class="d-none" accept="image/*">
-                    </div>
-                    <div id="imagePreview" class="text-center d-none">
-                        <img src="#" alt="Preview" class="img-fluid rounded-lg mb-2" style="max-height: 200px;">
-                        <button type="button" class="btn btn-sm btn-secondary" onclick="clearImage()">
-                            <i class="fas fa-times me-1"></i>Remove Image
-                        </button>
                     </div>
                 </div>
-                
-                <!-- Video Upload -->
-                <div id="videoSection" class="mb-4 d-none">
-                    <label class="form-label">Upload Video</label>
-                    <div class="border-dashed rounded-lg p-4 text-center mb-3">
-                        <i class="fas fa-video fa-3x text-secondary mb-3"></i>
-                        <p class="text-secondary">Select a video file (MP4, max 100MB)</p>
-                        <label for="id_video" class="btn btn-primary">
-                            <i class="fas fa-folder-open me-2"></i>Choose Video
+                <div class="col-md-6">
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="allow_comments" checked>
+                            <i class="fas fa-comment"></i> Allow comments
                         </label>
-                        <input type="file" name="video" id="id_video" class="d-none" accept="video/*">
-                    </div>
-                    <div id="videoPreview" class="text-center d-none">
-                        <video controls class="img-fluid rounded-lg mb-2" style="max-height: 200px;"></video>
-                        <button type="button" class="btn btn-sm btn-secondary" onclick="clearVideo()">
-                            <i class="fas fa-times me-1"></i>Remove Video
-                        </button>
                     </div>
                 </div>
-                
-                <!-- Location -->
-                <div class="form-group mb-4">
-                    <label for="id_location" class="form-label">
-                        <i class="fas fa-map-marker-alt me-2"></i>Location (Optional)
-                    </label>
-                    <input type="text" name="location" id="id_location" 
-                           class="form-control" 
-                           placeholder="Add your location...">
-                </div>
-                
-                <!-- Visibility -->
-                <div class="mb-4">
-                    <label class="form-label">Post Visibility</label>
-                    <div class="visibility-buttons d-flex gap-2">
-                        <button type="button" class="btn btn-secondary flex-1 visibility-btn active" data-visibility="public">
-                            <i class="fas fa-globe me-2"></i>Public
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-1 visibility-btn" data-visibility="contacts">
-                            <i class="fas fa-users me-2"></i>Contacts
-                        </button>
-                        <button type="button" class="btn btn-secondary flex-1 visibility-btn" data-visibility="private">
-                            <i class="fas fa-lock me-2"></i>Private
-                        </button>
-                    </div>
-                    <input type="hidden" name="visibility" id="id_visibility" value="public">
-                </div>
-                
-                <!-- Actions -->
-                <div class="d-flex justify-content-between">
-                    <a href="{% url 'dashboard' %}" class="btn btn-secondary">
-                        <i class="fas fa-times me-2"></i>Cancel
-                    </a>
-                    <button type="submit" class="btn btn-primary" id="submitBtn">
-                        <i class="fas fa-paper-plane me-2"></i>Post Now
-                    </button>
-                </div>
-            </form>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="post-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Post Now
+                </button>
+                <button type="button" class="btn btn-secondary" id="saveDraft">
+                    <i class="fas fa-save"></i> Save Draft
+                </button>
+                <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+        </form>
+        
+        <!-- Posting Guidelines -->
+        <div class="upload-instructions mt-5">
+            <h4 class="mb-3">Community Guidelines</h4>
+            <ul class="instruction-list">
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Be respectful and kind to other members</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>No harassment, hate speech, or bullying</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>No explicit or inappropriate content</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>No spam or promotional content</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Respect others' privacy</span>
+                </li>
+                <li>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Report any violations to our moderation team</span>
+                </li>
+            </ul>
         </div>
     </div>
 </div>
 
-<style>
-.post-type-btn, .visibility-btn {
-    padding: 12px;
-    border: 2px solid rgba(255,255,255,0.1);
-    transition: all 0.3s ease;
-}
-
-.post-type-btn.active, .visibility-btn.active {
-    border-color: var(--coop-green);
-    background: rgba(0, 168, 89, 0.1);
-    color: var(--coop-green);
-}
-
-.flex-1 {
-    flex: 1;
-}
-</style>
-
 <script>
 $(document).ready(function() {
+    const postTypeBtns = document.querySelectorAll('.post-type-btn');
+    const mediaUpload = document.getElementById('mediaUpload');
+    const mediaInput = document.getElementById('mediaInput');
+    const mediaPreview = document.getElementById('mediaPreview');
+    const postTypeInput = document.getElementById('postType');
+    const mediaLabel = document.getElementById('mediaLabel');
+    const mediaTitle = document.getElementById('mediaTitle');
+    const mediaDescription = document.getElementById('mediaDescription');
+    const postContent = document.getElementById('postContent');
+    const charCount = document.getElementById('charCount');
+    const privacyOptions = document.querySelectorAll('.privacy-option');
+    const privacySetting = document.getElementById('privacySetting');
+    
+    let mediaFiles = [];
+    let currentPostType = 'text';
+    
     // Post type selection
-    $('.post-type-btn').click(function() {
-        $('.post-type-btn').removeClass('active');
-        $(this).addClass('active');
-        
-        const type = $(this).data('type');
-        $('#id_post_type').val(type);
-        
-        // Show/hide sections
-        $('#imageSection, #videoSection').addClass('d-none');
-        if (type === 'image') {
-            $('#imageSection').removeClass('d-none');
+    postTypeBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            postTypeBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            
+            currentPostType = this.dataset.type;
+            postTypeInput.value = currentPostType;
+            
+            // Update media upload section
+            updateMediaUpload(currentPostType);
+        });
+    });
+    
+    function updateMediaUpload(type) {
+        if (type === 'text') {
+            mediaUpload.style.display = 'none';
+            mediaInput.name = '';
+        } else if (type === 'image') {
+            mediaUpload.style.display = 'block';
+            mediaLabel.textContent = 'Upload Image';
+            mediaTitle.textContent = 'Select Image';
+            mediaDescription.textContent = 'Maximum file size: 10MB • Supported formats: JPG, PNG, GIF';
+            mediaInput.name = 'image';
+            mediaInput.accept = 'image/*';
+            mediaInput.multiple = false;
         } else if (type === 'video') {
-            $('#videoSection').removeClass('d-none');
+            mediaUpload.style.display = 'block';
+            mediaLabel.textContent = 'Upload Video';
+            mediaTitle.textContent = 'Select Video';
+            mediaDescription.textContent = 'Maximum file size: 50MB • Maximum duration: 2 minutes';
+            mediaInput.name = 'video';
+            mediaInput.accept = 'video/*';
+            mediaInput.multiple = false;
+        }
+        
+        // Clear previews
+        mediaPreview.innerHTML = '';
+        mediaFiles = [];
+    }
+    
+    // Media file selection
+    mediaInput.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            const file = this.files[0];
+            mediaFiles = [file];
+            displayMediaPreview(file);
         }
     });
     
-    // Visibility selection
-    $('.visibility-btn').click(function() {
-        $('.visibility-btn').removeClass('active');
-        $(this).addClass('active');
-        $('#id_visibility').val($(this).data('visibility'));
-    });
-    
-    // Image preview
-    $('#id_image').change(function() {
-        if (this.files && this.files[0]) {
+    function displayMediaPreview(file) {
+        mediaPreview.innerHTML = '';
+        
+        const previewItem = document.createElement('div');
+        previewItem.className = 'preview-item';
+        
+        if (file.type.startsWith('image/')) {
             const reader = new FileReader();
             reader.onload = function(e) {
-                $('#imagePreview img').attr('src', e.target.result);
-                $('#imagePreview').removeClass('d-none');
-                $('.post-type-btn[data-type="image"]').click();
+                previewItem.innerHTML = `
+                    <img src="${e.target.result}" alt="Preview">
+                    <button type="button" class="remove-preview">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+            };
+            reader.readAsDataURL(file);
+        } else if (file.type.startsWith('video/')) {
+            const videoURL = URL.createObjectURL(file);
+            previewItem.innerHTML = `
+                <video controls>
+                    <source src="${videoURL}" type="${file.type}">
+                </video>
+                <button type="button" class="remove-preview">
+                    <i class="fas fa-times"></i>
+                </button>
+            `;
+        }
+        
+        mediaPreview.appendChild(previewItem);
+        
+        // Add remove functionality
+        const removeBtn = previewItem.querySelector('.remove-preview');
+        removeBtn.addEventListener('click', function() {
+            mediaPreview.innerHTML = '';
+            mediaFiles = [];
+            mediaInput.value = '';
+        });
+    }
+    
+    // Character count
+    postContent.addEventListener('input', function() {
+        const length = this.value.length;
+        charCount.textContent = `${length}/2000 characters`;
+        
+        if (length > 1800) {
+            charCount.classList.add('warning');
+            charCount.classList.remove('danger');
+        } else if (length > 1950) {
+            charCount.classList.remove('warning');
+            charCount.classList.add('danger');
+        } else {
+            charCount.classList.remove('warning', 'danger');
+        }
+    });
+    
+    // Privacy selection
+    privacyOptions.forEach(option => {
+        option.addEventListener('click', function() {
+            privacyOptions.forEach(opt => opt.classList.remove('active'));
+            this.classList.add('active');
+            privacySetting.value = this.dataset.privacy;
+        });
+    });
+    
+    // Save draft
+    $('#saveDraft').click(function() {
+        const content = postContent.value;
+        const postType = postTypeInput.value;
+        
+        if (!content.trim()) {
+            alert('Please enter some content before saving as draft');
+            return;
+        }
+        
+        // Save to localStorage
+        const draft = {
+            content: content,
+            post_type: postType,
+            privacy: privacySetting.value,
+            timestamp: new Date().toISOString()
+        };
+        
+        localStorage.setItem('postDraft', JSON.stringify(draft));
+        
+        // Show success message
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-save fa-3x text-success mb-3"></i>
+                <h3>Draft Saved!</h3>
+                <p>Your post has been saved as a draft. You can continue editing later.</p>
+                <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+            </div>
+        `);
+    });
+    
+    // Load draft if exists
+    const savedDraft = localStorage.getItem('postDraft');
+    if (savedDraft) {
+        const draft = JSON.parse(savedDraft);
+        
+        // Ask user if they want to load the draft
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-file-alt fa-3x text-info mb-3"></i>
+                <h3>Saved Draft Found</h3>
+                <p>You have a saved draft from ${new Date(draft.timestamp).toLocaleString()}</p>
+                <p>Would you like to load it?</p>
+                <div class="d-flex gap-3 justify-center mt-4">
+                    <button class="btn btn-primary" onclick="loadDraft()">Load Draft</button>
+                    <button class="btn btn-secondary" onclick="discardDraft()">Discard Draft</button>
+                </div>
+            </div>
+        `);
+    }
+    
+    // Form validation
+    $('#postForm').on('submit', function(e) {
+        const content = postContent.value.trim();
+        
+        if (!content) {
+            e.preventDefault();
+            alert('Please enter some content for your post');
+            postContent.focus();
+            return false;
+        }
+        
+        // Validate media for image/video posts
+        if (currentPostType !== 'text' && mediaFiles.length === 0) {
+            e.preventDefault();
+            alert(`Please select a ${currentPostType} to upload`);
+            return false;
+        }
+        
+        // Validate video duration (if video post)
+        if (currentPostType === 'video' && mediaFiles.length > 0) {
+            const videoFile = mediaFiles[0];
+            if (videoFile.size > 50 * 1024 * 1024) { // 50MB
+                e.preventDefault();
+                alert('Video file must be less than 50MB');
+                return false;
             }
-            reader.readAsDataURL(this.files[0]);
         }
-    });
-    
-    // Video preview
-    $('#id_video').change(function() {
-        if (this.files && this.files[0]) {
-            const video = $('#videoPreview video')[0];
-            const url = URL.createObjectURL(this.files[0]);
-            video.src = url;
-            $('#videoPreview').removeClass('d-none');
-            $('.post-type-btn[data-type="video"]').click();
-        }
-    });
-    
-    // Clear functions
-    window.clearImage = function() {
-        $('#id_image').val('');
-        $('#imagePreview').addClass('d-none');
-        $('.post-type-btn[data-type="text"]').click();
-    }
-    
-    window.clearVideo = function() {
-        $('#id_video').val('');
-        $('#videoPreview').addClass('d-none');
-        $('.post-type-btn[data-type="text"]').click();
-    }
-    
-    // Form submission
-    $('#postForm').submit(function() {
-        $('#submitBtn').prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Posting...');
+        
+        // Clear draft on successful submission
+        localStorage.removeItem('postDraft');
+        
+        return true;
     });
 });
+
+// Load draft function
+function loadDraft() {
+    const draft = JSON.parse(localStorage.getItem('postDraft'));
+    
+    $('#postContent').val(draft.content);
+    $('#postType').val(draft.post_type);
+    $('#privacySetting').val(draft.privacy);
+    
+    // Update UI
+    $('.post-type-btn').removeClass('active');
+    $(`.post-type-btn[data-type="${draft.post_type}"]`).addClass('active');
+    updateMediaUpload(draft.post_type);
+    
+    $('.privacy-option').removeClass('active');
+    $(`.privacy-option[data-privacy="${draft.privacy}"]`).addClass('active');
+    
+    hideModal();
+}
+
+// Discard draft function
+function discardDraft() {
+    localStorage.removeItem('postDraft');
+    hideModal();
+}
 </script>
 {% endblock %}

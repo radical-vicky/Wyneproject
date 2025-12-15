@@ -1,460 +1,646 @@
 {% extends 'base.html' %}
-{% load static %}
 
-{% block title %}Messages | ConnectPlus{% endblock %}
+{% block title %}Messages - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.inbox-container {
+    display: flex;
+    gap: 20px;
+    height: calc(100vh - 200px);
+}
+
+.conversations-sidebar {
+    width: 350px;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    overflow-y: auto;
+}
+
+.conversation-detail {
+    flex: 1;
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.new-conversation-btn {
+    width: 100%;
+    margin-bottom: 20px;
+}
+
+.conversation-search {
+    margin-bottom: 20px;
+}
+
+.conversation-list {
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+.conversation-item {
+    padding: 15px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.conversation-item:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.conversation-item.active {
+    background: rgba(0,168,89,0.1);
+    border-left: 3px solid var(--coop-green);
+}
+
+.conversation-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin-right: 15px;
+}
+
+.conversation-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.conversation-info {
+    flex: 1;
+}
+
+.conversation-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.conversation-preview {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.conversation-time {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.unread-badge {
+    background: var(--coop-green);
+    color: white;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    min-width: 20px;
+    text-align: center;
+}
+
+.message-header {
+    padding: 20px;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--darker-bg);
+}
+
+.message-participants {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.message-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.messages-container {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.message-bubble {
+    max-width: 70%;
+    padding: 12px 15px;
+    border-radius: 18px;
+    position: relative;
+}
+
+.message-bubble.sent {
+    background: var(--coop-green);
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 5px;
+}
+
+.message-bubble.received {
+    background: var(--darker-bg);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border-bottom-left-radius: 5px;
+}
+
+.message-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+    text-align: right;
+}
+
+.message-input-container {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    background: var(--darker-bg);
+}
+
+.message-input-wrapper {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.message-input {
+    flex: 1;
+    padding: 12px 15px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    resize: none;
+    min-height: 50px;
+    max-height: 120px;
+}
+
+.message-input:focus {
+    outline: none;
+    border-color: var(--coop-green);
+}
+
+.attachment-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 10px;
+    border-radius: var(--radius);
+    transition: all 0.3s ease;
+}
+
+.attachment-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+.send-btn {
+    padding: 12px 25px;
+}
+
+.media-attachment {
+    margin-top: 10px;
+}
+
+.attachment-preview {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: rgba(255,255,255,0.05);
+    padding: 8px 12px;
+    border-radius: var(--radius);
+}
+
+.remove-attachment {
+    background: none;
+    border: none;
+    color: var(--danger);
+    cursor: pointer;
+    padding: 0;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px 20px;
+    color: var(--text-secondary);
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.typing-indicator {
+    display: flex;
+    gap: 5px;
+    padding: 10px 15px;
+    background: var(--darker-bg);
+    border-radius: 18px;
+    width: fit-content;
+    margin-bottom: 10px;
+    align-self: flex-start;
+}
+
+.typing-dot {
+    width: 8px;
+    height: 8px;
+    background: var(--text-secondary);
+    border-radius: 50%;
+    animation: typing 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typing {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.5;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+@media (max-width: 992px) {
+    .inbox-container {
+        flex-direction: column;
+        height: auto;
+    }
+    
+    .conversations-sidebar {
+        width: 100%;
+        max-height: 400px;
+    }
+    
+    .conversation-list {
+        max-height: 300px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="messaging-container">
-    <div class="grid grid-3 gap-0">
-        <!-- Conversations List -->
-        <div class="conversation-sidebar glass-card">
-            <div class="sidebar-header p-3">
-                <h2 class="sidebar-title">Messages</h2>
-                <button class="btn btn-primary btn-sm" onclick="newConversation()">
-                    <i class="ri-add-line"></i> New
-                </button>
-            </div>
-            
-            <!-- Search -->
-            <div class="sidebar-search p-3">
-                <div class="search-bar">
-                    <i class="ri-search-line search-icon"></i>
-                    <input type="text" class="search-input" placeholder="Search messages..." 
-                           onkeyup="searchConversations(this.value)">
-                </div>
-            </div>
-            
-            <!-- Conversations -->
-            <div class="conversation-list">
-                {% for conversation in conversations %}
-                <a href="{% url 'conversation' conversation.id %}" 
-                   class="conversation-item {% if conversation.id == active_conversation.id %}active{% endif %}">
-                    <div class="conversation-header">
-                        <div class="conversation-avatar">
-                            {% if conversation.other_profile.photos.first %}
-                            <img src="{{ conversation.other_profile.photos.first.image.url }}" 
-                                 alt="{{ conversation.other_participant.username }}">
-                            {% else %}
-                            <div class="avatar-placeholder">
-                                {{ conversation.other_participant.username|first|upper }}
-                            </div>
-                            {% endif %}
-                            
-                            {% if conversation.other_profile.is_online %}
-                            <span class="online-status"></span>
-                            {% endif %}
-                        </div>
-                        
-                        <div class="conversation-info">
-                            <div class="conversation-name">
-                                {{ conversation.other_participant.username }}
-                            </div>
-                            <div class="conversation-preview">
-                                {{ conversation.last_message|truncatechars:30 }}
-                            </div>
-                        </div>
-                        
-                        <div class="conversation-meta">
-                            <div class="conversation-time">
-                                {{ conversation.last_message_at|timesince }}
-                            </div>
-                            {% if conversation.unread_count %}
-                            <div class="conversation-unread">
-                                {{ conversation.unread_count }}
-                            </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                </a>
-                {% empty %}
-                <div class="empty-state p-4 text-center">
-                    <i class="ri-message-3-line text-muted" style="font-size: 3rem;"></i>
-                    <p class="text-muted mt-2">No conversations yet</p>
-                    <button class="btn btn-primary mt-2" onclick="newConversation()">
-                        Start a conversation
-                    </button>
-                </div>
-                {% endfor %}
+<div class="card mb-4">
+    <div class="card-header">
+        <h1 class="card-title">Messages</h1>
+        <p class="card-subtitle">Connect and chat with other members</p>
+    </div>
+</div>
+
+<div class="inbox-container">
+    <!-- Conversations Sidebar -->
+    <div class="conversations-sidebar">
+        <button class="btn btn-primary new-conversation-btn" onclick="startNewConversation()">
+            <i class="fas fa-plus"></i> New Conversation
+        </button>
+        
+        <div class="conversation-search">
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search conversations...">
             </div>
         </div>
         
-        <!-- Chat Area -->
-        <div class="chat-area glass-card">
-            {% if active_conversation %}
-            <!-- Chat Header -->
-            <div class="chat-header p-3">
-                <div class="chat-user">
-                    <div class="chat-avatar">
-                        {% if other_profile.photos.first %}
-                        <img src="{{ other_profile.photos.first.image.url }}" 
-                             alt="{{ other_user.username }}">
-                        {% else %}
-                        <div class="avatar-placeholder">
-                            {{ other_user.username|first|upper }}
-                        </div>
-                        {% endif %}
-                        
-                        {% if other_profile.is_online %}
-                        <span class="online-status"></span>
-                        {% endif %}
-                    </div>
-                    
-                    <div class="chat-info">
-                        <h3 class="chat-name">{{ other_user.username }}</h3>
-                        <div class="chat-status">
-                            {% if other_profile.is_online %}
-                            <span class="status-text online">Online</span>
-                            {% else %}
-                            <span class="status-text offline">
-                                Last seen {{ other_profile.last_active|timesince }} ago
-                            </span>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="chat-actions">
-                    <button class="btn btn-icon" onclick="initiateCall('{{ other_user.username }}')">
-                        <i class="ri-phone-line"></i>
-                    </button>
-                    <button class="btn btn-icon" onclick="viewProfile('{{ other_user.username }}')">
-                        <i class="ri-user-line"></i>
-                    </button>
-                    <div class="dropdown">
-                        <button class="btn btn-icon dropdown-toggle">
-                            <i class="ri-more-2-line"></i>
-                        </button>
-                        <div class="dropdown-menu">
-                            <a href="#" class="dropdown-item">
-                                <i class="ri-user-unfollow-line"></i> Block
-                            </a>
-                            <a href="#" class="dropdown-item">
-                                <i class="ri-delete-bin-line"></i> Delete Chat
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Messages -->
-            <div class="message-container" id="messageContainer">
-                {% for message in messages %}
-                <div class="message {% if message.sender == user %}sent{% else %}received{% endif %}">
-                    <div class="message-content">
-                        {% if message.message_type == 'image' %}
-                        <img src="{{ message.media_file.url }}" alt="Image" class="message-media">
-                        {% elif message.message_type == 'video' %}
-                        <video src="{{ message.media_file.url }}" controls class="message-media"></video>
-                        {% elif message.message_type == 'audio' %}
-                        <audio src="{{ message.media_file.url }}" controls class="message-media"></audio>
-                        {% else %}
-                        <div class="message-text">{{ message.content }}</div>
-                        {% endif %}
-                        
-                        <span class="message-time">
-                            {{ message.sent_at|time:"H:i" }}
-                            {% if message.sender == user %}
-                            <i class="ri-check-{% if message.is_read %}double{% else %}line{% endif %}"></i>
-                            {% endif %}
-                        </span>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            
-            <!-- Message Input -->
-            <div class="message-input">
-                <div class="message-actions">
-                    <button class="btn btn-icon" onclick="attachFile()">
-                        <i class="ri-attachment-line"></i>
-                    </button>
-                    <button class="btn btn-icon" onclick="attachImage()">
-                        <i class="ri-image-line"></i>
-                    </button>
-                    <button class="btn btn-icon" onclick="recordAudio()">
-                        <i class="ri-mic-line"></i>
-                    </button>
-                </div>
-                
-                <form method="post" enctype="multipart/form-data" id="messageForm">
-                    {% csrf_token %}
-                    <input type="text" name="content" class="message-input-field" 
-                           placeholder="Type a message..." autocomplete="off">
-                    <input type="file" name="media_file" id="mediaInput" style="display: none;">
-                    
-                    <button type="submit" class="message-send-btn">
-                        <i class="ri-send-plane-line"></i>
-                    </button>
-                </form>
-            </div>
-            
-            {% else %}
-            <!-- Empty Chat State -->
-            <div class="empty-chat text-center p-5">
-                <i class="ri-message-3-line text-muted" style="font-size: 4rem;"></i>
-                <h3 class="mt-3">Your Messages</h3>
-                <p class="text-muted">Select a conversation or start a new one</p>
-                <button class="btn btn-primary mt-3" onclick="newConversation()">
-                    <i class="ri-add-line"></i> New Message
-                </button>
-            </div>
-            {% endif %}
-        </div>
-        
-        <!-- User Info Sidebar -->
-        <div class="user-sidebar glass-card">
-            {% if other_user %}
-            <div class="user-info p-3">
-                <div class="user-avatar text-center">
-                    {% if other_profile.photos.first %}
-                    <img src="{{ other_profile.photos.first.image.url }}" 
-                         alt="{{ other_user.username }}" class="avatar-large">
+        <div class="conversation-list">
+            {% for conversation in conversations %}
+            <div class="conversation-item d-flex align-center {% if conversation.id == active_conversation.id %}active{% endif %}" 
+                 onclick="loadConversation('{{ conversation.id }}')">
+                <div class="conversation-avatar">
+                    {% if conversation.other_profile.photos.first %}
+                    <img src="{{ conversation.other_profile.photos.first.image.url }}" alt="{{ conversation.other_participant.username }}">
                     {% else %}
-                    <div class="avatar-placeholder-large">
-                        {{ other_user.username|first|upper }}
-                    </div>
-                    {% endif %}
-                    
-                    <h3 class="user-name mt-2">{{ other_user.username }}</h3>
-                    
-                    <div class="user-status">
-                        {% if other_profile.is_online %}
-                        <span class="status-badge online">
-                            <i class="ri-checkbox-blank-circle-fill"></i> Online
-                        </span>
-                        {% else %}
-                        <span class="status-badge offline">
-                            <i class="ri-checkbox-blank-circle-line"></i> Offline
-                        </span>
-                        {% endif %}
-                    </div>
-                </div>
-                
-                <div class="user-details mt-4">
-                    <div class="detail-item">
-                        <span class="detail-label">Location</span>
-                        <span class="detail-value">{{ other_profile.city_town }}</span>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-label">Age</span>
-                        <span class="detail-value">{{ other_profile.age }}</span>
-                    </div>
-                    
-                    <div class="detail-item">
-                        <span class="detail-label">Gender</span>
-                        <span class="detail-value">{{ other_profile.get_gender_display }}</span>
-                    </div>
-                    
-                    {% if other_profile.services_offered %}
-                    <div class="detail-item">
-                        <span class="detail-label">Services</span>
-                        <div class="service-tags mt-1">
-                            {% for service in other_profile.get_services_list|slice:":3" %}
-                            <span class="service-tag">{{ service }}</span>
-                            {% endfor %}
-                        </div>
+                    <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                        <i class="fas fa-user"></i>
                     </div>
                     {% endif %}
                 </div>
                 
-                <div class="user-actions mt-4">
-                    <button class="btn btn-primary w-100 mb-2" 
-                            onclick="window.location.href='{% url 'booking_create' other_user.username %}'">
-                        <i class="ri-calendar-line"></i> Book Service
-                    </button>
-                    
-                    <button class="btn btn-outline w-100 mb-2" 
-                            onclick="initiateCall('{{ other_user.username }}')">
-                        <i class="ri-phone-line"></i> Call
-                    </button>
-                    
-                    <button class="btn btn-outline w-100" 
-                            onclick="window.location.href='{% url 'profile_view' other_user.username %}'">
-                        <i class="ri-profile-line"></i> View Profile
-                    </button>
+                <div class="conversation-info">
+                    <div class="d-flex justify-between align-center">
+                        <div class="conversation-name">{{ conversation.other_participant.username }}</div>
+                        <div class="conversation-time">{{ conversation.last_message_at|timesince }} ago</div>
+                    </div>
+                    <div class="conversation-preview">{{ conversation.last_message|truncatechars:50 }}</div>
                 </div>
+                
+                {% if conversation.unread_count > 0 %}
+                <div class="unread-badge">{{ conversation.unread_count }}</div>
+                {% endif %}
             </div>
-            {% endif %}
+            {% empty %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="fas fa-comments"></i>
+                </div>
+                <h4>No conversations yet</h4>
+                <p>Start a conversation with other members</p>
+                <button class="btn btn-primary mt-3" onclick="startNewConversation()">
+                    <i class="fas fa-plus"></i> Start Chatting
+                </button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    
+    <!-- Conversation Detail -->
+    <div class="conversation-detail" id="conversationDetail">
+        <div class="empty-state">
+            <div class="empty-state-icon">
+                <i class="fas fa-comment-alt"></i>
+            </div>
+            <h4>Select a conversation</h4>
+            <p>Choose a conversation from the sidebar or start a new one</p>
         </div>
     </div>
 </div>
 
 <!-- New Conversation Modal -->
-<div class="modal-overlay" id="newConversationModal">
+<div class="modal" id="newConversationModal">
     <div class="modal-content">
-        <div class="modal-header">
-            <h3 class="modal-title">New Message</h3>
-            <button class="modal-close" onclick="closeNewConversationModal()">&times;</button>
+        <button class="modal-close" onclick="hideModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="card-title mb-3">New Conversation</h3>
+        
+        <div class="form-group">
+            <label class="form-label">Search Users</label>
+            <div class="search-box">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" id="userSearch" placeholder="Search by username...">
+            </div>
+            <div id="searchResults" class="mt-3" style="max-height: 300px; overflow-y: auto;"></div>
         </div>
-        <div class="modal-body">
-            <div class="search-bar mb-3">
-                <i class="ri-search-line search-icon"></i>
-                <input type="text" class="search-input" placeholder="Search users..." 
-                       onkeyup="searchUsers(this.value)">
-            </div>
-            
-            <div class="user-list" id="userList">
-                <!-- Users will be loaded here -->
-            </div>
+        
+        <div class="form-group mt-4">
+            <label class="form-label">Initial Message (Optional)</label>
+            <textarea class="form-control" id="initialMessage" rows="3" placeholder="Type your message..."></textarea>
+        </div>
+        
+        <div class="d-flex gap-3 mt-4">
+            <button class="btn btn-primary" onclick="createConversation()">Start Conversation</button>
+            <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block extra_scripts %}
 <script>
-let currentConversationId = {{ active_conversation.id|default:"null" }};
-let lastMessageId = {{ messages.last.id|default:0 }};
-
-function newConversation() {
-    $('#newConversationModal').addClass('active');
-}
-
-function closeNewConversationModal() {
-    $('#newConversationModal').removeClass('active');
-}
-
-function searchUsers(query) {
-    if (query.length < 2) return;
-    
-    $.ajax({
-        url: '{% url "api_search_users" %}',
-        type: 'GET',
-        data: { 'q': query },
-        success: function(data) {
-            const userList = $('#userList');
-            userList.empty();
-            
-            if (data.users.length === 0) {
-                userList.html('<p class="text-muted text-center p-3">No users found</p>');
-                return;
-            }
-            
-            data.users.forEach(user => {
-                const userElement = $(`
-                    <div class="user-list-item" onclick="startConversation('${user.username}')">
-                        <div class="user-avatar-sm">
-                            ${user.avatar_url ? 
-                                `<img src="${user.avatar_url}" alt="${user.username}">` :
-                                `<div class="avatar-placeholder">${user.username[0].toUpperCase()}</div>`
-                            }
-                        </div>
-                        <div class="user-info">
-                            <div class="user-name">${user.username}</div>
-                            <div class="user-location">${user.city_town}</div>
-                        </div>
-                    </div>
-                `);
-                userList.append(userElement);
-            });
-        }
-    });
-}
-
-function searchConversations(query) {
-    $('.conversation-item').each(function() {
-        const name = $(this).find('.conversation-name').text().toLowerCase();
-        const preview = $(this).find('.conversation-preview').text().toLowerCase();
-        
-        if (name.includes(query.toLowerCase()) || preview.includes(query.toLowerCase())) {
-            $(this).show();
-        } else {
-            $(this).hide();
-        }
-    });
-}
-
-function attachFile() {
-    $('#mediaInput').attr('accept', '*').click();
-}
-
-function attachImage() {
-    $('#mediaInput').attr('accept', 'image/*').click();
-}
-
-function recordAudio() {
-    // Implement audio recording
-    showToast('Audio recording not implemented yet', 'info');
-}
-
-// Auto-scroll to bottom of messages
-function scrollToBottom() {
-    const container = $('#messageContainer');
-    container.scrollTop(container[0].scrollHeight);
-}
-
-// Check for new messages
-function checkNewMessages() {
-    if (!currentConversationId) return;
-    
-    $.ajax({
-        url: `/api/conversation/${currentConversationId}/messages/`,
-        type: 'GET',
-        data: { 'last_message_id': lastMessageId },
-        success: function(data) {
-            if (data.messages.length > 0) {
-                data.messages.forEach(msg => {
-                    const messageElement = $(`
-                        <div class="message ${msg.sender === '{{ user.username }}' ? 'sent' : 'received'}">
-                            <div class="message-content">
-                                <div class="message-text">${msg.content}</div>
-                                <span class="message-time">
-                                    ${msg.sent_at}
-                                    ${msg.sender === '{{ user.username }}' ? 
-                                        '<i class="ri-check-double-line"></i>' : ''}
-                                </span>
-                            </div>
-                        </div>
-                    `);
-                    $('#messageContainer').append(messageElement);
-                    lastMessageId = Math.max(lastMessageId, msg.id);
-                });
-                scrollToBottom();
-            }
-        }
-    });
-}
-
-// Form submission
-$('#messageForm').on('submit', function(e) {
-    e.preventDefault();
-    
-    const formData = new FormData(this);
-    
-    $.ajax({
-        url: window.location.href,
-        type: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        success: function() {
-            $('#messageForm')[0].reset();
-            checkNewMessages();
-        }
-    });
-});
-
-// Initialize
 $(document).ready(function() {
-    scrollToBottom();
+    // Load first conversation if available
+    {% if conversations %}
+        loadConversation('{{ conversations.0.id }}');
+    {% endif %}
     
-    // Check for new messages every 5 seconds
-    setInterval(checkNewMessages, 5000);
+    // Search conversations
+    $('.conversation-search input').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        $('.conversation-item').each(function() {
+            const name = $(this).find('.conversation-name').text().toLowerCase();
+            const preview = $(this).find('.conversation-preview').text().toLowerCase();
+            
+            if (name.includes(searchTerm) || preview.includes(searchTerm)) {
+                $(this).show();
+            } else {
+                $(this).hide();
+            }
+        });
+    });
     
-    // File input change handler
-    $('#mediaInput').on('change', function() {
-        if (this.files.length > 0) {
-            $('#messageForm').submit();
+    // Search users for new conversation
+    $('#userSearch').on('input', function() {
+        const query = $(this).val();
+        
+        if (query.length >= 2) {
+            $.ajax({
+                url: '{% url "api_search_users" %}',
+                method: 'GET',
+                data: { q: query },
+                success: function(response) {
+                    displaySearchResults(response.users);
+                }
+            });
+        } else {
+            $('#searchResults').empty();
         }
     });
-});
-
-// Close modal on click outside
-$('.modal-overlay').on('click', function(e) {
-    if (e.target === this) {
-        $(this).removeClass('active');
+    
+    let selectedUser = null;
+    
+    function displaySearchResults(users) {
+        const resultsContainer = $('#searchResults');
+        resultsContainer.empty();
+        
+        if (users.length === 0) {
+            resultsContainer.html('<div class="text-center text-secondary p-3">No users found</div>');
+            return;
+        }
+        
+        users.forEach(user => {
+            const userElement = $(`
+                <div class="user-result d-flex align-center gap-3 p-3 rounded" 
+                     style="cursor: pointer; background: rgba(255,255,255,0.02); margin-bottom: 5px;"
+                     onclick="selectUser('${user.username}')">
+                    <div style="width: 40px; height: 40px; border-radius: 50%; overflow: hidden;">
+                        ${user.avatar_url ? 
+                          `<img src="${user.avatar_url}" alt="${user.username}" style="width: 100%; height: 100%; object-fit: cover;">` :
+                          `<div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                               <i class="fas fa-user"></i>
+                           </div>`
+                        }
+                    </div>
+                    <div>
+                        <div class="text-primary">${user.username}</div>
+                        <div class="text-secondary text-sm">${user.city_town || 'Location not set'}</div>
+                    </div>
+                    ${user.is_online ? '<span class="status-dot online ml-auto"></span>' : ''}
+                </div>
+            `);
+            
+            resultsContainer.append(userElement);
+        });
     }
 });
+
+function startNewConversation() {
+    selectedUser = null;
+    $('#userSearch').val('');
+    $('#initialMessage').val('');
+    $('#searchResults').empty();
+    showModal($('#newConversationModal').html());
+}
+
+function selectUser(username) {
+    selectedUser = username;
+    $('#userSearch').val(username);
+    $('#searchResults').html(`
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            Selected: <strong>${username}</strong>
+        </div>
+    `);
+}
+
+function createConversation() {
+    if (!selectedUser) {
+        alert('Please select a user to start a conversation');
+        return;
+    }
+    
+    const message = $('#initialMessage').val();
+    
+    $.ajax({
+        url: '{% url "conversation_new" %}',
+        method: 'POST',
+        data: {
+            username: selectedUser,
+            initial_message: message,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                hideModal();
+                loadConversation(response.conversation_id);
+            } else {
+                alert(response.error || 'Could not create conversation');
+            }
+        },
+        error: function() {
+            alert('An error occurred. Please try again.');
+        }
+    });
+}
+
+function loadConversation(conversationId) {
+    $.ajax({
+        url: `/conversation/${conversationId}/`,
+        method: 'GET',
+        success: function(response) {
+            $('#conversationDetail').html(response);
+            
+            // Mark conversation as active in sidebar
+            $('.conversation-item').removeClass('active');
+            $(`.conversation-item[onclick*="${conversationId}"]`).addClass('active');
+            
+            // Scroll to bottom of messages
+            const messagesContainer = $('#messagesContainer');
+            if (messagesContainer.length) {
+                messagesContainer.scrollTop(messagesContainer[0].scrollHeight);
+            }
+        }
+    });
+}
+
+// Message sending functionality
+function sendMessage() {
+    const input = $('#messageInput');
+    const message = input.val().trim();
+    
+    if (!message) return;
+    
+    // Add message to UI immediately
+    const messageElement = $(`
+        <div class="message-bubble sent">
+            <div class="message-content">${message}</div>
+            <div class="message-time">Just now</div>
+        </div>
+    `);
+    
+    $('#messagesContainer').append(messageElement);
+    input.val('');
+    
+    // Scroll to bottom
+    $('#messagesContainer').scrollTop($('#messagesContainer')[0].scrollHeight);
+    
+    // Send to server
+    $.ajax({
+        url: window.location.pathname,
+        method: 'POST',
+        data: {
+            content: message,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            // Update message ID if needed
+            if (response.message_id) {
+                messageElement.data('message-id', response.message_id);
+            }
+        }
+    });
+}
+
+// Typing indicator
+let typingTimeout;
+function showTypingIndicator() {
+    clearTimeout(typingTimeout);
+    
+    // Show typing indicator
+    const indicator = $('#typingIndicator');
+    if (indicator.length === 0) {
+        const typingElement = $(`
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+                <div class="typing-dot"></div>
+            </div>
+        `);
+        $('#messagesContainer').append(typingElement);
+    }
+    
+    // Hide after 3 seconds of no typing
+    typingTimeout = setTimeout(() => {
+        $('#typingIndicator').remove();
+    }, 3000);
+}
+
+// Real-time updates (using polling for simplicity)
+function pollMessages() {
+    const lastMessageId = $('#messagesContainer .message-bubble:last').data('message-id') || 0;
+    
+    $.ajax({
+        url: `{% url 'api_conversation_messages' 0 %}`.replace('0', $('#conversationId').val()),
+        method: 'GET',
+        data: { last_message_id: lastMessageId },
+        success: function(response) {
+            if (response.messages.length > 0) {
+                response.messages.forEach(message => {
+                    const messageClass = message.sender === '{{ request.user.username }}' ? 'sent' : 'received';
+                    const messageElement = $(`
+                        <div class="message-bubble ${messageClass}" data-message-id="${message.id}">
+                            <div class="message-content">${message.content}</div>
+                            <div class="message-time">${message.sent_at}</div>
+                        </div>
+                    `);
+                    $('#messagesContainer').append(messageElement);
+                });
+                
+                // Scroll to bottom
+                $('#messagesContainer').scrollTop($('#messagesContainer')[0].scrollHeight);
+            }
+        }
+    });
+}
+
+// Poll every 5 seconds
+setInterval(pollMessages, 5000);
 </script>
 {% endblock %}

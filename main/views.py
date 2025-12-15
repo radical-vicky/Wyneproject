@@ -3,11 +3,22 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.http import JsonResponse, HttpResponseForbidden
-from django.db.models import Q, Count, Sum, Avg
+from django.db.models import Q, Count, Sum, Avg, F  # Add F to imports
 from django.core.paginator import Paginator
 from django.utils import timezone
 from datetime import datetime, timedelta
 import json
+# Add these imports at the top
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+# Add these imports at the top if not already there
+from django.views.decorators.http import require_POST, require_http_methods
+import json
+from .models import VideoLike  # Add VideoLike to imports
+
+
+
 
 # Allauth imports
 from allauth.account.decorators import verified_email_required
@@ -149,7 +160,7 @@ def profile_view(request, username=None):
     # Get primary photo with optimized query
     try:
         primary_photo = Photo.objects.filter(
-            profile=profile, 
+            profile=profile,
             is_primary=True
         ).select_related('profile').first()
         
@@ -172,9 +183,12 @@ def profile_view(request, username=None):
     # Get user's videos
     videos = Video.objects.filter(profile=profile).order_by('-uploaded_at')
     
-    # Get user's posts with optimization
-    posts = Post.objects.filter(user=user).select_related('user').prefetch_related('likes').order_by('-created_at')[:10]
-    
+    # Get user's posts with optimization - FIXED: Removed 'likes' from prefetch_related
+    posts = Post.objects.filter(user=user).select_related('user').annotate(
+    likes_count=Count('interactions', filter=Q(interactions__interaction_type='like'))
+).prefetch_related(
+    'comments__user__profile'
+).order_by('-created_at')[:10]
     # Get services as list
     services_list = profile.get_services_list()
     
@@ -200,8 +214,8 @@ def profile_view(request, username=None):
     
     # Try to get booking stats if bookings app exists
     try:
-        booking_stats = Booking.objects.filter(
-            provider=user,
+        booking_stats = ServiceBooking.objects.filter(
+            service_provider=user,
             status__in=['completed', 'confirmed']
         ).aggregate(
             total_bookings=Count('id'),
@@ -209,10 +223,11 @@ def profile_view(request, username=None):
         )
         
         # Update profile booking count if different
-        if profile.total_bookings != booking_stats['total_bookings']:
+        if profile.total_bookings != (booking_stats['total_bookings'] or 0):
             profile.total_bookings = booking_stats['total_bookings'] or 0
+            profile.save()
     except Exception as e:
-        # Bookings app not available, use profile data
+        # Use profile data
         booking_stats = {
             'total_bookings': profile.total_bookings or 0,
             'total_earnings': 0
@@ -220,8 +235,8 @@ def profile_view(request, username=None):
     
     # Try to get call stats if calls app exists
     try:
-        call_stats = Call.objects.filter(
-            callee=user,
+        call_stats = CallLog.objects.filter(
+            receiver=user,
             status='completed'
         ).aggregate(
             total_calls=Count('id'),
@@ -229,26 +244,24 @@ def profile_view(request, username=None):
         )
         
         # Update profile call count if different
-        if profile.total_calls != call_stats['total_calls']:
+        if profile.total_calls != (call_stats['total_calls'] or 0):
             profile.total_calls = call_stats['total_calls'] or 0
+            profile.save()
     except Exception as e:
-        # Calls app not available, use profile data
+        # Use profile data
         call_stats = {
             'total_calls': profile.total_calls or 0,
             'total_duration': 0
         }
     
-    # Update profile with any changes
-    profile.save()
-    
-    # Check online status
-    profile.is_online = profile.last_seen >= timezone.now() - timedelta(minutes=5)
+    # Check online status - FIXED: Use last_active instead of last_seen
+    profile.is_online = profile.last_active >= timezone.now() - timedelta(minutes=5)
+    profile.save()  # Save the online status update
     
     # Get verification status
     verification_status = {
         'is_verified': profile.is_verified,
-        'verification_level': profile.verification_level,
-        'verification_badge': profile.get_verification_badge_display() if hasattr(profile, 'get_verification_badge_display') else 'Unverified',
+        'verification_badge': 'Verified' if profile.is_verified else 'Unverified',
     }
     
     context = {
@@ -267,7 +280,7 @@ def profile_view(request, username=None):
         'call_stats': call_stats,
         'verification_status': verification_status,
         'now': timezone.now(),
-        'debug': True,  # Set to True for debugging, False in production
+        'debug': False,  # Set to False for production
     }
     
     # Add messages if any
@@ -276,6 +289,7 @@ def profile_view(request, username=None):
         context['messages'] = list(messages_list)
     
     return render(request, 'dashboard/profile.html', context)
+
 
 
 def get_user_profile(user):
@@ -495,6 +509,7 @@ def inbox_view(request):
     
     return render(request, 'dashboard/inbox.html', {'conversations': conversations})
 
+
 @login_required
 def conversation_view(request, conversation_id=None, username=None):
     if conversation_id:
@@ -530,8 +545,12 @@ def conversation_view(request, conversation_id=None, username=None):
     ).exclude(sender=request.user).update(is_read=True, read_at=timezone.now())
     
     messages_list = Message.objects.filter(conversation=conversation).order_by('sent_at')
-    form = MessageForm()
     
+    # Get other user info
+    other_user = conversation.participants.exclude(id=request.user.id).first()
+    other_profile = other_user.profile if other_user else None
+    
+    # Handle form submission
     if request.method == 'POST':
         form = MessageForm(request.POST, request.FILES)
         if form.is_valid():
@@ -539,39 +558,80 @@ def conversation_view(request, conversation_id=None, username=None):
             message.conversation = conversation
             message.sender = request.user
             
-            # Determine message type
-            if message.media_file:
-                if 'image' in message.media_file.name.lower():
+            # Determine message type based on file
+            if 'media_file' in request.FILES:
+                media_file = request.FILES['media_file']
+                if media_file.content_type.startswith('image/'):
                     message.message_type = 'image'
-                elif 'video' in message.media_file.name.lower():
+                elif media_file.content_type.startswith('video/'):
                     message.message_type = 'video'
-                elif 'audio' in message.media_file.name.lower():
+                elif media_file.content_type.startswith('audio/'):
                     message.message_type = 'audio'
+                message.media_file = media_file
             
             message.save()
             
+            # Return JSON response for AJAX
             if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
                 return JsonResponse({
                     'success': True,
-                    'message_id': message.id,
-                    'content': message.content,
-                    'sender': message.sender.username,
-                    'sent_at': message.sent_at.strftime('%Y-%m-%d %H:%M:%S'),
+                    'message': {
+                        'id': message.id,
+                        'content': message.content,
+                        'message_type': message.message_type,
+                        'media_url': message.media_file.url if message.media_file else None,
+                        'sent_at': message.sent_at.isoformat(),
+                        'sender': message.sender.username,
+                        'is_read': message.is_read,
+                    }
                 })
             
+            messages.success(request, 'Message sent!')
             return redirect('conversation', conversation_id=conversation.id)
-    
-    other_user = conversation.participants.exclude(id=request.user.id).first()
+        else:
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'success': False,
+                    'errors': form.errors.as_json()
+                }, status=400)
+    else:
+        form = MessageForm()
     
     context = {
         'conversation': conversation,
         'messages': messages_list,
         'form': form,
         'other_user': other_user,
-        'other_profile': other_user.profile if other_user else None,
+        'other_profile': other_profile,
+        'now': timezone.now(),
     }
     
+    # If AJAX request for initial load
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        messages_data = []
+        for msg in messages_list:
+            messages_data.append({
+                'id': msg.id,
+                'content': msg.content,
+                'message_type': msg.message_type,
+                'media_url': msg.media_file.url if msg.media_file else None,
+                'sent_at': msg.sent_at.isoformat(),
+                'sender': msg.sender.username,
+                'is_read': msg.is_read,
+            })
+        
+        return JsonResponse({
+            'conversation_id': conversation.id,
+            'messages': messages_data,
+            'other_user': {
+                'username': other_user.username,
+                'is_online': other_profile.is_online if other_profile else False,
+                'last_active': other_profile.last_active.isoformat() if other_profile else None,
+            }
+        })
+    
     return render(request, 'dashboard/conversation.html', context)
+
 
 @login_required
 def conversation_delete_view(request, conversation_id):
@@ -1591,3 +1651,560 @@ def api_mpesa_deposit(request):
         return JsonResponse({'error': 'Invalid JSON data'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
+    
+
+
+@login_required
+def post_edit_view(request, post_id):
+    """Edit an existing post"""
+    post = get_object_or_404(Post, id=post_id, user=request.user)
+    
+    if request.method == 'POST':
+        form = PostUpdateForm(request.POST, request.FILES, instance=post)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Post updated successfully!')
+            return redirect('post_detail', post_id=post.id)
+    else:
+        form = PostUpdateForm(instance=post)
+    
+    context = {
+        'form': form,
+        'post': post,
+        'title': 'Edit Post',
+    }
+    
+    return render(request, 'dashboard/post_edit.html', context)
+
+
+@login_required
+def api_typing_indicator(request):
+    """Handle typing indicators"""
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        data = json.loads(request.body)
+        conversation_id = data.get('conversation_id')
+        is_typing = data.get('is_typing', False)
+        
+        # Store typing status in cache or database
+        # You can use Django's cache framework here
+        from django.core.cache import cache
+        cache_key = f'typing:{conversation_id}:{request.user.id}'
+        cache.set(cache_key, is_typing, timeout=5)
+        
+        return JsonResponse({'success': True})
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
+@login_required
+def api_get_typing_status(request, conversation_id):
+    """Get typing status for a conversation"""
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    from django.core.cache import cache
+    
+    # Get other participant
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    other_user = conversation.participants.exclude(id=request.user.id).first()
+    
+    cache_key = f'typing:{conversation_id}:{other_user.id}'
+    is_typing = cache.get(cache_key, False)
+    
+    return JsonResponse({
+        'typing': {
+            str(other_user.id): is_typing
+        }
+    })
+
+@login_required
+def api_clear_chat(request, conversation_id):
+    """Clear all messages in a chat"""
+    if request.headers.get('X-Requested-With') != 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    conversation = get_object_or_404(Conversation, id=conversation_id, participants=request.user)
+    
+    # Soft delete messages
+    Message.objects.filter(conversation=conversation).delete()
+    
+    return JsonResponse({'success': True})
+
+
+@login_required
+def video_detail_view(request, video_id):
+    """View individual video details"""
+    video = get_object_or_404(Video, id=video_id)
+    profile = video.profile
+    
+    # Check if user can view this video
+    if request.user != profile.user:
+        # Check if user is blocked
+        if Contact.objects.filter(
+            user=profile.user,
+            contact_user=request.user,
+            is_blocked=True
+        ).exists():
+            messages.error(request, 'You cannot view this video.')
+            return redirect('dashboard')
+        
+        # Increment views
+        video.views += 1
+        video.save()
+    
+    # Check if user has liked the video
+    try:
+        user_has_liked = VideoLike.objects.filter(video=video, user=request.user).exists()
+    except:
+        user_has_liked = False
+    
+    # Get similar videos
+    similar_videos = Video.objects.filter(
+        profile=profile
+    ).exclude(id=video_id).order_by('-uploaded_at')[:4]
+    
+    # Get video comments
+    video_comments = VideoComment.objects.filter(video=video).order_by('-created_at')[:50]
+    
+    context = {
+        'video': video,
+        'profile': profile,
+        'profile_user': profile.user,
+        'similar_videos': similar_videos,
+        'is_owner': request.user == profile.user,
+        'user_has_liked': user_has_liked,
+        'likes_count': video.likes,
+        'comments': video_comments,
+    }
+    
+    return render(request, 'dashboard/video_detail.html', context)
+
+@login_required
+@require_POST
+def video_like_view(request, video_id):
+    """Like or unlike a video"""
+    video = get_object_or_404(Video, id=video_id)
+    
+    try:
+        # Check if user has already liked the video
+        like, created = VideoLike.objects.get_or_create(
+            user=request.user,
+            video=video
+        )
+        
+        if not created:
+            # User already liked the video, so unlike it
+            like.delete()
+            liked = False
+            # Decrement likes count
+            if video.likes > 0:
+                video.likes -= 1
+        else:
+            liked = True
+            # Increment likes count
+            video.likes += 1
+        
+        video.save()
+        
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({
+                'success': True,
+                'liked': liked,
+                'likes_count': video.likes,
+            })
+        
+        messages.success(request, f'Video {"liked" if liked else "unliked"}!')
+        return redirect('video_detail', video_id=video_id)
+        
+    except Exception as e:
+        print(f"Error in video_like_view: {e}")
+        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+            return JsonResponse({'error': 'Failed to process like'}, status=500)
+        messages.error(request, 'Failed to process like')
+        return redirect('video_detail', video_id=video_id)
+
+# Update these imports at the top
+from django.views.decorators.http import require_POST, require_http_methods
+from django.http import HttpResponseForbidden
+
+# Fix the api_video_edit function
+@login_required
+@csrf_exempt
+def api_video_edit(request, video_id):
+    """API endpoint to edit video"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        video = Video.objects.get(id=video_id, profile__user=request.user)
+    except Video.DoesNotExist:
+        return JsonResponse({'error': 'Video not found or permission denied'}, status=404)
+    
+    try:
+        if request.method == 'POST':
+            title = request.POST.get('title', '').strip()
+            description = request.POST.get('description', '').strip()
+            
+            if not title:
+                return JsonResponse({'error': 'Title is required'}, status=400)
+            
+            video.title = title
+            video.description = description
+            
+            if 'thumbnail' in request.FILES:
+                thumbnail = request.FILES['thumbnail']
+                # Validate file type
+                if not thumbnail.content_type.startswith('image/'):
+                    return JsonResponse({'error': 'Only image files are allowed for thumbnails'}, status=400)
+                # Validate file size (10MB limit)
+                if thumbnail.size > 10 * 1024 * 1024:
+                    return JsonResponse({'error': 'Thumbnail image is too large. Max size is 10MB'}, status=400)
+                video.thumbnail = thumbnail
+            
+            video.save()
+            
+            return JsonResponse({
+                'success': True,
+                'message': 'Video updated successfully',
+                'video': {
+                    'id': video.id,
+                    'title': video.title,
+                    'description': video.description,
+                    'thumbnail_url': video.thumbnail.url if video.thumbnail else ''
+                }
+            })
+        else:
+            return JsonResponse({'error': 'Invalid method. Use POST'}, status=405)
+            
+    except Exception as e:
+        print(f"Error in api_video_edit: {e}")
+        return JsonResponse({'error': 'Server error occurred'}, status=500)
+
+# Fix the api_video_delete function
+@login_required
+@csrf_exempt
+@require_POST
+def api_video_delete(request, video_id):
+    """API endpoint to delete video"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        video = Video.objects.get(id=video_id, profile__user=request.user)
+    except Video.DoesNotExist:
+        return JsonResponse({'error': 'Video not found or permission denied'}, status=404)
+    
+    try:
+        video_title = video.title
+        video.delete()
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'Video "{video_title}" deleted successfully'
+        })
+            
+    except Exception as e:
+        print(f"Error in api_video_delete: {e}")
+        return JsonResponse({'error': 'Failed to delete video'}, status=500)
+
+# Fix the api_video_comment function
+@login_required
+@csrf_exempt
+@require_POST
+def api_video_comment(request, video_id):
+    """API endpoint to add comment to video"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        video = Video.objects.get(id=video_id)
+    except Video.DoesNotExist:
+        return JsonResponse({'error': 'Video not found'}, status=404)
+    
+    try:
+        text = request.POST.get('text', '').strip()
+        
+        if not text:
+            return JsonResponse({'error': 'Comment text is required'}, status=400)
+        
+        # Create comment
+        comment = VideoComment.objects.create(
+            video=video,
+            user=request.user,
+            text=text
+        )
+        
+        # Get avatar URL
+        avatar_url = ''
+        try:
+            if request.user.profile.photos.exists():
+                primary_photo = request.user.profile.photos.filter(is_primary=True).first()
+                if not primary_photo:
+                    primary_photo = request.user.profile.photos.first()
+                if primary_photo:
+                    avatar_url = primary_photo.image.url
+        except:
+            pass
+        
+        return JsonResponse({
+            'success': True,
+            'comment': {
+                'id': comment.id,
+                'username': request.user.username,
+                'avatar_url': avatar_url,
+                'text': text,
+                'created_at': comment.created_at.strftime('%Y-%m-%d %H:%M:%S')
+            }
+        })
+            
+    except Exception as e:
+        print(f"Error in api_video_comment: {e}")
+        return JsonResponse({'error': 'Failed to add comment'}, status=500)
+
+# Add this new function for comment deletion
+@login_required
+@csrf_exempt
+@require_POST
+def api_comment_delete(request, comment_id):
+    """API endpoint to delete comment"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        comment = VideoComment.objects.get(id=comment_id)
+    except VideoComment.DoesNotExist:
+        return JsonResponse({'error': 'Comment not found'}, status=404)
+    
+    # Check if user owns the comment or is video owner
+    if not (comment.user == request.user or comment.video.profile.user == request.user):
+        return JsonResponse({'error': 'Permission denied'}, status=403)
+    
+    try:
+        comment.delete()
+        return JsonResponse({
+            'success': True,
+            'message': 'Comment deleted successfully'
+        })
+            
+    except Exception as e:
+        print(f"Error in api_comment_delete: {e}")
+        return JsonResponse({'error': 'Failed to delete comment'}, status=500)
+
+
+
+# views.py - Add these functions
+
+@login_required
+def photo_upload_view(request):
+    """View for uploading and managing photos"""
+    photos = Photo.objects.filter(profile=request.user.profile).order_by('-is_primary', '-uploaded_at')
+    
+    if request.method == 'POST':
+        form = PhotoUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            photo = form.save(commit=False)
+            photo.profile = request.user.profile
+            
+            # If this is set as primary, unset others
+            if photo.is_primary:
+                Photo.objects.filter(profile=request.user.profile).update(is_primary=False)
+            
+            photo.save()
+            messages.success(request, 'Photo uploaded successfully!')
+            return redirect('upload_photo')
+    else:
+        form = PhotoUploadForm()
+    
+    context = {
+        'photos': photos,
+        'form': form,
+    }
+    
+    return render(request, 'dashboard/upload_photo.html', context)
+
+
+@login_required
+@csrf_exempt
+@require_POST
+def api_photo_upload(request):
+    """API endpoint to upload multiple photos"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        images = request.FILES.getlist('images')
+        caption = request.POST.get('caption', '').strip()
+        is_primary = request.POST.get('is_primary') == 'on'
+        
+        if not images:
+            return JsonResponse({'error': 'No images provided'}, status=400)
+        
+        # If setting as primary, unset current primary
+        if is_primary:
+            Photo.objects.filter(profile=request.user.profile).update(is_primary=False)
+        
+        photo_ids = []
+        for image in images:
+            # Validate file type
+            if not image.content_type.startswith('image/'):
+                continue
+            
+            # Validate file size (5MB)
+            if image.size > 5 * 1024 * 1024:
+                continue
+            
+            photo = Photo.objects.create(
+                profile=request.user.profile,
+                image=image,
+                caption=caption,
+                is_primary=is_primary
+            )
+            photo_ids.append(photo.id)
+            
+            # Only first photo can be primary if multiple uploaded
+            if is_primary:
+                is_primary = False
+        
+        return JsonResponse({
+            'success': True,
+            'message': f'{len(photo_ids)} photo(s) uploaded successfully',
+            'photo_ids': photo_ids
+        })
+        
+    except Exception as e:
+        print(f"Error in api_photo_upload: {e}")
+        return JsonResponse({'error': 'Failed to upload photos'}, status=500)
+
+
+@login_required
+@csrf_exempt
+@require_POST
+def api_photo_edit(request):
+    """API endpoint to edit photo"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        photo_id = request.POST.get('photo_id')
+        caption = request.POST.get('caption', '').strip()
+        is_primary = request.POST.get('is_primary') == 'on'
+        
+        if not photo_id:
+            return JsonResponse({'error': 'Photo ID is required'}, status=400)
+        
+        photo = Photo.objects.get(id=photo_id, profile=request.user.profile)
+        
+        # Update photo
+        photo.caption = caption
+        
+        # Handle primary photo change
+        if is_primary and not photo.is_primary:
+            # Unset current primary
+            Photo.objects.filter(profile=request.user.profile).update(is_primary=False)
+            photo.is_primary = True
+        
+        photo.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Photo updated successfully',
+            'photo_id': photo.id,
+            'caption': photo.caption,
+            'is_primary': photo.is_primary
+        })
+        
+    except Photo.DoesNotExist:
+        return JsonResponse({'error': 'Photo not found or permission denied'}, status=404)
+    except Exception as e:
+        print(f"Error in api_photo_edit: {e}")
+        return JsonResponse({'error': 'Failed to update photo'}, status=500)
+
+
+@login_required
+@csrf_exempt
+@require_POST
+def api_photo_delete(request):
+    """API endpoint to delete photo"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        photo_id = request.POST.get('photo_id')
+        
+        if not photo_id:
+            return JsonResponse({'error': 'Photo ID is required'}, status=400)
+        
+        photo = Photo.objects.get(id=photo_id, profile=request.user.profile)
+        
+        # Store info before deletion
+        was_primary = photo.is_primary
+        
+        # Delete the photo
+        photo.delete()
+        
+        # If it was primary, set a new primary (most recent photo)
+        if was_primary:
+            latest_photo = Photo.objects.filter(profile=request.user.profile).first()
+            if latest_photo:
+                latest_photo.is_primary = True
+                latest_photo.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Photo deleted successfully',
+            'was_primary': was_primary
+        })
+        
+    except Photo.DoesNotExist:
+        return JsonResponse({'error': 'Photo not found or permission denied'}, status=404)
+    except Exception as e:
+        print(f"Error in api_photo_delete: {e}")
+        return JsonResponse({'error': 'Failed to delete photo'}, status=500)
+
+
+@login_required
+@csrf_exempt
+@require_POST
+def api_photo_set_primary(request):
+    """API endpoint to set photo as primary"""
+    if not request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+    
+    try:
+        photo_id = request.POST.get('photo_id')
+        
+        if not photo_id:
+            return JsonResponse({'error': 'Photo ID is required'}, status=400)
+        
+        # Unset current primary
+        Photo.objects.filter(profile=request.user.profile).update(is_primary=False)
+        
+        # Set new primary
+        photo = Photo.objects.get(id=photo_id, profile=request.user.profile)
+        photo.is_primary = True
+        photo.save()
+        
+        return JsonResponse({
+            'success': True,
+            'message': 'Primary photo updated successfully',
+            'photo_id': photo.id
+        })
+        
+    except Photo.DoesNotExist:
+        return JsonResponse({'error': 'Photo not found or permission denied'}, status=404)
+    except Exception as e:
+        print(f"Error in api_photo_set_primary: {e}")
+        return JsonResponse({'error': 'Failed to set primary photo'}, status=500)
+    
+
+@login_required
+def clear_conversation(request, conversation_id):
+    try:
+        conversation = Conversation.objects.get(id=conversation_id, users=request.user)
+        # Clear all messages in the conversation
+        conversation.messages.all().delete()
+        return JsonResponse({'success': True})
+    except Conversation.DoesNotExist:
+        return JsonResponse({'success': False, 'error': 'Conversation not found'}, status=404)

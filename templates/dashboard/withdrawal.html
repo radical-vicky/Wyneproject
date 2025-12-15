@@ -1,9 +1,1263 @@
-<!-- main/templates/dashboard/withdrawal.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Withdraw Funds - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Withdrawal specific styles */
+.withdrawal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.withdrawal-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.withdrawal-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+}
+
+.withdrawal-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.withdrawal-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Withdrawal methods */
+.withdrawal-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.withdrawal-method {
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.withdrawal-method:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.withdrawal-method.selected {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    box-shadow: 0 0 0 2px rgba(0,168,89,0.2);
+}
+
+.withdrawal-method.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 25px;
+    height: 25px;
+    background: var(--coop-green);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.withdrawal-icon {
+    font-size: 2.5rem;
+    color: var(--coop-green);
+    margin-bottom: 15px;
+}
+
+.withdrawal-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.withdrawal-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.withdrawal-fee {
+    font-size: 0.8rem;
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+.withdrawal-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+/* Amount selection */
+.amount-selection {
+    margin-bottom: 30px;
+}
+
+.amount-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.amount-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.amount-option {
+    padding: 15px 10px;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.amount-option:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--coop-green);
+}
+
+.amount-option.selected {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+.amount-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.amount-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.custom-amount {
+    margin-top: 15px;
+}
+
+.custom-amount .input-group {
+    max-width: 300px;
+}
+
+/* Wallet info */
+.wallet-info {
+    background: linear-gradient(135deg, rgba(0,168,89,0.1), rgba(0,102,179,0.1));
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0,168,89,0.3);
+}
+
+.wallet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.wallet-title {
+    font-weight: 600;
+    color: var(--coop-green);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wallet-balance {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin: 10px 0;
+}
+
+.wallet-label {
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Withdrawal limits */
+.limits-card {
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 25px;
+}
+
+.limits-title {
+    color: var(--warning);
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.limits-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.limit-item {
+    padding: 15px;
+    background: rgba(255,255,255,0.05);
+    border-radius: var(--radius);
+}
+
+.limit-label {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-bottom: 5px;
+}
+
+.limit-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--warning);
+}
+
+/* Form styling */
+.form-section {
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--coop-green);
+}
+
+/* Progress indicator */
+.withdrawal-progress {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.withdrawal-progress:before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.progress-step.active .step-dot {
+    background: var(--coop-green);
+    color: white;
+}
+
+.progress-step.completed .step-dot {
+    background: var(--success);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.progress-step.active .step-label {
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+.progress-step.completed .step-label {
+    color: var(--success);
+}
+
+/* Fee breakdown */
+.fee-breakdown {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+}
+
+.fee-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.fee-label {
+    color: var(--text-secondary);
+}
+
+.fee-value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.fee-total {
+    font-weight: 700;
+    color: var(--coop-green);
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 2px solid var(--border-color);
+}
+
+/* Withdrawal details */
+.withdrawal-details {
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.details-title {
+    color: var(--info);
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.details-list {
+    color: var(--text-secondary);
+    padding-left: 20px;
+}
+
+.details-list li {
+    margin-bottom: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .withdrawal-card {
+        padding: 20px;
+    }
+    
+    .withdrawal-methods {
+        grid-template-columns: 1fr;
+    }
+    
+    .amount-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .withdrawal-progress {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .withdrawal-progress:before {
+        display: none;
+    }
+    
+    .progress-step {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .step-dot {
+        margin-bottom: 0;
+    }
+    
+    .limits-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Quick withdrawal amounts */
+.quick-withdrawal {
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.quick-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+}
+
+/* Status indicators */
+.status-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 600;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+}
+
+.status-processing {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+}
+
+.status-completed {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.status-failed {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+}
+
+/* Recent withdrawals */
+.recent-withdrawals {
+    margin-top: 40px;
+}
+
+.recent-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.recent-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.recent-table th {
+    background: var(--darker-bg);
+    padding: 12px 15px;
+    text-align: left;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-bottom: 2px solid var(--border-color);
+}
+
+.recent-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.recent-table tr:hover {
+    background: rgba(255,255,255,0.02);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: withdrawal.html</h1>
-    <p>Content coming soon...</p>
+<div class="withdrawal-header">
+    <div>
+        <h1 class="card-title">Withdraw Funds</h1>
+        <p class="card-subtitle">Transfer money from your CoopConnect wallet to your account</p>
+    </div>
+    <a href="{% url 'wallet' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Wallet
+    </a>
 </div>
+
+<div class="withdrawal-container">
+    <!-- Wallet Information -->
+    <div class="wallet-info">
+        <div class="wallet-header">
+            <div class="wallet-title">
+                <i class="fas fa-wallet"></i>
+                Available Balance
+            </div>
+            <div class="wallet-balance">
+                KES {{ wallet.balance|default:"0.00" }}
+            </div>
+        </div>
+        <div class="wallet-label">This amount is available for withdrawal</div>
+    </div>
+
+    <!-- Withdrawal Limits -->
+    <div class="limits-card">
+        <div class="limits-title">
+            <i class="fas fa-chart-line"></i>
+            Withdrawal Limits & Fees
+        </div>
+        <div class="limits-grid">
+            <div class="limit-item">
+                <div class="limit-label">Minimum Withdrawal</div>
+                <div class="limit-value">KES 500</div>
+            </div>
+            <div class="limit-item">
+                <div class="limit-label">Maximum Per Day</div>
+                <div class="limit-value">KES 50,000</div>
+            </div>
+            <div class="limit-item">
+                <div class="limit-label">Processing Fee</div>
+                <div class="limit-value">1% (min KES 20)</div>
+            </div>
+            <div class="limit-item">
+                <div class="limit-label">Processing Time</div>
+                <div class="limit-value">1-24 hours</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="withdrawal-progress">
+        <div class="progress-step active" id="step1">
+            <div class="step-dot">1</div>
+            <div class="step-label">Method</div>
+        </div>
+        
+        <div class="progress-step" id="step2">
+            <div class="step-dot">2</div>
+            <div class="step-label">Amount</div>
+        </div>
+        
+        <div class="progress-step" id="step3">
+            <div class="step-dot">3</div>
+            <div class="step-label">Details</div>
+        </div>
+        
+        <div class="progress-step" id="step4">
+            <div class="step-dot">4</div>
+            <div class="step-label">Confirm</div>
+        </div>
+    </div>
+
+    <!-- Withdrawal Card -->
+    <div class="withdrawal-card">
+        <div class="withdrawal-title">
+            <i class="fas fa-money-check-alt"></i>
+            Request Withdrawal
+        </div>
+        
+        <div class="withdrawal-subtitle">
+            Choose your preferred withdrawal method and amount. Withdrawals are processed within 1-24 hours during business days.
+        </div>
+
+        <!-- Withdrawal Methods -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-university"></i>
+                Select Withdrawal Method
+            </div>
+            
+            <div class="withdrawal-methods">
+                <div class="withdrawal-method selected" data-method="mpesa">
+                    <div class="withdrawal-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="withdrawal-name">M-Pesa</div>
+                    <div class="withdrawal-description">Instant to mobile money</div>
+                    <div class="withdrawal-fee">1% fee</div>
+                    <div class="withdrawal-time">1-2 hours</div>
+                </div>
+                
+                <div class="withdrawal-method" data-method="bank">
+                    <div class="withdrawal-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="withdrawal-name">Bank Transfer</div>
+                    <div class="withdrawal-description">Direct to bank account</div>
+                    <div class="withdrawal-fee">1.5% fee</div>
+                    <div class="withdrawal-time">1-24 hours</div>
+                </div>
+                
+                <div class="withdrawal-method" data-method="airtel">
+                    <div class="withdrawal-icon">
+                        <i class="fas fa-sim-card"></i>
+                    </div>
+                    <div class="withdrawal-name">Airtel Money</div>
+                    <div class="withdrawal-description">Instant to Airtel Money</div>
+                    <div class="withdrawal-fee">1% fee</div>
+                    <div class="withdrawal-time">1-2 hours</div>
+                </div>
+                
+                <div class="withdrawal-method" data-method="paypal">
+                    <div class="withdrawal-icon">
+                        <i class="fab fa-paypal"></i>
+                    </div>
+                    <div class="withdrawal-name">PayPal</div>
+                    <div class="withdrawal-description">International transfers</div>
+                    <div class="withdrawal-fee">3% fee</div>
+                    <div class="withdrawal-time">2-5 days</div>
+                </div>
+            </div>
+            
+            <input type="hidden" name="withdrawal_method" id="withdrawalMethod" value="mpesa">
+        </div>
+
+        <!-- Amount Selection -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-money-bill-wave"></i>
+                Select Amount
+            </div>
+            
+            <div class="amount-selection">
+                <div class="amount-title">Quick Select</div>
+                
+                <div class="amount-options">
+                    <div class="amount-option" data-amount="500">
+                        <div class="amount-value">KES 500</div>
+                        <div class="amount-label">Minimum</div>
+                    </div>
+                    
+                    <div class="amount-option selected" data-amount="1000">
+                        <div class="amount-value">KES 1,000</div>
+                        <div class="amount-label">Basic</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="5000">
+                        <div class="amount-value">KES 5,000</div>
+                        <div class="amount-label">Standard</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="10000">
+                        <div class="amount-value">KES 10,000</div>
+                        <div class="amount-label">Premium</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="20000">
+                        <div class="amount-value">KES 20,000</div>
+                        <div class="amount-label">Large</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="50000">
+                        <div class="amount-value">KES 50,000</div>
+                        <div class="amount-label">Maximum</div>
+                    </div>
+                </div>
+                
+                <div class="custom-amount">
+                    <div class="amount-title">Custom Amount</div>
+                    <div class="input-group" style="max-width: 300px;">
+                        <span class="input-group-text" style="background: var(--darker-bg); color: var(--text-primary); border: 1px solid var(--border-color);">KES</span>
+                        <input type="number" class="form-control" id="customAmount" placeholder="Enter amount" min="500" max="50000" step="100" value="1000">
+                    </div>
+                    <div class="text-sm text-secondary mt-1">Minimum: KES 500 | Maximum: KES 50,000</div>
+                </div>
+                
+                <input type="hidden" name="withdrawal_amount" id="withdrawalAmount" value="1000">
+            </div>
+        </div>
+
+        <!-- Fee Breakdown -->
+        <div class="fee-breakdown">
+            <div class="section-title">
+                <i class="fas fa-percentage"></i>
+                Fee Breakdown
+            </div>
+            
+            <div class="fee-row">
+                <div class="fee-label">Withdrawal Amount:</div>
+                <div class="fee-value" id="breakdownAmount">KES 1,000</div>
+            </div>
+            
+            <div class="fee-row">
+                <div class="fee-label">Processing Fee (1%):</div>
+                <div class="fee-value" id="breakdownFee">KES 10</div>
+            </div>
+            
+            <div class="fee-row">
+                <div class="fee-label">You Will Receive:</div>
+                <div class="fee-value fee-total" id="breakdownNet">KES 990</div>
+            </div>
+        </div>
+
+        <!-- Withdrawal Details (Changes based on method) -->
+        <div class="form-section" id="withdrawalDetails">
+            <!-- M-Pesa Details -->
+            <div class="payment-method-details" id="mpesaDetails">
+                <div class="section-title">
+                    <i class="fas fa-mobile-alt"></i>
+                    M-Pesa Details
+                </div>
+                
+                <form method="POST" id="mpesaForm" action="{% url 'withdrawal' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdrawal_method" value="mpesa">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">M-Pesa Phone Number</label>
+                        <input type="tel" class="form-control" name="phone_number" id="mpesaPhone" placeholder="07XXXXXXXX" required value="{{ user.profile.phone_number|default:'' }}">
+                        <div class="text-sm text-secondary mt-1">Enter the phone number registered with M-Pesa</div>
+                    </div>
+                    
+                    <div class="withdrawal-details">
+                        <div class="details-title">
+                            <i class="fas fa-info-circle"></i>
+                            M-Pesa Withdrawal Information
+                        </div>
+                        <ul class="details-list">
+                            <li>Withdrawals to M-Pesa are processed within 1-2 hours</li>
+                            <li>Ensure your M-Pesa number is registered and active</li>
+                            <li>You will receive an SMS confirmation when processed</li>
+                            <li>Maximum daily limit: KES 70,000 (M-Pesa limit)</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary flex-1 btn-lg" id="mpesaSubmit">
+                            <i class="fas fa-money-check-alt"></i> Request Withdrawal
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Bank Details (Hidden by default) -->
+            <div class="payment-method-details" id="bankDetails" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-university"></i>
+                    Bank Transfer Details
+                </div>
+                
+                <form method="POST" id="bankForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdrawal_method" value="bank">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Bank Name</label>
+                                <select class="form-control" name="bank_name" required>
+                                    <option value="">Select Bank</option>
+                                    <option value="equity">Equity Bank</option>
+                                    <option value="kcb">KCB Bank</option>
+                                    <option value="cooperative">Co-operative Bank</option>
+                                    <option value="barclays">Absa Bank</option>
+                                    <option value="stanchart">Standard Chartered</option>
+                                    <option value="dtb">DTB Bank</option>
+                                    <option value="ncba">NCBA Bank</option>
+                                    <option value="other">Other Bank</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Account Name</label>
+                                <input type="text" class="form-control" name="account_name" placeholder="Your name as it appears on bank account" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Account Number</label>
+                                <input type="text" class="form-control" name="account_number" placeholder="Bank account number" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Branch Name</label>
+                                <input type="text" class="form-control" name="branch_name" placeholder="Bank branch name" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="withdrawal-details">
+                        <div class="details-title">
+                            <i class="fas fa-info-circle"></i>
+                            Bank Transfer Information
+                        </div>
+                        <ul class="details-list">
+                            <li>Bank transfers are processed within 1-24 hours</li>
+                            <li>Processing times: Mon-Fri, 9 AM - 5 PM EAT</li>
+                            <li>Ensure all bank details are accurate</li>
+                            <li>You will receive email confirmation when processed</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-money-check-alt"></i> Request Bank Transfer
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Airtel Money Details (Hidden by default) -->
+            <div class="payment-method-details" id="airtelDetails" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-sim-card"></i>
+                    Airtel Money Details
+                </div>
+                
+                <form method="POST" id="airtelForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdrawal_method" value="airtel">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Airtel Money Number</label>
+                        <input type="tel" class="form-control" name="phone_number" placeholder="07XXXXXXXX" required>
+                        <div class="text-sm text-secondary mt-1">Enter your Airtel Money registered number</div>
+                    </div>
+                    
+                    <div class="withdrawal-details">
+                        <div class="details-title">
+                            <i class="fas fa-info-circle"></i>
+                            Airtel Money Information
+                        </div>
+                        <ul class="details-list">
+                            <li>Withdrawals to Airtel Money are processed within 1-2 hours</li>
+                            <li>Ensure your Airtel Money account is active</li>
+                            <li>You will receive an SMS confirmation when processed</li>
+                            <li>Maximum daily limit: KES 50,000</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-money-check-alt"></i> Request Airtel Money
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- PayPal Details (Hidden by default) -->
+            <div class="payment-method-details" id="paypalDetails" style="display: none;">
+                <div class="section-title">
+                    <i class="fab fa-paypal"></i>
+                    PayPal Details
+                </div>
+                
+                <form method="POST" id="paypalForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="withdrawal_method" value="paypal">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">PayPal Email Address</label>
+                        <input type="email" class="form-control" name="paypal_email" placeholder="yourname@example.com" required>
+                        <div class="text-sm text-secondary mt-1">Enter the email address registered with your PayPal account</div>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <strong>Important:</strong> PayPal withdrawals are processed in USD. 
+                        The exchange rate will be applied at the time of processing.
+                    </div>
+                    
+                    <div class="withdrawal-details">
+                        <div class="details-title">
+                            <i class="fas fa-info-circle"></i>
+                            PayPal Withdrawal Information
+                        </div>
+                        <ul class="details-list">
+                            <li>PayPal withdrawals take 2-5 business days</li>
+                            <li>Processing fee: 3% of withdrawal amount</li>
+                            <li>Exchange rate: Current market rate at processing time</li>
+                            <li>Minimum withdrawal: KES 1,000 (~$10)</li>
+                            <li>Maximum withdrawal: KES 100,000 (~$1,000) per day</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-money-check-alt"></i> Request PayPal Transfer
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Withdrawal for Returning Users -->
+        <div class="quick-withdrawal">
+            <div class="quick-title">Quick Withdrawal (Last Used Method)</div>
+            <div class="d-flex gap-3 flex-wrap">
+                <button class="btn btn-outline-secondary" onclick="quickWithdraw(1000)">
+                    <i class="fas fa-bolt"></i> KES 1,000 to M-Pesa
+                </button>
+                <button class="btn btn-outline-secondary" onclick="quickWithdraw(5000)">
+                    <i class="fas fa-bolt"></i> KES 5,000 to M-Pesa
+                </button>
+                <button class="btn btn-outline-secondary" onclick="quickWithdraw(10000)">
+                    <i class="fas fa-bolt"></i> KES 10,000 to M-Pesa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Withdrawals -->
+    {% if recent_withdrawals %}
+    <div class="recent-withdrawals">
+        <div class="recent-title">
+            <i class="fas fa-history"></i>
+            Recent Withdrawals
+        </div>
+        
+        <div class="table-responsive">
+            <table class="recent-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Method</th>
+                        <th>Status</th>
+                        <th>Reference</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for withdrawal in recent_withdrawals|slice:":5" %}
+                    <tr>
+                        <td>{{ withdrawal.created_at|date:"M d, Y" }}</td>
+                        <td>KES {{ withdrawal.amount }}</td>
+                        <td>{{ withdrawal.get_payment_method_display }}</td>
+                        <td>
+                            <span class="status-indicator status-{{ withdrawal.status }}">
+                                {% if withdrawal.status == 'pending' %}
+                                    <i class="fas fa-clock"></i>
+                                {% elif withdrawal.status == 'processing' %}
+                                    <i class="fas fa-sync-alt fa-spin"></i>
+                                {% elif withdrawal.status == 'completed' %}
+                                    <i class="fas fa-check-circle"></i>
+                                {% elif withdrawal.status == 'failed' %}
+                                    <i class="fas fa-times-circle"></i>
+                                {% endif %}
+                                {{ withdrawal.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <code>{{ withdrawal.reference|default:"-" }}</code>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="{% url 'wallet' %}" class="btn btn-sm btn-secondary">
+                <i class="fas fa-wallet"></i> View All Transactions
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Security Notice -->
+    <div class="text-center mt-4">
+        <p class="text-secondary text-sm">
+            <i class="fas fa-shield-alt"></i>
+            Withdrawals are securely processed. You will receive confirmation via email/SMS.
+        </p>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Initialize progress steps
+    updateProgressSteps('method');
+    
+    // Withdrawal method selection
+    $('.withdrawal-method').click(function() {
+        $('.withdrawal-method').removeClass('selected');
+        $(this).addClass('selected');
+        
+        const method = $(this).data('method');
+        $('#withdrawalMethod').val(method);
+        
+        // Show corresponding withdrawal details
+        $('.payment-method-details').hide();
+        $(`#${method}Details`).show();
+        
+        // Update progress
+        updateProgressSteps('amount');
+        
+        // Update fee breakdown based on method
+        updateFeeBreakdown();
+    });
+    
+    // Amount selection
+    $('.amount-option').click(function() {
+        $('.amount-option').removeClass('selected');
+        $(this).addClass('selected');
+        
+        const amount = $(this).data('amount');
+        $('#withdrawalAmount').val(amount);
+        $('#customAmount').val(amount);
+        
+        // Update progress
+        updateProgressSteps('details');
+        
+        // Update fee breakdown
+        updateFeeBreakdown();
+    });
+    
+    // Custom amount input
+    $('#customAmount').on('input', function() {
+        const amount = parseInt($(this).val()) || 0;
+        if (amount >= 500 && amount <= 50000) {
+            $('#withdrawalAmount').val(amount);
+            $('.amount-option').removeClass('selected');
+            
+            // Update progress
+            updateProgressSteps('details');
+            
+            // Update fee breakdown
+            updateFeeBreakdown();
+        }
+    });
+    
+    // Update fee breakdown
+    function updateFeeBreakdown() {
+        const amount = parseInt($('#withdrawalAmount').val()) || 1000;
+        const method = $('#withdrawalMethod').val();
+        
+        // Calculate fee based on method
+        let feePercentage = 0.01; // 1% default for M-Pesa
+        if (method === 'bank') feePercentage = 0.015; // 1.5%
+        if (method === 'airtel') feePercentage = 0.01; // 1%
+        if (method === 'paypal') feePercentage = 0.03; // 3%
+        
+        let fee = amount * feePercentage;
+        fee = Math.max(fee, 20); // Minimum fee of KES 20
+        
+        const netAmount = amount - fee;
+        
+        // Update display
+        $('#breakdownAmount').text(`KES ${amount.toLocaleString()}`);
+        $('#breakdownFee').text(`KES ${fee.toLocaleString()}`);
+        $('#breakdownNet').text(`KES ${netAmount.toLocaleString()}`);
+    }
+    
+    // Form submission handling
+    $('form').submit(function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        // Validate amount
+        const amount = parseInt($('#withdrawalAmount').val());
+        const walletBalance = parseFloat('{{ wallet.balance|default:"0" }}');
+        
+        if (amount < 500) {
+            alert('Minimum withdrawal amount is KES 500');
+            return;
+        }
+        
+        if (amount > 50000) {
+            alert('Maximum withdrawal amount is KES 50,000');
+            return;
+        }
+        
+        if (amount > walletBalance) {
+            alert('Insufficient balance. Available: KES ' + walletBalance.toLocaleString());
+            return;
+        }
+        
+        // Get method details
+        const method = $('#withdrawalMethod').val();
+        const methodName = $(`.withdrawal-method[data-method="${method}"] .withdrawal-name`).text();
+        
+        // Calculate fee
+        let feePercentage = 0.01;
+        if (method === 'bank') feePercentage = 0.015;
+        if (method === 'paypal') feePercentage = 0.03;
+        
+        let fee = amount * feePercentage;
+        fee = Math.max(fee, 20);
+        const netAmount = amount - fee;
+        
+        // Show confirmation modal
+        showModal(`
+            <div class="text-center p-4">
+                <div class="mb-4">
+                    <i class="fas fa-money-check-alt fa-3x text-primary"></i>
+                    <h3 class="mt-3">Confirm Withdrawal</h3>
+                </div>
+                
+                <div class="confirmation-details" style="text-align: left; max-width: 400px; margin: 0 auto;">
+                    <div class="detail-row mb-3">
+                        <div class="text-secondary mb-1">Amount to Withdraw:</div>
+                        <div class="text-primary font-weight-bold" style="font-size: 1.5rem;">KES ${amount.toLocaleString()}</div>
+                    </div>
+                    
+                    <div class="detail-row mb-3">
+                        <div class="text-secondary mb-1">Withdrawal Method:</div>
+                        <div class="text-primary font-weight-bold">${methodName}</div>
+                    </div>
+                    
+                    <div class="detail-row mb-3">
+                        <div class="text-secondary mb-1">Processing Fee:</div>
+                        <div class="text-warning font-weight-bold">KES ${fee.toLocaleString()}</div>
+                    </div>
+                    
+                    <div class="detail-row mb-4">
+                        <div class="text-secondary mb-1">You Will Receive:</div>
+                        <div class="text-success font-weight-bold" style="font-size: 1.3rem;">KES ${netAmount.toLocaleString()}</div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-4">
+                        <i class="fas fa-info-circle"></i>
+                        Processing time: ${method === 'mpesa' || method === 'airtel' ? '1-2 hours' : method === 'bank' ? '1-24 hours' : '2-5 days'}
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-3">
+                    <button class="btn btn-primary flex-1" onclick="confirmWithdrawal(${amount}, '${method}')">
+                        <i class="fas fa-check-circle"></i> Confirm & Submit
+                    </button>
+                    <button class="btn btn-secondary flex-1" onclick="hideModal()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+        `);
+    });
+    
+    // Quick withdrawal function
+    window.quickWithdraw = function(amount) {
+        $('#withdrawalAmount').val(amount);
+        $('.amount-option').removeClass('selected');
+        $(`.amount-option[data-amount="${amount}"]`).addClass('selected');
+        $('#customAmount').val(amount);
+        
+        // Show M-Pesa form
+        $('.payment-method-details').hide();
+        $('#mpesaDetails').show();
+        $('.withdrawal-method').removeClass('selected');
+        $('.withdrawal-method[data-method="mpesa"]').addClass('selected');
+        $('#withdrawalMethod').val('mpesa');
+        
+        // Update fee breakdown
+        updateFeeBreakdown();
+        
+        // Submit the form
+        $('#mpesaForm').submit();
+    };
+    
+    // Confirm withdrawal
+    window.confirmWithdrawal = function(amount, method) {
+        // Close confirmation modal
+        hideModal();
+        
+        // Show processing
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-spinner fa-spin fa-3x text-info mb-3"></i>
+                <h3>Processing Withdrawal</h3>
+                <p>Submitting your withdrawal request for KES ${amount.toLocaleString()}...</p>
+                <div class="progress mt-4" style="height: 10px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                </div>
+            </div>
+        `);
+        
+        // Find the correct form and submit
+        setTimeout(function() {
+            $(`#${method}Form`)[0].submit();
+        }, 1500);
+    };
+    
+    // Update progress steps
+    function updateProgressSteps(activeStep) {
+        // Reset all steps
+        $('.progress-step').removeClass('active completed');
+        
+        if (activeStep === 'method') {
+            $('#step1').addClass('active');
+        } else if (activeStep === 'amount') {
+            $('#step1').addClass('completed');
+            $('#step2').addClass('active');
+        } else if (activeStep === 'details') {
+            $('#step1, #step2').addClass('completed');
+            $('#step3').addClass('active');
+        } else if (activeStep === 'confirm') {
+            $('#step1, #step2, #step3').addClass('completed');
+            $('#step4').addClass('active');
+        }
+    }
+    
+    // Initialize fee breakdown
+    updateFeeBreakdown();
+});
+</script>
 {% endblock %}

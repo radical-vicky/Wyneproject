@@ -1,9 +1,1664 @@
-<!-- main/templates/dashboard/booking_detail.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Booking Details - {{ booking.profile.user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Booking Detail Specific Styles */
+.booking-header {
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.1), rgba(0, 102, 179, 0.1));
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0, 168, 89, 0.2);
+}
+
+.booking-timeline {
+    position: relative;
+    padding: 40px 0;
+    margin: 30px 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 25px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    border: 3px solid var(--dark-bg);
+    z-index: 2;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 12px;
+    width: 2px;
+    height: calc(100% + 13px);
+    background: var(--coop-green);
+    opacity: 0.3;
+}
+
+.timeline-item:last-child::after {
+    display: none;
+}
+
+.timeline-content {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.timeline-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+.booking-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-confirmed {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.status-completed {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+}
+
+.status-cancelled {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+}
+
+.status-in-progress {
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.2), rgba(0, 102, 179, 0.2));
+    color: var(--coop-green);
+    border: 1px solid rgba(0, 168, 89, 0.3);
+}
+
+.participant-section {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.participant-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.participant-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.participant-card:hover {
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.participant-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 10px;
+    border: 2px solid var(--coop-green);
+}
+
+.participant-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.participant-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.participant-role {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.participant-status {
+    font-size: 0.7rem;
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-top: 5px;
+    display: inline-block;
+}
+
+.status-confirmed {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.status-pending {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+}
+
+.status-declined {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+}
+
+.booking-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.reminder-card {
+    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1), rgba(255, 193, 7, 0.05));
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.reminder-card.warning {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+    border-color: rgba(244, 67, 54, 0.2);
+}
+
+.reminder-card.success {
+    background: linear-gradient(135deg, rgba(76, 175, 80, 0.1), rgba(76, 175, 80, 0.05));
+    border-color: rgba(76, 175, 80, 0.2);
+}
+
+.countdown-timer {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--coop-green);
+    font-family: 'Poppins', monospace;
+    text-align: center;
+    margin: 20px 0;
+}
+
+.timer-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    text-align: center;
+}
+
+.location-card {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.location-map {
+    height: 200px;
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin: 15px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+}
+
+.equipment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.equipment-item {
+    padding: 8px 15px;
+    background: rgba(0, 168, 89, 0.1);
+    border: 1px solid rgba(0, 168, 89, 0.2);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--coop-green);
+}
+
+.payment-summary {
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.05), rgba(0, 102, 179, 0.05));
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid rgba(0, 168, 89, 0.2);
+}
+
+.payment-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.payment-item:last-child {
+    border-bottom: none;
+}
+
+.payment-total {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--coop-green);
+}
+
+.reviews-section {
+    margin: 30px 0;
+}
+
+.review-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 15px 0;
+    border: 1px solid var(--border-color);
+}
+
+.review-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.review-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.review-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.review-info {
+    flex: 1;
+}
+
+.review-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.review-rating {
+    color: #ffc107;
+    font-size: 0.9rem;
+}
+
+.review-time {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.review-content {
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+.attachment-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.attachment-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.attachment-item:hover {
+    background: rgba(0, 168, 89, 0.1);
+    border-color: var(--coop-green);
+}
+
+.attachment-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: var(--coop-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+}
+
+.attachment-info {
+    flex: 1;
+}
+
+.attachment-name {
+    font-weight: 500;
+    font-size: 0.9rem;
+    margin-bottom: 3px;
+}
+
+.attachment-size {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+}
+
+.chat-preview {
+    max-height: 300px;
+    overflow-y: auto;
+    margin: 20px 0;
+    padding-right: 10px;
+}
+
+.chat-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: var(--radius);
+    background: var(--darker-bg);
+}
+
+.message-sender {
+    font-weight: 600;
+    color: var(--coop-green);
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.message-content {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 5px;
+}
+
+.progress-bar {
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    overflow: hidden;
+    margin: 10px 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: var(--coop-green);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .booking-header {
+        padding: 20px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .participant-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .equipment-list {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .chat-preview {
+        max-height: 200px;
+    }
+}
+
+@media (max-width: 576px) {
+    .participant-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .participant-card {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 15px;
+    }
+    
+    .participant-avatar {
+        margin: 0;
+        width: 50px;
+        height: 50px;
+    }
+    
+    .booking-actions {
+        flex-direction: column;
+    }
+    
+    .countdown-timer {
+        font-size: 1.5rem;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: booking_detail.html</h1>
-    <p>Content coming soon...</p>
+<div class="fade-in">
+    <!-- Booking Header -->
+    <div class="booking-header">
+        <div class="row align-center">
+            <div class="col-md-8">
+                <h1 class="mb-1">Booking Details</h1>
+                <p class="text-secondary">Service with <strong>{{ booking.profile.user.username }}</strong></p>
+                
+                <div class="mt-3 d-flex align-center gap-3 flex-wrap">
+                    <div class="booking-status-badge status-{{ booking.status|lower }}">
+                        <i class="fas 
+                            {% if booking.status == 'pending' %}fa-clock
+                            {% elif booking.status == 'confirmed' %}fa-check-circle
+                            {% elif booking.status == 'completed' %}fa-check-double
+                            {% elif booking.status == 'cancelled' %}fa-times-circle
+                            {% else %}fa-sync-alt{% endif %}"></i>
+                        <span>{{ booking.get_status_display }}</span>
+                    </div>
+                    
+                    <div class="text-primary">
+                        <i class="fas fa-calendar"></i> {{ booking.scheduled_date|date:"F j, Y" }}
+                    </div>
+                    
+                    <div class="text-secondary">
+                        <i class="fas fa-clock"></i> {{ booking.scheduled_time|date:"g:i A" }}
+                    </div>
+                    
+                    {% if booking.duration %}
+                    <div class="text-muted">
+                        <i class="fas fa-hourglass-half"></i> {{ booking.duration }} minutes
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="booking-actions">
+                    {% if booking.status == 'pending' %}
+                    <button class="btn btn-primary" onclick="confirmBooking()">
+                        <i class="fas fa-check"></i> Confirm Booking
+                    </button>
+                    <button class="btn btn-danger" onclick="cancelBooking()">
+                        <i class="fas fa-times"></i> Decline
+                    </button>
+                    {% elif booking.status == 'confirmed' %}
+                    <button class="btn btn-primary" onclick="startBooking()">
+                        <i class="fas fa-play"></i> Start Now
+                    </button>
+                    <button class="btn btn-secondary" onclick="rescheduleBooking()">
+                        <i class="fas fa-calendar-alt"></i> Reschedule
+                    </button>
+                    {% elif booking.status == 'completed' %}
+                    <button class="btn btn-primary" onclick="addReview()">
+                        <i class="fas fa-star"></i> Add Review
+                    </button>
+                    <button class="btn btn-secondary" onclick="bookAgain()">
+                        <i class="fas fa-redo"></i> Book Again
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'profile' booking.profile.id %}" class="btn btn-secondary">
+                        <i class="fas fa-user"></i> View Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Countdown Timer (for upcoming bookings) -->
+    {% if booking.status == 'confirmed' and booking.is_upcoming %}
+    <div class="reminder-card">
+        <div class="text-center">
+            <h3 class="mb-2"><i class="fas fa-bell"></i> Upcoming Booking</h3>
+            <p class="text-secondary mb-2">Starts in:</p>
+            <div class="countdown-timer" id="countdownTimer">
+                <!-- Countdown will be filled by JavaScript -->
+            </div>
+            <p class="timer-label">on {{ booking.scheduled_date|date:"F j, Y" }} at {{ booking.scheduled_time|date:"g:i A" }}</p>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Left Column: Booking Details -->
+        <div class="col-md-8">
+            <!-- Booking Information -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Booking Information</h2>
+                    <p class="card-subtitle">Reference: #{{ booking.booking_id }}</p>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Service Type</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas 
+                                    {% if booking.service_type == 'call' %}fa-phone
+                                    {% elif booking.service_type == 'video' %}fa-video
+                                    {% elif booking.service_type == 'meeting' %}fa-handshake
+                                    {% else %}fa-calendar{% endif %} text-primary mr-2"></i>
+                                {{ booking.get_service_type_display }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Scheduled For</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-calendar-alt text-primary mr-2"></i>
+                                {{ booking.scheduled_date|date:"l, F j, Y" }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Time Slot</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                {{ booking.scheduled_time|date:"g:i A" }} - 
+                                {{ booking.end_time|date:"g:i A"|default:"TBD" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Created On</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-calendar-plus text-primary mr-2"></i>
+                                {{ booking.created_at|date:"F j, Y g:i A" }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Last Updated</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-sync-alt text-primary mr-2"></i>
+                                {{ booking.updated_at|date:"F j, Y g:i A" }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Timezone</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-globe text-primary mr-2"></i>
+                                {{ booking.timezone|default:"UTC+3 (EAT)" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if booking.description %}
+                <div class="form-group mt-3">
+                    <label class="form-label">Description</label>
+                    <div class="form-control" style="background: transparent; border: none; min-height: auto; padding-left: 0;">
+                        {{ booking.description|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if booking.notes %}
+                <div class="form-group mt-3">
+                    <label class="form-label">Additional Notes</label>
+                    <div class="form-control" style="background: transparent; border: none; min-height: auto; padding-left: 0;">
+                        {{ booking.notes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if booking.tags.all %}
+                <div class="equipment-list mt-3">
+                    {% for tag in booking.tags.all %}
+                    <span class="equipment-item">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Location Information -->
+            {% if booking.location_type %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Location Details</h2>
+                </div>
+                <div class="location-card">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Location Type</label>
+                                <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                    <i class="fas 
+                                        {% if booking.location_type == 'virtual' %}fa-laptop
+                                        {% elif booking.location_type == 'in_person' %}fa-map-marker-alt
+                                        {% else %}fa-question-circle{% endif %} text-primary mr-2"></i>
+                                    {{ booking.get_location_type_display }}
+                                </div>
+                            </div>
+                            
+                            {% if booking.location %}
+                            <div class="form-group">
+                                <label class="form-label">Location</label>
+                                <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                    <i class="fas fa-map-pin text-primary mr-2"></i>
+                                    {{ booking.location }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if booking.meeting_link %}
+                            <div class="form-group">
+                                <label class="form-label">Meeting Link</label>
+                                <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                    <i class="fas fa-link text-primary mr-2"></i>
+                                    <a href="{{ booking.meeting_link }}" target="_blank">{{ booking.meeting_link|truncatechars:40 }}</a>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="col-md-6">
+                            {% if booking.location_type == 'in_person' and booking.address %}
+                            <div class="location-map">
+                                <i class="fas fa-map-marked-alt fa-3x"></i>
+                                <div class="text-center mt-2">
+                                    <small>Map location would be displayed here</small>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    {% if booking.location_instructions %}
+                    <div class="form-group mt-3">
+                        <label class="form-label">Location Instructions</label>
+                        <div class="form-control" style="background: transparent; border: none; min-height: auto; padding-left: 0;">
+                            {{ booking.location_instructions|linebreaks }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Equipment/Requirements -->
+            {% if booking.requirements.all %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Requirements & Equipment</h2>
+                </div>
+                <div class="equipment-list">
+                    {% for requirement in booking.requirements.all %}
+                    <div class="equipment-item">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        {{ requirement.name }}
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if booking.additional_requirements %}
+                <div class="form-group mt-3">
+                    <label class="form-label">Additional Requirements</label>
+                    <div class="form-control" style="background: transparent; border: none; min-height: auto; padding-left: 0;">
+                        {{ booking.additional_requirements|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Booking Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Booking Timeline</h2>
+                </div>
+                <div class="booking-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Booking Created</strong>
+                            <p>Booking was requested</p>
+                            <div class="timeline-time">{{ booking.created_at|date:"F j, g:i A" }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if booking.confirmed_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Booking Confirmed</strong>
+                            <p>Both parties confirmed the booking</p>
+                            <div class="timeline-time">{{ booking.confirmed_at|date:"F j, g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.reminder_sent_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Reminder Sent</strong>
+                            <p>Booking reminder was sent to all participants</p>
+                            <div class="timeline-time">{{ booking.reminder_sent_at|date:"F j, g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.started_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Booking Started</strong>
+                            <p>The session began</p>
+                            <div class="timeline-time">{{ booking.started_at|date:"F j, g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.completed_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Booking Completed</strong>
+                            <p>The session was completed successfully</p>
+                            <div class="timeline-time">{{ booking.completed_at|date:"F j, g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.cancelled_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Booking Cancelled</strong>
+                            <p>The booking was cancelled</p>
+                            <div class="timeline-time">{{ booking.cancelled_at|date:"F j, g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Chat Preview -->
+            {% if booking.messages.exists %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Recent Messages</h2>
+                </div>
+                <div class="chat-preview">
+                    {% for message in booking.messages.all|slice:":5" %}
+                    <div class="chat-message">
+                        <div class="message-sender">
+                            {{ message.sender.username }}
+                        </div>
+                        <div class="message-content">
+                            {{ message.content|truncatechars:200 }}
+                        </div>
+                        <div class="message-time">
+                            {{ message.created_at|date:"g:i A" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <div class="text-center mt-2">
+                    <button class="btn btn-sm btn-secondary" onclick="openChat()">
+                        <i class="fas fa-comments"></i> Open Full Chat
+                    </button>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Attachments -->
+            {% if booking.attachments.exists %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Attachments</h2>
+                </div>
+                <div class="attachment-list">
+                    {% for attachment in booking.attachments.all %}
+                    <div class="attachment-item" onclick="downloadAttachment('{{ attachment.id }}')">
+                        <div class="attachment-icon">
+                            <i class="fas 
+                                {% if attachment.file_type == 'pdf' %}fa-file-pdf
+                                {% elif attachment.file_type == 'image' %}fa-file-image
+                                {% elif attachment.file_type == 'video' %}fa-file-video
+                                {% elif attachment.file_type == 'audio' %}fa-file-audio
+                                {% else %}fa-file{% endif %}"></i>
+                        </div>
+                        <div class="attachment-info">
+                            <div class="attachment-name">{{ attachment.name|truncatechars:30 }}</div>
+                            <div class="attachment-size">{{ attachment.file.size|filesizeformat }}</div>
+                        </div>
+                        <i class="fas fa-download text-primary"></i>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column: Participants & Actions -->
+        <div class="col-md-4">
+            <!-- Participants Section -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Participants</h2>
+                    <span class="text-secondary">{{ booking.participants.count }} people</span>
+                </div>
+                <div class="participant-section">
+                    <div class="participant-grid">
+                        <!-- Client/Caller -->
+                        <div class="participant-card">
+                            <div class="participant-avatar">
+                                {% if booking.user.profile.photos.first %}
+                                <img src="{{ booking.user.profile.photos.first.image.url }}" alt="{{ booking.user.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="participant-name">{{ booking.user.username }}</div>
+                            <div class="participant-role">Client</div>
+                            <div class="participant-status status-confirmed">Confirmed</div>
+                        </div>
+                        
+                        <!-- Service Provider -->
+                        <div class="participant-card">
+                            <div class="participant-avatar">
+                                {% if booking.profile.photos.first %}
+                                <img src="{{ booking.profile.photos.first.image.url }}" alt="{{ booking.profile.user.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--coop-blue);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="participant-name">{{ booking.profile.user.username }}</div>
+                            <div class="participant-role">Service Provider</div>
+                            <div class="participant-status status-{{ booking.provider_status|lower|default:'confirmed' }}">
+                                {{ booking.get_provider_status_display|default:"Confirmed" }}
+                            </div>
+                        </div>
+                        
+                        <!-- Additional Participants -->
+                        {% for participant in booking.additional_participants.all %}
+                        <div class="participant-card">
+                            <div class="participant-avatar">
+                                {% if participant.user.profile.photos.first %}
+                                <img src="{{ participant.user.profile.photos.first.image.url }}" alt="{{ participant.user.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--info);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="participant-name">{{ participant.user.username }}</div>
+                            <div class="participant-role">Guest</div>
+                            <div class="participant-status status-{{ participant.status|lower }}">
+                                {{ participant.get_status_display }}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    
+                    {% if booking.max_participants %}
+                    <div class="progress-bar mt-3">
+                        <div class="progress-fill" style="width: {% widthratio booking.participants.count booking.max_participants 100 %}%;"></div>
+                    </div>
+                    <div class="text-center text-sm text-secondary mt-2">
+                        {{ booking.participants.count }} of {{ booking.max_participants }} participants
+                    </div>
+                    {% endif %}
+                    
+                    <div class="text-center mt-3">
+                        <button class="btn btn-sm btn-secondary" onclick="manageParticipants()">
+                            <i class="fas fa-user-plus"></i> Manage Participants
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Summary -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Payment Summary</h2>
+                    <span class="text-secondary">{{ booking.get_payment_status_display }}</span>
+                </div>
+                <div class="payment-summary">
+                    <div class="payment-item">
+                        <span>Service Fee</span>
+                        <span>KES {{ booking.service_fee|default:"0.00" }}</span>
+                    </div>
+                    
+                    {% if booking.equipment_fee %}
+                    <div class="payment-item">
+                        <span>Equipment Fee</span>
+                        <span>KES {{ booking.equipment_fee }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if booking.travel_fee %}
+                    <div class="payment-item">
+                        <span>Travel Fee</span>
+                        <span>KES {{ booking.travel_fee }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="payment-item">
+                        <span>Service Charge</span>
+                        <span>KES {{ booking.service_charge|default:"0.00" }}</span>
+                    </div>
+                    
+                    {% if booking.discount_amount %}
+                    <div class="payment-item">
+                        <span>Discount</span>
+                        <span class="text-success">-KES {{ booking.discount_amount }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="payment-item payment-total">
+                        <span>Total Amount</span>
+                        <span>KES {{ booking.total_amount|default:"0.00" }}</span>
+                    </div>
+                    
+                    <div class="payment-item">
+                        <span>Amount Paid</span>
+                        <span>KES {{ booking.amount_paid|default:"0.00" }}</span>
+                    </div>
+                    
+                    {% if booking.amount_due %}
+                    <div class="payment-item">
+                        <span>Amount Due</span>
+                        <span class="text-warning">KES {{ booking.amount_due }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                {% if booking.amount_due > 0 and booking.payment_status != 'cancelled' %}
+                <div class="text-center mt-3">
+                    <button class="btn btn-primary" onclick="makePayment()">
+                        <i class="fas fa-credit-card"></i> Pay Now
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Reminders & Notifications -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Reminders</h2>
+                </div>
+                <div class="d-flex flex-column gap-2 p-3">
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="emailReminders" 
+                               {% if booking.email_reminders %}checked{% endif %}>
+                        <label class="form-check-label" for="emailReminders">
+                            Email Reminders
+                        </label>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="smsReminders" 
+                               {% if booking.sms_reminders %}checked{% endif %}>
+                        <label class="form-check-label" for="smsReminders">
+                            SMS Reminders
+                        </label>
+                    </div>
+                    
+                    <div class="form-check">
+                        <input type="checkbox" class="form-check-input" id="pushReminders" 
+                               {% if booking.push_reminders %}checked{% endif %}>
+                        <label class="form-check-label" for="pushReminders">
+                            Push Notifications
+                        </label>
+                    </div>
+                    
+                    <div class="mt-3">
+                        <button class="btn btn-sm btn-secondary w-100" onclick="updateReminders()">
+                            <i class="fas fa-save"></i> Update Preferences
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Quick Actions</h2>
+                </div>
+                <div class="d-flex flex-column gap-2 p-3">
+                    <button class="btn btn-secondary" onclick="downloadBookingSummary()">
+                        <i class="fas fa-download"></i> Download Summary
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="shareBooking()">
+                        <i class="fas fa-share-alt"></i> Share Booking
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="duplicateBooking()">
+                        <i class="fas fa-copy"></i> Duplicate Booking
+                    </button>
+                    
+                    {% if booking.status != 'cancelled' %}
+                    <button class="btn btn-danger" onclick="requestCancellation()">
+                        <i class="fas fa-times"></i> Request Cancellation
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'booking_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left"></i> Back to Bookings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Review Modal Content -->
+<div id="reviewModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Add Review</h3>
+    <form id="reviewForm" onsubmit="submitReview(event)">
+        {% csrf_token %}
+        <div class="form-group text-center">
+            <label class="form-label mb-3">How would you rate this booking?</label>
+            <div class="star-rating mb-3" style="font-size: 2rem;">
+                {% for i in "12345" %}
+                <i class="fas fa-star rating-star" data-rating="{{ forloop.counter }}" style="cursor: pointer; margin: 0 5px;"></i>
+                {% endfor %}
+            </div>
+            <input type="hidden" id="ratingValue" name="rating" value="5">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Review Title</label>
+            <input type="text" name="title" class="form-control" placeholder="Summarize your experience" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Detailed Review</label>
+            <textarea name="content" class="form-control" rows="4" placeholder="Share your experience in detail..." required></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Would you recommend this service?</label>
+            <div class="d-flex gap-3">
+                <label class="form-check">
+                    <input type="radio" name="recommend" value="yes" class="form-check-input" checked>
+                    <span class="form-check-label">Yes</span>
+                </label>
+                <label class="form-check">
+                    <input type="radio" name="recommend" value="no" class="form-check-input">
+                    <span class="form-check-label">No</span>
+                </label>
+                <label class="form-check">
+                    <input type="radio" name="recommend" value="maybe" class="form-check-input">
+                    <span class="form-check-label">Maybe</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary flex-1">Submit Review</button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Cancellation Modal Content -->
+<div id="cancellationModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Request Cancellation</h3>
+    <form id="cancellationForm" onsubmit="submitCancellation(event)">
+        {% csrf_token %}
+        <div class="form-group">
+            <label class="form-label">Cancellation Reason</label>
+            <select class="form-control" name="reason" required>
+                <option value="">Select a reason</option>
+                <option value="schedule">Schedule Conflict</option>
+                <option value="price">Price Concerns</option>
+                <option value="service">Service Not Required</option>
+                <option value="found_alternative">Found Alternative</option>
+                <option value="personal">Personal Reasons</option>
+                <option value="other">Other</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Additional Details</label>
+            <textarea name="details" class="form-control" rows="4" placeholder="Please provide additional details..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Refund Preference</label>
+            <select class="form-control" name="refund_preference">
+                <option value="full">Full Refund</option>
+                <option value="partial">Partial Refund</option>
+                <option value="credit">Service Credit</option>
+                <option value="none">No Refund Needed</option>
+            </select>
+        </div>
+        
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle"></i>
+            <div>
+                <strong>Cancellation Policy</strong>
+                <div class="text-sm">Cancellations within 24 hours may incur a {{ booking.cancellation_fee_percentage|default:"20" }}% fee.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-danger flex-1">Request Cancellation</button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize rating stars
+    $('.rating-star').hover(function() {
+        const rating = $(this).data('rating');
+        $('.rating-star').each(function(i) {
+            if (i < rating) {
+                $(this).removeClass('fa-star-o').addClass('fa-star');
+            } else {
+                $(this).removeClass('fa-star').addClass('fa-star-o');
+            }
+        });
+    });
+    
+    $('.rating-star').click(function() {
+        const rating = $(this).data('rating');
+        $('#ratingValue').val(rating);
+        $('.rating-star').removeClass('fa-star-o').addClass('fa-star');
+        $('.rating-star:gt(' + (rating - 1) + ')').removeClass('fa-star').addClass('fa-star-o');
+    });
+    
+    // Update countdown timer for upcoming bookings
+    {% if booking.status == 'confirmed' and booking.is_upcoming %}
+    updateCountdown();
+    {% endif %}
+});
+
+// Update countdown timer
+function updateCountdown() {
+    const scheduledTime = new Date("{{ booking.scheduled_date }}T{{ booking.scheduled_time }}");
+    
+    function updateTimer() {
+        const now = new Date();
+        const diff = scheduledTime - now;
+        
+        if (diff <= 0) {
+            $('#countdownTimer').text('Starting now...');
+            clearInterval(timerInterval);
+            location.reload(); // Refresh page when booking starts
+            return;
+        }
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        if (days > 0) {
+            $('#countdownTimer').text(`${days}d ${hours}h ${minutes}m`);
+        } else if (hours > 0) {
+            $('#countdownTimer').text(`${hours}h ${minutes}m ${seconds}s`);
+        } else {
+            $('#countdownTimer').text(`${minutes}m ${seconds}s`);
+        }
+    }
+    
+    updateTimer();
+    const timerInterval = setInterval(updateTimer, 1000);
+}
+
+// Booking Actions
+function confirmBooking() {
+    if (confirm('Are you sure you want to confirm this booking?')) {
+        $.ajax({
+            url: '{% url "api_confirm_booking" booking.id %}',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Booking confirmed successfully!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                } else {
+                    alert('Failed to confirm booking: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error confirming booking. Please try again.');
+            }
+        });
+    }
+}
+
+function cancelBooking() {
+    showModal($('#cancellationModalContent').html());
+}
+
+function submitCancellation(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '{% url "api_cancel_booking" booking.id %}',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Cancellation request submitted!', 'success');
+                hideModal();
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                alert('Failed to submit cancellation: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error submitting cancellation. Please try again.');
+        }
+    });
+}
+
+function startBooking() {
+    if (confirm('Are you ready to start this booking?')) {
+        $.ajax({
+            url: '{% url "api_start_booking" booking.id %}',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    // Redirect to booking interface or call page
+                    if (response.redirect_url) {
+                        window.location.href = response.redirect_url;
+                    } else {
+                        location.reload();
+                    }
+                } else {
+                    alert('Failed to start booking: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error starting booking. Please try again.');
+            }
+        });
+    }
+}
+
+function rescheduleBooking() {
+    showModal(`
+        <h3 class="card-title mb-3">Reschedule Booking</h3>
+        <form id="rescheduleForm" onsubmit="submitReschedule(event)">
+            <div class="form-group">
+                <label class="form-label">New Date</label>
+                <input type="date" class="form-control" name="new_date" value="{{ booking.scheduled_date|date:'Y-m-d' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">New Time</label>
+                <input type="time" class="form-control" name="new_time" value="{{ booking.scheduled_time|date:'H:i' }}" required>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Reschedule Reason</label>
+                <textarea class="form-control" name="reason" rows="3" placeholder="Why are you rescheduling?"></textarea>
+            </div>
+            
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-primary flex-1">Request Reschedule</button>
+                <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+            </div>
+        </form>
+    `);
+}
+
+function submitReschedule(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '{% url "api_reschedule_booking" booking.id %}',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Reschedule request sent!', 'success');
+                hideModal();
+            } else {
+                alert('Failed to reschedule: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error rescheduling. Please try again.');
+        }
+    });
+}
+
+function addReview() {
+    showModal($('#reviewModalContent').html());
+}
+
+function submitReview(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '{% url "api_add_review" booking.id %}',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Review submitted successfully!', 'success');
+                hideModal();
+                setTimeout(() => location.reload(), 1500);
+            } else {
+                alert('Failed to submit review: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error submitting review. Please try again.');
+        }
+    });
+}
+
+function bookAgain() {
+    window.location.href = '{% url "call_initiate" booking.profile.id %}?booking_id={{ booking.id }}';
+}
+
+function makePayment() {
+    $.ajax({
+        url: '{% url "api_make_payment" booking.id %}',
+        method: 'POST',
+        data: {
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                if (response.payment_url) {
+                    // Redirect to payment gateway
+                    window.open(response.payment_url, '_blank');
+                } else {
+                    showMessage('Payment processed successfully!', 'success');
+                    setTimeout(() => location.reload(), 1500);
+                }
+            } else {
+                alert('Payment failed: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error processing payment. Please try again.');
+        }
+    });
+}
+
+function updateReminders() {
+    const preferences = {
+        email_reminders: $('#emailReminders').is(':checked'),
+        sms_reminders: $('#smsReminders').is(':checked'),
+        push_reminders: $('#pushReminders').is(':checked')
+    };
+    
+    $.ajax({
+        url: '{% url "api_update_reminders" booking.id %}',
+        method: 'POST',
+        data: {
+            ...preferences,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function() {
+            showMessage('Reminder preferences updated!', 'success');
+        },
+        error: function() {
+            alert('Error updating preferences. Please try again.');
+        }
+    });
+}
+
+function downloadBookingSummary() {
+    const summary = `
+        Booking Summary
+        ==============
+        Reference: #{{ booking.booking_id }}
+        Status: {{ booking.get_status_display }}
+        Service: {{ booking.get_service_type_display }}
+        Date: {{ booking.scheduled_date|date:"F j, Y" }}
+        Time: {{ booking.scheduled_time|date:"g:i A" }}
+        Duration: {{ booking.duration|default:"N/A" }} minutes
+        Provider: {{ booking.profile.user.username }}
+        Client: {{ booking.user.username }}
+        Location: {{ booking.location|default:"Virtual" }}
+        Total Amount: KES {{ booking.total_amount|default:"0.00" }}
+        Payment Status: {{ booking.get_payment_status_display }}
+        Created: {{ booking.created_at|date:"F j, Y g:i A" }}
+    `;
+    
+    const blob = new Blob([summary], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `booking-{{ booking.booking_id }}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function shareBooking() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Booking Details',
+            text: `Booking with {{ booking.profile.user.username }} on {{ booking.scheduled_date|date:"F j, Y" }}`,
+            url: window.location.href
+        });
+    } else {
+        showModal(`
+            <h3 class="card-title mb-3">Share Booking</h3>
+            <p class="mb-3">Copy the link below to share:</p>
+            <div class="form-group">
+                <input type="text" class="form-control" value="${window.location.href}" readonly>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-1" onclick="copyToClipboard('${window.location.href}')">
+                    <i class="fas fa-copy"></i> Copy Link
+                </button>
+                <button class="btn btn-secondary" onclick="hideModal()">Close</button>
+            </div>
+        `);
+    }
+}
+
+function duplicateBooking() {
+    if (confirm('Create a new booking with the same details?')) {
+        $.ajax({
+            url: '{% url "api_duplicate_booking" booking.id %}',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    window.location.href = response.booking_url;
+                } else {
+                    alert('Failed to duplicate booking: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error duplicating booking. Please try again.');
+            }
+        });
+    }
+}
+
+function requestCancellation() {
+    showModal($('#cancellationModalContent').html());
+}
+
+function openChat() {
+    // Open chat modal or redirect to chat page
+    showModal(`
+        <h3 class="card-title mb-3">Booking Chat</h3>
+        <div id="bookingChat" style="height: 400px; overflow-y: auto; margin-bottom: 15px;">
+            <!-- Chat messages would be loaded here -->
+            <div class="text-center p-4">
+                <i class="fas fa-spinner fa-spin"></i> Loading chat...
+            </div>
+        </div>
+        <div class="form-group">
+            <textarea class="form-control" id="chatMessage" placeholder="Type your message..." rows="2"></textarea>
+        </div>
+        <button class="btn btn-primary w-100" onclick="sendMessage()">
+            <i class="fas fa-paper-plane"></i> Send Message
+        </button>
+    `);
+    
+    // Load chat messages
+    loadChatMessages();
+}
+
+function loadChatMessages() {
+    $.ajax({
+        url: '{% url "api_booking_chat" booking.id %}',
+        method: 'GET',
+        success: function(response) {
+            const chatContainer = $('#bookingChat');
+            chatContainer.empty();
+            
+            response.messages.forEach(message => {
+                chatContainer.append(`
+                    <div class="chat-message">
+                        <div class="message-sender">${message.sender}</div>
+                        <div class="message-content">${message.content}</div>
+                        <div class="message-time">${message.time}</div>
+                    </div>
+                `);
+            });
+            
+            // Scroll to bottom
+            chatContainer.scrollTop(chatContainer[0].scrollHeight);
+        }
+    });
+}
+
+function sendMessage() {
+    const message = $('#chatMessage').val().trim();
+    if (!message) return;
+    
+    $.ajax({
+        url: '{% url "api_send_message" booking.id %}',
+        method: 'POST',
+        data: {
+            message: message,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function() {
+            $('#chatMessage').val('');
+            loadChatMessages();
+        }
+    });
+}
+
+function downloadAttachment(attachmentId) {
+    window.open(`/attachments/download/${attachmentId}/`, '_blank');
+}
+
+function manageParticipants() {
+    showModal(`
+        <h3 class="card-title mb-3">Manage Participants</h3>
+        <div class="text-center p-4">
+            <i class="fas fa-spinner fa-spin"></i> Loading participant management...
+        </div>
+    `);
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showMessage('Link copied to clipboard!', 'success');
+        hideModal();
+    });
+}
+
+function showMessage(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type}">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `);
+    
+    $('.messages-container').append(alert);
+    
+    setTimeout(() => {
+        alert.fadeOut(300, () => alert.remove());
+    }, 5000);
+}
+</script>
 {% endblock %}

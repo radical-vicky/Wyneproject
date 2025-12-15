@@ -1,9 +1,929 @@
-<!-- main/templates/dashboard/call_detail.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Call Details - {{ call.profile.user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Call Detail Specific Styles */
+.call-header {
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.1), rgba(0, 102, 179, 0.1));
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0, 168, 89, 0.2);
+}
+
+.call-timeline {
+    position: relative;
+    padding: 40px 0;
+    margin: 30px 0;
+}
+
+.timeline-item {
+    position: relative;
+    padding-left: 30px;
+    margin-bottom: 25px;
+}
+
+.timeline-item:last-child {
+    margin-bottom: 0;
+}
+
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    border: 3px solid var(--dark-bg);
+    z-index: 2;
+}
+
+.timeline-item::after {
+    content: '';
+    position: absolute;
+    left: 5px;
+    top: 12px;
+    width: 2px;
+    height: calc(100% + 13px);
+    background: var(--coop-green);
+    opacity: 0.3;
+}
+
+.timeline-item:last-child::after {
+    display: none;
+}
+
+.timeline-content {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    border: 1px solid var(--border-color);
+}
+
+.timeline-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 5px;
+}
+
+.call-rating {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 20px 0;
+}
+
+.star-rating {
+    color: #ffc107;
+    font-size: 1.2rem;
+}
+
+.call-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.call-duration-circle {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    position: relative;
+}
+
+.duration-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+}
+
+.duration-label {
+    font-size: 0.8rem;
+    color: rgba(255, 255, 255, 0.9);
+    margin-top: -5px;
+}
+
+.call-quality-indicator {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.quality-bar {
+    flex: 1;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.quality-fill {
+    height: 100%;
+    background: var(--coop-green);
+    border-radius: 3px;
+}
+
+.quality-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    min-width: 80px;
+}
+
+.call-participants {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.participant-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.participant-card:hover {
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.participant-avatar {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 10px;
+    border: 2px solid var(--coop-green);
+}
+
+.participant-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.participant-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+}
+
+.participant-role {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.call-recording {
+    margin: 30px 0;
+}
+
+.audio-player {
+    width: 100%;
+    margin-top: 10px;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+}
+
+.call-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 20px 0;
+}
+
+.call-tag {
+    padding: 4px 12px;
+    background: rgba(0, 168, 89, 0.1);
+    border: 1px solid rgba(0, 168, 89, 0.3);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--coop-green);
+}
+
+.chat-transcript {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 20px 0;
+    padding-right: 10px;
+}
+
+.transcript-message {
+    margin-bottom: 15px;
+    padding: 10px;
+    border-radius: var(--radius);
+    background: var(--darker-bg);
+}
+
+.message-sender {
+    font-weight: 600;
+    color: var(--coop-green);
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.message-content {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.message-time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 5px;
+}
+
+.cost-breakdown {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.breakdown-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.breakdown-item:last-child {
+    border-bottom: none;
+}
+
+.breakdown-total {
+    font-weight: 700;
+    color: var(--coop-green);
+    font-size: 1.1rem;
+}
+
+@media (max-width: 768px) {
+    .call-header {
+        padding: 20px;
+    }
+    
+    .call-duration-circle {
+        width: 100px;
+        height: 100px;
+    }
+    
+    .duration-value {
+        font-size: 1.5rem;
+    }
+    
+    .call-actions {
+        flex-direction: column;
+    }
+    
+    .call-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .call-participants {
+        grid-template-columns: 1fr;
+    }
+    
+    .participant-card {
+        display: flex;
+        align-items: center;
+        text-align: left;
+        gap: 15px;
+    }
+    
+    .participant-avatar {
+        margin: 0;
+        width: 50px;
+        height: 50px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: call_detail.html</h1>
-    <p>Content coming soon...</p>
+<div class="fade-in">
+    <!-- Call Header -->
+    <div class="call-header">
+        <div class="row align-center">
+            <div class="col-md-8">
+                <h1 class="mb-1">Call Details</h1>
+                <p class="text-secondary">Call with {{ call.profile.user.username }} on {{ call.start_time|date:"F j, Y" }}</p>
+                
+                <div class="call-actions mt-3">
+                    {% if not call.rated_by_caller %}
+                    <button class="btn btn-primary" onclick="showRateCallModal()">
+                        <i class="fas fa-star"></i> Rate Call
+                    </button>
+                    {% endif %}
+                    
+                    {% if call.recording_url %}
+                    <button class="btn btn-secondary" onclick="playRecording()">
+                        <i class="fas fa-play-circle"></i> Play Recording
+                    </button>
+                    {% endif %}
+                    
+                    <a href="{% url 'profile' call.profile.id %}" class="btn btn-secondary">
+                        <i class="fas fa-user"></i> View Profile
+                    </a>
+                    
+                    {% if call.call_type == 'voice' %}
+                    <button class="btn btn-primary" onclick="startNewCall('{{ call.profile.id }}')">
+                        <i class="fas fa-phone"></i> Call Again
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="call-duration-circle">
+                    <div class="duration-value">{{ call.duration|default:"0" }}</div>
+                    <div class="duration-label">minutes</div>
+                </div>
+                <div class="call-status mt-2">
+                    <span class="badge {% if call.status == 'completed' %}badge-success{% elif call.status == 'missed' %}badge-danger{% else %}badge-warning{% endif %}">
+                        {{ call.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Call Information -->
+        <div class="col-md-8">
+            <!-- Call Summary Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Call Summary</h2>
+                    <span class="text-secondary">{{ call.get_call_type_display }} Call</span>
+                </div>
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Start Time</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                {{ call.start_time|date:"g:i A" }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">End Time</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-clock text-primary mr-2"></i>
+                                {{ call.end_time|date:"g:i A"|default:"N/A" }}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">Cost</label>
+                            <div class="form-control" style="background: transparent; border: none; padding-left: 0;">
+                                <i class="fas fa-coins text-warning mr-2"></i>
+                                KES {{ call.cost|default:"0.00" }}
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Call Quality</label>
+                            <div class="call-quality-indicator">
+                                <div class="quality-bar">
+                                    <div class="quality-fill" style="width: {% if call.quality_score %}{{ call.quality_score }}%{% else %}85%{% endif %};"></div>
+                                </div>
+                                <span class="quality-text">
+                                    {% if call.quality_score %}{{ call.quality_score }}%{% else %}Good{% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                {% if call.notes %}
+                <div class="form-group mt-3">
+                    <label class="form-label">Notes</label>
+                    <div class="form-control" style="background: transparent; border: none; min-height: auto; padding-left: 0;">
+                        {{ call.notes|linebreaks }}
+                    </div>
+                </div>
+                {% endif %}
+                
+                {% if call.tags.all %}
+                <div class="call-tags">
+                    {% for tag in call.tags.all %}
+                    <span class="call-tag">{{ tag.name }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Call Timeline -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Call Timeline</h2>
+                </div>
+                <div class="call-timeline">
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Call Initiated</strong>
+                            <p>You called {{ call.profile.user.username }}</p>
+                            <div class="timeline-time">{{ call.start_time|date:"g:i A" }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if call.answered_time %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Call Answered</strong>
+                            <p>{{ call.profile.user.username }} answered the call</p>
+                            <div class="timeline-time">{{ call.answered_time|date:"g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if call.end_time %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Call Ended</strong>
+                            <p>Call completed successfully</p>
+                            <div class="timeline-time">{{ call.end_time|date:"g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if call.rated_at %}
+                    <div class="timeline-item">
+                        <div class="timeline-content">
+                            <strong>Call Rated</strong>
+                            <p>You rated this call {{ call.caller_rating }} stars</p>
+                            <div class="call-rating">
+                                <div class="star-rating">
+                                    {% for i in "12345" %}
+                                    <i class="fas fa-star{% if forloop.counter > call.caller_rating %}-o{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                                <span>({{ call.caller_rating }}/5)</span>
+                            </div>
+                            <div class="timeline-time">{{ call.rated_at|date:"g:i A" }}</div>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Chat Transcript (for video calls with chat) -->
+            {% if call.chat_transcript %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Chat Transcript</h2>
+                </div>
+                <div class="chat-transcript">
+                    {% for message in call.get_chat_messages %}
+                    <div class="transcript-message">
+                        <div class="message-sender">
+                            {{ message.sender.username }}
+                        </div>
+                        <div class="message-content">
+                            {{ message.content }}
+                        </div>
+                        <div class="message-time">
+                            {{ message.timestamp|date:"g:i A" }}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Participants & Actions -->
+        <div class="col-md-4">
+            <!-- Participants Card -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Participants</h2>
+                </div>
+                <div class="call-participants">
+                    <div class="participant-card">
+                        <div class="participant-avatar">
+                            {% if user.profile.photos.first %}
+                            <img src="{{ user.profile.photos.first.image.url }}" alt="{{ user.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="participant-name">You</div>
+                        <div class="participant-role">Caller</div>
+                    </div>
+                    
+                    <div class="participant-card">
+                        <div class="participant-avatar">
+                            {% if call.profile.photos.first %}
+                            <img src="{{ call.profile.photos.first.image.url }}" alt="{{ call.profile.user.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--coop-blue);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="participant-name">{{ call.profile.user.username }}</div>
+                        <div class="participant-role">Receiver</div>
+                    </div>
+                </div>
+                
+                {% if call.call_type == 'group' and call.participants.count > 2 %}
+                <div class="mt-3">
+                    <h4 class="mb-2">Other Participants</h4>
+                    <div class="call-participants">
+                        {% for participant in call.participants.all %}
+                        {% if participant != user.profile and participant != call.profile %}
+                        <div class="participant-card">
+                            <div class="participant-avatar">
+                                {% if participant.photos.first %}
+                                <img src="{{ participant.photos.first.image.url }}" alt="{{ participant.user.username }}">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--info);">
+                                    <i class="fas fa-user"></i>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="participant-name">{{ participant.user.username }}</div>
+                        </div>
+                        {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Cost Breakdown -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Cost Breakdown</h2>
+                </div>
+                <div class="cost-breakdown">
+                    <div class="breakdown-item">
+                        <span>Call Duration</span>
+                        <span>{{ call.duration|default:"0" }} min</span>
+                    </div>
+                    
+                    <div class="breakdown-item">
+                        <span>Rate per minute</span>
+                        <span>KES {{ call.rate_per_minute|default:"0.00" }}</span>
+                    </div>
+                    
+                    {% if call.connection_fee %}
+                    <div class="breakdown-item">
+                        <span>Connection Fee</span>
+                        <span>KES {{ call.connection_fee }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    {% if call.tax %}
+                    <div class="breakdown-item">
+                        <span>Tax</span>
+                        <span>KES {{ call.tax }}</span>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="breakdown-item breakdown-total">
+                        <span>Total Cost</span>
+                        <span>KES {{ call.cost|default:"0.00" }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Call Recording -->
+            {% if call.recording_url %}
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Call Recording</h2>
+                </div>
+                <div class="call-recording">
+                    <audio id="callRecording" controls class="audio-player">
+                        <source src="{{ call.recording_url }}" type="audio/mpeg">
+                        Your browser does not support the audio element.
+                    </audio>
+                    <div class="mt-2 text-center">
+                        <small class="text-muted">Recording available for 30 days</small>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">Quick Actions</h2>
+                </div>
+                <div class="d-flex flex-column gap-2">
+                    <button class="btn btn-secondary" onclick="downloadCallSummary()">
+                        <i class="fas fa-download"></i> Download Summary
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="shareCallDetails()">
+                        <i class="fas fa-share-alt"></i> Share Details
+                    </button>
+                    
+                    <button class="btn btn-secondary" onclick="reportCallIssue()">
+                        <i class="fas fa-flag"></i> Report Issue
+                    </button>
+                    
+                    <a href="{% url 'call_history' %}" class="btn btn-secondary">
+                        <i class="fas fa-history"></i> Back to History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Rate Call Modal Content -->
+<div id="rateCallModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Rate Your Call</h3>
+    <form id="rateCallForm" method="POST" action="{% url 'rate_call' call.id %}">
+        {% csrf_token %}
+        <div class="form-group text-center">
+            <label class="form-label mb-3">How would you rate this call?</label>
+            <div class="star-rating mb-3" style="font-size: 2rem;">
+                {% for i in "12345" %}
+                <i class="fas fa-star rating-star" data-rating="{{ forloop.counter }}" style="cursor: pointer; margin: 0 5px;"></i>
+                {% endfor %}
+            </div>
+            <input type="hidden" id="ratingValue" name="rating" value="5">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Comments (Optional)</label>
+            <textarea name="comments" class="form-control" rows="3" placeholder="Share your feedback about this call..."></textarea>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Tags</label>
+            <div class="call-tags">
+                {% for tag in available_tags %}
+                <label class="call-tag" style="cursor: pointer;">
+                    <input type="checkbox" name="tags" value="{{ tag.id }}" style="display: none;">
+                    {{ tag.name }}
+                </label>
+                {% endfor %}
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2 mt-3">
+            <button type="submit" class="btn btn-primary flex-1">Submit Rating</button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize rating stars
+    $('.rating-star').hover(function() {
+        const rating = $(this).data('rating');
+        $('.rating-star').each(function(i) {
+            if (i < rating) {
+                $(this).removeClass('fa-star-o').addClass('fa-star');
+            } else {
+                $(this).removeClass('fa-star').addClass('fa-star-o');
+            }
+        });
+    });
+    
+    $('.rating-star').click(function() {
+        const rating = $(this).data('rating');
+        $('#ratingValue').val(rating);
+        $('.rating-star').removeClass('fa-star-o').addClass('fa-star');
+        $('.rating-star:gt(' + (rating - 1) + ')').removeClass('fa-star').addClass('fa-star-o');
+    });
+    
+    // Click handler for tag selection
+    $('.call-tag label').click(function() {
+        const checkbox = $(this).find('input');
+        checkbox.prop('checked', !checkbox.prop('checked'));
+        $(this).toggleClass('active');
+    });
+});
+
+// Modal functions
+function showRateCallModal() {
+    showModal($('#rateCallModalContent').html());
+}
+
+function playRecording() {
+    const audio = document.getElementById('callRecording');
+    if (audio) {
+        audio.play();
+    }
+}
+
+function startNewCall(profileId) {
+    $.ajax({
+        url: '{% url "api_initiate_call" %}',
+        method: 'POST',
+        data: {
+            profile_id: profileId,
+            call_type: 'voice',
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                showModal(`
+                    <div class="text-center">
+                        <i class="fas fa-phone fa-3x text-success mb-3"></i>
+                        <h3 class="mb-2">Calling...</h3>
+                        <p>Connecting to ${response.profile_name}</p>
+                        <div class="mt-3">
+                            <button class="btn btn-danger" onclick="endCall('${response.call_id}')">
+                                <i class="fas fa-phone-slash"></i> End Call
+                            </button>
+                        </div>
+                    </div>
+                `);
+                
+                // Simulate call connection
+                setTimeout(() => {
+                    if (Math.random() > 0.2) {
+                        $('#modalContent').html(`
+                            <div class="text-center">
+                                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                                <h3 class="mb-2">Call Connected</h3>
+                                <p>You are now connected with ${response.profile_name}</p>
+                                <div class="mt-3">
+                                    <button class="btn btn-danger" onclick="endCall('${response.call_id}')">
+                                        <i class="fas fa-phone-slash"></i> End Call
+                                    </button>
+                                </div>
+                            </div>
+                        `);
+                    } else {
+                        $('#modalContent').html(`
+                            <div class="text-center">
+                                <i class="fas fa-phone-slash fa-3x text-danger mb-3"></i>
+                                <h3 class="mb-2">Call Failed</h3>
+                                <p>Unable to connect. Please try again.</p>
+                                <div class="mt-3">
+                                    <button class="btn btn-secondary" onclick="hideModal()">Close</button>
+                                </div>
+                            </div>
+                        `);
+                    }
+                }, 2000);
+            } else {
+                alert('Failed to initiate call: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error initiating call. Please try again.');
+        }
+    });
+}
+
+function endCall(callId) {
+    $.ajax({
+        url: '{% url "api_end_call" %}',
+        method: 'POST',
+        data: {
+            call_id: callId,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function() {
+            hideModal();
+            location.reload();
+        }
+    });
+}
+
+function downloadCallSummary() {
+    const summary = `
+        Call Summary
+        ============
+        Date: ${new Date().toLocaleDateString()}
+        With: {{ call.profile.user.username }}
+        Duration: {{ call.duration|default:"0" }} minutes
+        Cost: KES {{ call.cost|default:"0.00" }}
+        Status: {{ call.get_status_display }}
+        Rating: {{ call.caller_rating|default:"Not rated" }}
+    `;
+    
+    const blob = new Blob([summary], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `call-summary-{{ call.id }}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
+
+function shareCallDetails() {
+    if (navigator.share) {
+        navigator.share({
+            title: 'Call Details',
+            text: `Call with {{ call.profile.user.username }} on {{ call.start_time|date:"F j, Y" }}`,
+            url: window.location.href
+        });
+    } else {
+        showModal(`
+            <h3 class="card-title mb-3">Share Call Details</h3>
+            <p class="mb-3">Copy the link below to share:</p>
+            <div class="form-group">
+                <input type="text" class="form-control" value="${window.location.href}" readonly>
+            </div>
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary flex-1" onclick="copyToClipboard('${window.location.href}')">
+                    <i class="fas fa-copy"></i> Copy Link
+                </button>
+                <button class="btn btn-secondary" onclick="hideModal()">Close</button>
+            </div>
+        `);
+    }
+}
+
+function reportCallIssue() {
+    showModal(`
+        <h3 class="card-title mb-3">Report Call Issue</h3>
+        <form id="reportForm" onsubmit="submitReport(event)">
+            <div class="form-group">
+                <label class="form-label">Issue Type</label>
+                <select class="form-control" name="issue_type" required>
+                    <option value="">Select issue type</option>
+                    <option value="audio">Audio Problem</option>
+                    <option value="video">Video Problem</option>
+                    <option value="connection">Connection Issue</option>
+                    <option value="behavior">Inappropriate Behavior</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" name="description" rows="4" required 
+                          placeholder="Please describe the issue in detail..."></textarea>
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <input type="checkbox" name="include_recording" checked>
+                    Include call recording in report
+                </label>
+            </div>
+            
+            <div class="d-flex gap-2 mt-3">
+                <button type="submit" class="btn btn-primary flex-1">Submit Report</button>
+                <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+            </div>
+        </form>
+    `);
+}
+
+function submitReport(event) {
+    event.preventDefault();
+    // Implement report submission logic here
+    hideModal();
+    showMessage('Report submitted successfully.', 'success');
+}
+
+function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+        showMessage('Link copied to clipboard!', 'success');
+        hideModal();
+    });
+}
+
+function showMessage(message, type) {
+    const alert = $('.alert-success').first().clone();
+    alert.removeClass('alert-success').addClass('alert-' + type);
+    alert.find('span').text(message);
+    $('.messages-container').append(alert);
+    
+    setTimeout(() => {
+        alert.fadeOut(300, () => alert.remove());
+    }, 5000);
+}
+</script>
 {% endblock %}

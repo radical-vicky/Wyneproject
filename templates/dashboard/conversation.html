@@ -1,426 +1,1195 @@
 {% extends 'base.html' %}
 
-{% block title %}Chat with {{ other_user.username }} - Glide{% endblock %}
+{% block title %}Chat with {{ other_user.username }} - CoopConnect Premium{% endblock %}
 
 {% block extra_css %}
 <style>
-    .chat-container {
-        display: grid;
-        grid-template-rows: auto 1fr auto;
-        height: calc(100vh - 200px);
+/* ========== CHAT PAGE STYLES ========== */
+.chat-page {
+    display: flex;
+    flex-direction: column;
+    height: calc(100vh - 140px);
+    background: var(--dark-bg);
+    position: relative;
+}
+
+.chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    background: var(--darker-bg);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+}
+
+/* Chat Header */
+.chat-header {
+    background: var(--card-bg);
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+.chat-user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.chat-avatar {
+    position: relative;
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--coop-green);
+    flex-shrink: 0;
+}
+
+.chat-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.chat-avatar.default {
+    background: var(--primary-gradient);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+}
+
+.online-status {
+    position: absolute;
+    bottom: 2px;
+    right: 2px;
+    width: 12px;
+    height: 12px;
+    background: var(--coop-green);
+    border-radius: 50%;
+    border: 2px solid var(--darker-bg);
+}
+
+.online-status.offline {
+    background: var(--text-muted);
+}
+
+.user-details h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.25rem;
+}
+
+.user-status {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.user-status.online {
+    color: var(--coop-green);
+}
+
+.chat-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.action-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.action-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.action-btn.call {
+    background: rgba(0, 168, 89, 0.1);
+    color: var(--coop-green);
+    border-color: rgba(0, 168, 89, 0.3);
+}
+
+.action-btn.booking {
+    background: rgba(33, 150, 243, 0.1);
+    color: var(--info);
+    border-color: rgba(33, 150, 243, 0.3);
+}
+
+/* Messages Container */
+.messages-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: linear-gradient(180deg, 
+        rgba(10, 10, 15, 0.95) 0%, 
+        rgba(26, 26, 46, 0.9) 100%
+    );
+}
+
+/* Message Bubbles */
+.message-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
+}
+
+.message-bubble {
+    max-width: 75%;
+    padding: 0.75rem 1rem;
+    border-radius: 1.125rem;
+    position: relative;
+    word-wrap: break-word;
+    line-height: 1.5;
+    animation: fadeIn 0.3s ease-out;
+    word-break: break-word;
+}
+
+.message-bubble.sent {
+    background: var(--primary-gradient);
+    color: white;
+    align-self: flex-end;
+    margin-left: auto;
+    border-bottom-right-radius: 0.375rem;
+}
+
+.message-bubble.received {
+    background: var(--card-bg);
+    color: var(--text-primary);
+    align-self: flex-start;
+    border: 1px solid var(--border-color);
+    border-bottom-left-radius: 0.375rem;
+}
+
+.message-content {
+    margin-bottom: 0.375rem;
+}
+
+.message-media {
+    margin-bottom: 0.5rem;
+    border-radius: var(--radius);
+    overflow: hidden;
+}
+
+.message-media img,
+.message-media video {
+    max-width: 280px;
+    max-height: 280px;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: transform 0.2s ease;
+    display: block;
+}
+
+.message-media img:hover {
+    transform: scale(1.02);
+}
+
+.message-media audio {
+    width: 250px;
+    height: 40px;
+}
+
+.message-footer {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.message-time {
+    font-size: 0.75rem;
+    opacity: 0.7;
+}
+
+.message-status {
+    font-size: 0.7rem;
+    color: rgba(255, 255, 255, 0.7);
+}
+
+.message-status.read {
+    color: #4CAF50;
+}
+
+/* Date Separator */
+.date-separator {
+    text-align: center;
+    margin: 1.5rem 0;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.date-separator::before {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+    margin-right: 1rem;
+}
+
+.date-separator::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border-color);
+    margin-left: 1rem;
+}
+
+.date-separator span {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-muted);
+    padding: 0.375rem 0.75rem;
+    border-radius: var(--radius);
+    font-size: 0.8rem;
+    border: 1px solid var(--border-color);
+    white-space: nowrap;
+}
+
+/* Typing Indicator */
+.typing-indicator-container {
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.typing-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    background: var(--card-bg);
+    border-radius: 1.125rem;
+    border: 1px solid var(--border-color);
+    max-width: fit-content;
+}
+
+.typing-text {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.typing-dots {
+    display: flex;
+    gap: 0.25rem;
+}
+
+.typing-dot {
+    width: 6px;
+    height: 6px;
+    background: var(--coop-green);
+    border-radius: 50%;
+    animation: typingBounce 1.4s infinite;
+}
+
+.typing-dot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.typing-dot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+@keyframes typingBounce {
+    0%, 60%, 100% { transform: translateY(0); }
+    30% { transform: translateY(-4px); }
+}
+
+/* Message Input Area */
+.message-input-area {
+    padding: 1.25rem 1.5rem;
+    background: var(--card-bg);
+    border-top: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.message-form {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.75rem;
+}
+
+.media-buttons {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.media-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+}
+
+.media-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--text-primary);
+    border-color: var(--coop-green);
+}
+
+.media-btn.image:hover {
+    background: rgba(33, 150, 243, 0.1);
+    color: var(--info);
+    border-color: rgba(33, 150, 243, 0.3);
+}
+
+.media-btn.video:hover {
+    background: rgba(156, 39, 176, 0.1);
+    color: #9c27b0;
+    border-color: rgba(156, 39, 176, 0.3);
+}
+
+.media-btn.audio:hover {
+    background: rgba(255, 193, 7, 0.1);
+    color: var(--warning);
+    border-color: rgba(255, 193, 7, 0.3);
+}
+
+.media-btn input[type="file"] {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+    left: 0;
+    top: 0;
+}
+
+.message-input-wrapper {
+    flex: 1;
+    position: relative;
+    min-width: 0;
+}
+
+.message-textarea {
+    width: 100%;
+    min-height: 44px;
+    max-height: 120px;
+    padding: 0.75rem 3.5rem 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid var(--border-color);
+    border-radius: 1.5rem;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.5;
+    resize: none;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+    overflow-y: auto;
+}
+
+.message-textarea:focus {
+    outline: none;
+    border-color: var(--coop-green);
+    background: rgba(255, 255, 255, 0.05);
+    box-shadow: 0 0 0 3px rgba(0, 168, 89, 0.1);
+}
+
+.message-textarea::placeholder {
+    color: var(--text-muted);
+}
+
+.input-actions {
+    position: absolute;
+    right: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.emoji-btn {
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s ease;
+    background: none;
+    border: none;
+    padding: 0.25rem;
+    font-size: 1.1rem;
+}
+
+.emoji-btn:hover {
+    color: var(--coop-green);
+}
+
+.send-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-gradient);
+    color: white;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    margin-left: 0.5rem;
+}
+
+.send-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 168, 89, 0.3);
+}
+
+.send-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Empty State */
+.empty-chat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: var(--text-secondary);
+    text-align: center;
+    padding: 2rem;
+}
+
+.empty-chat-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+.empty-chat-message {
+    font-size: 1.1rem;
+    margin-bottom: 0.5rem;
+}
+
+.empty-chat-submessage {
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Scrollbar Styling */
+.messages-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.messages-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb {
+    background: var(--coop-green);
+    border-radius: 3px;
+}
+
+.messages-container::-webkit-scrollbar-thumb:hover {
+    background: var(--coop-blue);
+}
+
+/* Modals and Dropdowns */
+.image-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.image-modal.active {
+    display: flex;
+}
+
+.modal-content {
+    max-width: 90vw;
+    max-height: 90vh;
+    position: relative;
+}
+
+.modal-image {
+    max-width: 100%;
+    max-height: 90vh;
+    border-radius: var(--radius);
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+}
+
+.modal-close {
+    position: absolute;
+    top: -50px;
+    right: 0;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.5rem;
+    cursor: pointer;
+    padding: 0.5rem;
+    transition: color 0.2s ease;
+}
+
+.modal-close:hover {
+    color: var(--coop-green);
+}
+
+.chat-options-dropdown {
+    position: absolute;
+    top: 80px;
+    right: 20px;
+    width: 200px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    z-index: 1000;
+    display: none;
+    animation: slideDown 0.2s ease;
+    overflow: hidden;
+}
+
+.chat-options-dropdown.active {
+    display: block;
+}
+
+.dropdown-item {
+    padding: 0.75rem 1rem;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid var(--border-color);
+    text-decoration: none;
+}
+
+.dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.dropdown-item:hover {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.dropdown-item.danger {
+    color: var(--danger);
+}
+
+.dropdown-item.danger:hover {
+    background: rgba(244, 67, 54, 0.1);
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .chat-page {
+        height: calc(100vh - 120px);
+        padding: 0.5rem;
     }
     
     .messages-container {
-        overflow-y: auto;
         padding: 1rem;
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
     }
     
     .message-bubble {
-        max-width: 70%;
-        padding: 12px 16px;
-        border-radius: 18px;
-        position: relative;
-        word-wrap: break-word;
+        max-width: 85%;
+        padding: 0.625rem 0.875rem;
     }
     
-    .message-outgoing {
-        background: var(--accent-gradient);
-        color: white;
-        align-self: flex-end;
-        border-bottom-right-radius: 4px;
+    .message-media img,
+    .message-media video {
+        max-width: 220px;
+        max-height: 220px;
     }
     
-    .message-incoming {
-        background: var(--bg-glass);
-        align-self: flex-start;
-        border-bottom-left-radius: 4px;
+    .chat-header {
+        padding: 0.875rem 1.25rem;
     }
     
-    .message-time {
+    .message-input-area {
+        padding: 1rem;
+    }
+    
+    .message-form {
+        flex-wrap: wrap;
+    }
+    
+    .media-buttons {
+        order: 1;
+        width: 100%;
+        justify-content: center;
+        margin-bottom: 0.5rem;
+    }
+    
+    .message-input-wrapper {
+        order: 2;
+        flex: 1;
+    }
+    
+    .send-btn {
+        order: 3;
+    }
+}
+
+@media (max-width: 576px) {
+    .chat-page {
+        height: calc(100vh - 100px);
+        padding: 0.25rem;
+    }
+    
+    .chat-container {
+        border-radius: var(--radius);
+    }
+    
+    .message-bubble {
+        max-width: 90%;
+        padding: 0.5rem 0.75rem;
+    }
+    
+    .message-media img,
+    .message-media video {
+        max-width: 180px;
+        max-height: 180px;
+    }
+    
+    .message-media audio {
+        width: 200px;
+    }
+    
+    .chat-avatar {
+        width: 40px;
+        height: 40px;
+    }
+    
+    .action-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .message-textarea {
+        min-height: 40px;
+        padding: 0.625rem 3rem 0.625rem 0.875rem;
+    }
+    
+    .send-btn {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .date-separator span {
+        padding: 0.25rem 0.5rem;
         font-size: 0.75rem;
-        opacity: 0.7;
-        margin-top: 4px;
-        text-align: right;
+    }
+}
+
+/* Mobile Landscape */
+@media (max-height: 600px) and (orientation: landscape) {
+    .chat-page {
+        height: calc(100vh - 100px);
     }
     
-    .typing-indicator {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        padding: 8px 12px;
-        background: var(--bg-glass);
-        border-radius: 16px;
-        width: fit-content;
+    .messages-container {
+        padding: 0.75rem;
     }
     
-    .typing-dot {
-        width: 8px;
-        height: 8px;
-        background: var(--text-muted);
-        border-radius: 50%;
-        animation: typing 1.4s infinite;
+    .message-input-area {
+        padding: 0.75rem;
     }
-    
-    .typing-dot:nth-child(2) {
-        animation-delay: 0.2s;
-    }
-    
-    .typing-dot:nth-child(3) {
-        animation-delay: 0.4s;
-    }
-    
-    @keyframes typing {
-        0%, 60%, 100% { transform: translateY(0); }
-        30% { transform: translateY(-4px); }
-    }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="chat-container glass rounded-2xl">
-    <!-- Chat Header -->
-    <div class="p-4 border-b border-glass">
-        <div class="flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <a href="{% url 'profile_view' other_user.username %}" class="flex items-center gap-3">
-                    <div class="relative">
-                        {% if other_profile.photos.all|first %}
-                        <img src="{{ other_profile.photos.all.first.image.url }}" 
-                             alt="{{ other_user.username }}"
-                             class="w-10 h-10 rounded-full object-cover">
-                        {% else %}
-                        <div class="w-10 h-10 rounded-full bg-gradient-to-br from-pink-500 to-cyan-400 flex items-center justify-center">
-                            <span class="text-white font-bold">{{ other_user.username|first|upper }}</span>
+<div class="chat-page">
+    <div class="chat-container">
+        <!-- Chat Header -->
+        <div class="chat-header">
+            <div class="chat-user-info">
+                <a href="{% url 'profile_view' other_user.username %}" class="chat-avatar">
+                    {% if other_profile.photos.first %}
+                        <img src="{{ other_profile.photos.first.image.url }}" 
+                             alt="{{ other_user.username }}">
+                    {% else %}
+                        <div class="chat-avatar default">
+                            {{ other_user.username|first|upper }}
                         </div>
-                        {% endif %}
-                        
-                        {% if other_profile.is_online %}
-                        <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-glass"></div>
-                        {% endif %}
-                    </div>
-                    <div>
-                        <h2 class="font-bold">{{ other_user.username }}</h2>
-                        <div class="flex items-center gap-2 text-sm text-muted">
-                            {% if other_profile.is_online %}
-                            <span class="text-green-400">Online</span>
-                            {% else %}
-                            <span>Last seen {{ other_profile.last_active|timesince }} ago</span>
-                            {% endif %}
-                        </div>
-                    </div>
+                    {% endif %}
+                    <div class="online-status {% if other_profile.is_online %}online{% else %}offline{% endif %}"></div>
                 </a>
+                
+                <div class="user-details">
+                    <h3>{{ other_user.username }}</h3>
+                    <div class="user-status {% if other_profile.is_online %}online{% endif %}">
+                        {% if other_profile.is_online %}
+                            <i class="fas fa-circle" style="font-size: 0.5rem;"></i>
+                            <span>Online</span>
+                        {% else %}
+                            <span>Last active {{ other_profile.last_active|timesince }} ago</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
             
-            <div class="flex items-center gap-2">
-                <a href="{% url 'call_initiate' other_user.username %}" class="p-2 rounded-lg hover:bg-glass-hover">
+            <div class="chat-actions">
+                <a href="{% url 'call_initiate' other_user.username %}" 
+                   class="action-btn call" 
+                   title="Call {{ other_user.username }}">
                     <i class="fas fa-phone"></i>
                 </a>
-                <a href="{% url 'booking_create' other_user.username %}" class="p-2 rounded-lg hover:bg-glass-hover">
+                <a href="{% url 'booking_create' other_user.username %}" 
+                   class="action-btn booking" 
+                   title="Book Service">
                     <i class="fas fa-calendar-plus"></i>
                 </a>
-                <button onclick="toggleChatOptions()" class="p-2 rounded-lg hover:bg-glass-hover">
+                <button class="action-btn" onclick="toggleChatOptions()" title="More options">
                     <i class="fas fa-ellipsis-v"></i>
                 </button>
             </div>
         </div>
-    </div>
-    
-    <!-- Messages Container -->
-    <div id="messages-container" class="messages-container">
-        {% for message in messages %}
-        <div class="message-bubble {% if message.sender == user %}message-outgoing{% else %}message-incoming{% endif %} animate-fade-in">
-            {% if message.message_type == 'image' %}
-            <img src="{{ message.media_file.url }}" 
-                 alt="Image" 
-                 class="max-w-full rounded-lg mb-2 cursor-pointer"
-                 onclick="openImageModal('{{ message.media_file.url }}')">
-            {% elif message.message_type == 'video' %}
-            <video src="{{ message.media_file.url }}" 
-                   controls 
-                   class="max-w-full rounded-lg mb-2"></video>
-            {% elif message.message_type == 'audio' %}
-            <audio src="{{ message.media_file.url }}" 
-                   controls 
-                   class="w-full mb-2"></audio>
+        
+        <!-- Messages Container -->
+        <div id="messages-container" class="messages-container">
+            {% if messages %}
+                {% regroup messages|dictsortreversed:"sent_at" by sent_at|date:"Y-m-d" as grouped_messages %}
+                
+                {% for group in grouped_messages %}
+                    <div class="date-separator">
+                        <span>
+                            {% if group.grouper == now|date:"Y-m-d" %}
+                                Today
+                            {% elif group.grouper == now|date:"Y-m-d"|add:"-1 day" %}
+                                Yesterday
+                            {% else %}
+                                {{ group.grouper|date:"F j, Y" }}
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    {% for message in group.list|dictsort:"sent_at" %}
+                        <div class="message-row">
+                            <div class="message-bubble {% if message.sender == user %}sent{% else %}received{% endif %}">
+                                {% if message.message_type == 'image' %}
+                                    <div class="message-media">
+                                        <img src="{{ message.media_file.url }}" 
+                                             alt="Image" 
+                                             onclick="openImageModal('{{ message.media_file.url }}')">
+                                    </div>
+                                {% elif message.message_type == 'video' %}
+                                    <div class="message-media">
+                                        <video controls>
+                                            <source src="{{ message.media_file.url }}" type="video/mp4">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                {% elif message.message_type == 'audio' %}
+                                    <div class="message-media">
+                                        <audio controls>
+                                            <source src="{{ message.media_file.url }}" type="audio/mpeg">
+                                            Your browser does not support the audio element.
+                                        </audio>
+                                    </div>
+                                {% endif %}
+                                
+                                <div class="message-content">
+                                    {{ message.content|linebreaksbr }}
+                                </div>
+                                
+                                <div class="message-footer">
+                                    <span class="message-time">
+                                        {{ message.sent_at|date:"g:i A" }}
+                                    </span>
+                                    {% if message.sender == user %}
+                                        <span class="message-status {% if message.is_read %}read{% endif %}">
+                                            <i class="fas {% if message.is_read %}fa-check-double{% else %}fa-check{% endif %}"></i>
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% endfor %}
             {% else %}
-            <div>{{ message.content }}</div>
+                <div class="empty-chat">
+                    <div class="empty-chat-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="empty-chat-message">
+                        Start a conversation with {{ other_user.username }}
+                    </div>
+                    <div class="empty-chat-submessage">
+                        Send a message to begin chatting
+                    </div>
+                </div>
             {% endif %}
             
-            <div class="message-time">
-                {{ message.sent_at|date:"g:i A" }}
-                {% if message.sender == user %}
-                {% if message.is_read %}
-                <i class="fas fa-check-double ml-1 text-blue-400"></i>
-                {% else %}
-                <i class="fas fa-check ml-1 text-muted"></i>
-                {% endif %}
-                {% endif %}
+            <!-- Typing Indicator -->
+            <div id="typing-indicator" class="typing-indicator-container" style="display: none;">
+                <div class="typing-indicator">
+                    <div class="typing-text">{{ other_user.username }} is typing</div>
+                    <div class="typing-dots">
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                        <div class="typing-dot"></div>
+                    </div>
+                </div>
             </div>
         </div>
-        {% endfor %}
         
-        <!-- Typing Indicator (Hidden by default) -->
-        <div id="typing-indicator" class="typing-indicator hidden">
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-            <div class="typing-dot"></div>
-        </div>
-    </div>
-    
-    <!-- Message Input -->
-    <div class="p-4 border-t border-glass">
-        <form id="message-form" method="post" enctype="multipart/form-data" class="flex items-center gap-3">
-            {% csrf_token %}
-            
-            <!-- Media Upload Buttons -->
-            <div class="flex items-center gap-2">
-                <label for="image-upload" class="p-2 rounded-lg hover:bg-glass-hover cursor-pointer">
-                    <i class="fas fa-image text-accent-secondary"></i>
-                    <input type="file" id="image-upload" name="media_file" accept="image/*" class="hidden" onchange="uploadImage()">
-                </label>
+        <!-- Message Input Area -->
+        <div class="message-input-area">
+            <form id="message-form" method="post" enctype="multipart/form-data" class="message-form">
+                {% csrf_token %}
                 
-                <label for="video-upload" class="p-2 rounded-lg hover:bg-glass-hover cursor-pointer">
-                    <i class="fas fa-video text-accent-secondary"></i>
-                    <input type="file" id="video-upload" name="media_file" accept="video/*" class="hidden" onchange="uploadVideo()">
-                </label>
+                <div class="media-buttons">
+                    <label class="media-btn image" title="Upload image">
+                        <i class="fas fa-image"></i>
+                        <input type="file" name="media_file" accept="image/*" onchange="uploadMedia(this, 'image')">
+                    </label>
+                    
+                    <label class="media-btn video" title="Upload video">
+                        <i class="fas fa-video"></i>
+                        <input type="file" name="media_file" accept="video/*" onchange="uploadMedia(this, 'video')">
+                    </label>
+                    
+                    <label class="media-btn audio" title="Upload audio">
+                        <i class="fas fa-microphone"></i>
+                        <input type="file" name="media_file" accept="audio/*" onchange="uploadMedia(this, 'audio')">
+                    </label>
+                </div>
                 
-                <label for="audio-upload" class="p-2 rounded-lg hover:bg-glass-hover cursor-pointer">
-                    <i class="fas fa-microphone text-accent-secondary"></i>
-                    <input type="file" id="audio-upload" name="media_file" accept="audio/*" class="hidden" onchange="uploadAudio()">
-                </label>
-            </div>
-            
-            <!-- Message Input -->
-            <div class="flex-1 relative">
-                <textarea name="content" 
-                          id="message-input" 
-                          placeholder="Type a message..."
-                          rows="1"
-                          class="w-full form-control resize-none"
-                          oninput="autoResize(this)"
-                          onkeydown="handleKeyDown(event)"></textarea>
+                <div class="message-input-wrapper">
+                    <textarea name="content" 
+                              id="message-input" 
+                              class="message-textarea"
+                              placeholder="Type your message..."
+                              rows="1"
+                              oninput="autoResize(this)"></textarea>
+                    
+                    <div class="input-actions">
+                        <button type="button" class="emoji-btn" onclick="toggleEmojiPicker()">
+                            <i class="fas fa-smile"></i>
+                        </button>
+                    </div>
+                </div>
                 
-                <!-- Emoji Picker -->
-                <button type="button" onclick="toggleEmojiPicker()" class="absolute right-2 top-1/2 transform -translate-y-1/2">
-                    <i class="fas fa-smile text-muted"></i>
+                <button type="submit" class="send-btn" id="send-btn">
+                    <i class="fas fa-paper-plane"></i>
                 </button>
-            </div>
-            
-            <!-- Send Button -->
-            <button type="submit" class="p-3 rounded-full bg-accent-gradient hover:scale-105 transition-transform">
-                <i class="fas fa-paper-plane text-white"></i>
-            </button>
-        </form>
+            </form>
+        </div>
     </div>
 </div>
 
 <!-- Image Modal -->
-<div id="image-modal" class="fixed inset-0 bg-black/90 hidden z-50 flex items-center justify-center">
-    <button onclick="closeImageModal()" class="absolute top-4 right-4 text-white text-2xl">
-        <i class="fas fa-times"></i>
-    </button>
-    <img id="modal-image" src="" alt="" class="max-h-[90vh] max-w-[90vw]">
+<div id="image-modal" class="image-modal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="closeImageModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <img id="modal-image" class="modal-image" src="" alt="Full size image">
+    </div>
 </div>
 
 <!-- Chat Options Dropdown -->
-<div id="chat-options" class="hidden absolute right-4 top-16 w-48 glass rounded-lg p-2 space-y-2">
-    <button onclick="clearChat()" class="w-full text-left p-2 rounded hover:bg-glass-hover">
-        <i class="fas fa-trash mr-2"></i> Clear Chat
-    </button>
-    <button onclick="blockUser()" class="w-full text-left p-2 rounded hover:bg-glass-hover text-red-400">
-        <i class="fas fa-ban mr-2"></i> Block User
-    </button>
-    <button onclick="deleteChat()" class="w-full text-left p-2 rounded hover:bg-glass-hover text-red-400">
-        <i class="fas fa-times-circle mr-2"></i> Delete Conversation
-    </button>
+<div id="chat-options-dropdown" class="chat-options-dropdown">
+    <div class="dropdown-item" onclick="clearChat()">
+        <i class="fas fa-trash-alt"></i>
+        <span>Clear Chat</span>
+    </div>
+    <div class="dropdown-item" onclick="muteNotifications()">
+        <i class="fas fa-bell-slash"></i>
+        <span>Mute Notifications</span>
+    </div>
+    <div class="dropdown-item danger" onclick="blockUser()">
+        <i class="fas fa-ban"></i>
+        <span>Block User</span>
+    </div>
+    <a href="{% url 'conversation_delete' conversation.id %}" class="dropdown-item danger">
+        <i class="fas fa-trash"></i>
+        <span>Delete Conversation</span>
+    </a>
 </div>
 
 <script>
-let lastMessageId = {% if messages.last.id %}{{ messages.last.id }}{% else %}0{% endif %};
-let isTyping = false;
-let typingTimeout;
+// DOM Elements
+const messagesContainer = document.getElementById('messages-container');
+const messageForm = document.getElementById('message-form');
+const messageInput = document.getElementById('message-input');
+const sendBtn = document.getElementById('send-btn');
+const typingIndicator = document.getElementById('typing-indicator');
+
+// Initialize scroll to bottom
+function scrollToBottom() {
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+}
 
 // Auto-resize textarea
 function autoResize(textarea) {
     textarea.style.height = 'auto';
-    textarea.style.height = (textarea.scrollHeight) + 'px';
+    textarea.style.height = Math.min(textarea.scrollHeight, 120) + 'px';
     
     // Show typing indicator
-    if (textarea.value.trim() && !isTyping) {
-        isTyping = true;
-        sendTypingIndicator(true);
-    }
-}
-
-// Handle Enter key (send on Enter, new line on Shift+Enter)
-function handleKeyDown(event) {
-    if (event.key === 'Enter' && !event.shiftKey) {
-        event.preventDefault();
-        document.getElementById('message-form').submit();
+    if (textarea.value.trim()) {
+        showTypingIndicator();
+    } else {
+        hideTypingIndicator();
     }
 }
 
 // Upload media
-function uploadImage() {
-    document.getElementById('image-upload').form.submit();
+function uploadMedia(input, type) {
+    if (input.files.length > 0) {
+        const formData = new FormData(messageForm);
+        formData.append('message_type', type);
+        submitMessage(formData);
+    }
 }
 
-function uploadVideo() {
-    document.getElementById('video-upload').form.submit();
-}
-
-function uploadAudio() {
-    document.getElementById('audio-upload').form.submit();
-}
-
-// Image modal
-function openImageModal(src) {
-    document.getElementById('modal-image').src = src;
-    document.getElementById('image-modal').classList.remove('hidden');
+// Image modal functions
+function openImageModal(imageUrl) {
+    const modal = document.getElementById('image-modal');
+    const modalImage = document.getElementById('modal-image');
+    
+    modalImage.src = imageUrl;
+    modal.classList.add('active');
+    
+    // Close modal on background click
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeImageModal();
+        }
+    });
+    
+    // Close modal on ESC key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            closeImageModal();
+        }
+    });
 }
 
 function closeImageModal() {
-    document.getElementById('image-modal').classList.add('hidden');
+    document.getElementById('image-modal').classList.remove('active');
 }
 
-// Chat options
+// Chat options dropdown
 function toggleChatOptions() {
-    document.getElementById('chat-options').classList.toggle('hidden');
+    const dropdown = document.getElementById('chat-options-dropdown');
+    dropdown.classList.toggle('active');
 }
 
-function clearChat() {
-    if (confirm('Are you sure you want to clear this chat?')) {
-        // Make API call to clear chat
-        fetch(`/api/clear-chat/{{ conversation.id }}/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        }).then(() => {
-            document.getElementById('messages-container').innerHTML = '';
-        });
+// Close dropdown when clicking outside
+document.addEventListener('click', function(e) {
+    const dropdown = document.getElementById('chat-options-dropdown');
+    const optionsBtn = document.querySelector('[onclick="toggleChatOptions()"]');
+    
+    if (dropdown.classList.contains('active') && 
+        !dropdown.contains(e.target) && 
+        !optionsBtn.contains(e.target)) {
+        dropdown.classList.remove('active');
     }
+});
+
+// Chat actions
+function clearChat() {
+    if (confirm('Clear all messages in this chat? This action cannot be undone.')) {
+        // Implementation for clearing chat
+        console.log('Clearing chat...');
+        // In production, make API call here
+    }
+}
+
+function muteNotifications() {
+    alert('Notifications muted for this conversation.');
 }
 
 function blockUser() {
-    if (confirm('Are you sure you want to block {{ other_user.username }}?')) {
-        fetch(`/contact/{{ other_user.id }}/block/`, {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        }).then(() => {
-            window.location.href = '{% url "inbox" %}';
-        });
+    if (confirm('Are you sure you want to block {{ other_user.username }}? You will no longer receive messages from them.')) {
+        window.location.href = "{% url 'contact_block' other_user.id %}";
     }
-}
-
-function deleteChat() {
-    if (confirm('Are you sure you want to delete this conversation?')) {
-        window.location.href = '{% url "conversation_delete" conversation.id %}';
-    }
-}
-
-// Real-time message updates
-function loadNewMessages() {
-    fetch(`/api/conversation/{{ conversation.id }}/messages/?last_message_id=${lastMessageId}`)
-        .then(response => response.json())
-        .then(data => {
-            if (data.messages.length > 0) {
-                const container = document.getElementById('messages-container');
-                const typingIndicator = document.getElementById('typing-indicator');
-                
-                if (typingIndicator && !typingIndicator.classList.contains('hidden')) {
-                    typingIndicator.classList.add('hidden');
-                }
-                
-                data.messages.forEach(msg => {
-                    const messageDiv = document.createElement('div');
-                    messageDiv.className = `message-bubble ${msg.sender === '{{ user.username }}' ? 'message-outgoing' : 'message-incoming'} animate-fade-in`;
-                    
-                    if (msg.message_type === 'image') {
-                        messageDiv.innerHTML = `
-                            <img src="${msg.media_url}" alt="Image" class="max-w-full rounded-lg mb-2 cursor-pointer" onclick="openImageModal('${msg.media_url}')">
-                            <div class="message-time">${msg.sent_at}</div>
-                        `;
-                    } else {
-                        messageDiv.innerHTML = `
-                            <div>${msg.content}</div>
-                            <div class="message-time">${msg.sent_at}</div>
-                        `;
-                    }
-                    
-                    container.appendChild(messageDiv);
-                    lastMessageId = msg.id;
-                });
-                
-                // Scroll to bottom
-                container.scrollTop = container.scrollHeight;
-            }
-        });
 }
 
 // Typing indicator
-function sendTypingIndicator(isTyping) {
-    fetch('/api/typing-indicator/', {
+let typingTimeout;
+function showTypingIndicator() {
+    typingIndicator.style.display = 'block';
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(hideTypingIndicator, 2000);
+}
+
+function hideTypingIndicator() {
+    typingIndicator.style.display = 'none';
+}
+
+// Form submission
+function submitMessage(formData) {
+    sendBtn.disabled = true;
+    sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+    
+    fetch('', {
         method: 'POST',
+        body: formData,
         headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCookie('csrftoken')
-        },
-        body: JSON.stringify({
-            conversation_id: {{ conversation.id }},
-            is_typing: isTyping
-        })
-    });
-}
-
-// Listen for typing events
-function setupTypingListener() {
-    const textarea = document.getElementById('message-input');
-    
-    textarea.addEventListener('input', () => {
-        clearTimeout(typingTimeout);
-        
-        if (textarea.value.trim()) {
-            if (!isTyping) {
-                isTyping = true;
-                sendTypingIndicator(true);
-            }
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
             
-            typingTimeout = setTimeout(() => {
-                isTyping = false;
-                sendTypingIndicator(false);
-            }, 1000);
-        } else {
-            isTyping = false;
-            sendTypingIndicator(false);
+            // Add message to UI
+            addMessageToUI(data.message, true);
+            
+            // Scroll to bottom
+            scrollToBottom();
         }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to send message. Please try again.');
+    })
+    .finally(() => {
+        // Re-enable send button
+        sendBtn.disabled = false;
+        sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
     });
 }
 
-// Poll for new messages every 3 seconds
-setInterval(loadNewMessages, 3000);
-
-// Initialize
-document.addEventListener('DOMContentLoaded', () => {
-    setupTypingListener();
+messageForm.addEventListener('submit', function(e) {
+    e.preventDefault();
     
-    // Scroll to bottom on load
-    const container = document.getElementById('messages-container');
-    container.scrollTop = container.scrollHeight;
+    const formData = new FormData(this);
+    const message = messageInput.value.trim();
     
-    // Close dropdowns when clicking outside
-    document.addEventListener('click', (event) => {
-        if (!event.target.closest('#chat-options') && !event.target.closest('[onclick="toggleChatOptions()"]')) {
-            document.getElementById('chat-options').classList.add('hidden');
-        }
-    });
+    if (!message && !formData.has('media_file')) {
+        return;
+    }
+    
+    submitMessage(formData);
 });
 
+// Add message to UI
+function addMessageToUI(message, isSent = false) {
+    const messageRow = document.createElement('div');
+    messageRow.className = 'message-row';
+    
+    const messageBubble = document.createElement('div');
+    messageBubble.className = `message-bubble ${isSent ? 'sent' : 'received'}`;
+    
+    let contentHTML = '';
+    if (message.media_url) {
+        if (message.message_type === 'image') {
+            contentHTML = `
+                <div class="message-media">
+                    <img src="${message.media_url}" onclick="openImageModal('${message.media_url}')">
+                </div>
+            `;
+        } else if (message.message_type === 'video') {
+            contentHTML = `
+                <div class="message-media">
+                    <video controls>
+                        <source src="${message.media_url}" type="video/mp4">
+                    </video>
+                </div>
+            `;
+        } else if (message.message_type === 'audio') {
+            contentHTML = `
+                <div class="message-media">
+                    <audio controls>
+                        <source src="${message.media_url}" type="audio/mpeg">
+                    </audio>
+                </div>
+            `;
+        }
+    }
+    
+    contentHTML += `
+        <div class="message-content">${message.content || ''}</div>
+        <div class="message-footer">
+            <span class="message-time">
+                ${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+            ${isSent ? '<span class="message-status"><i class="fas fa-check"></i></span>' : ''}
+        </div>
+    `;
+    
+    messageBubble.innerHTML = contentHTML;
+    messageRow.appendChild(messageBubble);
+    messagesContainer.appendChild(messageRow);
+    
+    // Scroll to bottom
+    scrollToBottom();
+}
+
+// Get CSRF token
 function getCookie(name) {
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -435,5 +1204,22 @@ function getCookie(name) {
     }
     return cookieValue;
 }
+
+// Initialize
+document.addEventListener('DOMContentLoaded', function() {
+    // Scroll to bottom on load
+    scrollToBottom();
+    
+    // Focus on message input
+    messageInput.focus();
+    
+    // Add keyboard shortcut for sending (Ctrl/Cmd + Enter)
+    messageInput.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+            e.preventDefault();
+            messageForm.requestSubmit();
+        }
+    });
+});
 </script>
 {% endblock %}

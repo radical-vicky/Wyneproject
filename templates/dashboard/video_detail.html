@@ -1,0 +1,1522 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ video.title|default:"Video" }} - {{ profile.user.username|default:"User" }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Video Detail Page Specific Styles */
+:root {
+    --video-player-bg: #000;
+    --video-controls: rgba(255,255,255,0.9);
+    --video-progress: var(--coop-green);
+}
+
+.video-player-container {
+    position: relative;
+    background: var(--video-player-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.video-player {
+    width: 100%;
+    max-height: 70vh;
+    display: block;
+    outline: none;
+    aspect-ratio: 16/9;
+}
+
+.video-player-controls {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.8));
+    padding: 20px;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.video-player-container:hover .video-player-controls {
+    opacity: 1;
+}
+
+.video-progress {
+    width: 100%;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    margin-bottom: 15px;
+    border-radius: 2px;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.video-progress-bar {
+    height: 100%;
+    background: var(--video-progress);
+    width: 0%;
+    transition: width 0.1s linear;
+}
+
+.video-controls-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+}
+
+.video-controls-left, .video-controls-right {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.video-control-btn {
+    background: none;
+    border: none;
+    color: var(--video-controls);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+}
+
+.video-control-btn:hover {
+    background: rgba(255,255,255,0.1);
+    transform: scale(1.1);
+}
+
+.video-volume-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.video-volume-slider {
+    width: 80px;
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    overflow: hidden;
+    position: relative;
+    cursor: pointer;
+}
+
+.video-volume-level {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    background: var(--video-controls);
+    width: 100%;
+}
+
+.video-time {
+    font-size: 0.9rem;
+    color: var(--video-controls);
+    font-family: 'Inter', monospace;
+}
+
+.video-title-section {
+    margin-bottom: 24px;
+}
+
+.video-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    line-height: 1.3;
+}
+
+.video-meta {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.video-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.video-meta-item i {
+    color: var(--coop-green);
+}
+
+.video-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 15px;
+}
+
+.video-like-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.video-like-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: var(--coop-green);
+}
+
+.video-like-btn.liked {
+    background: rgba(220, 53, 69, 0.1);
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+.video-like-btn.liked i {
+    color: #dc3545;
+}
+
+.video-description {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.video-description-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: var(--coop-green);
+}
+
+.video-description-content {
+    line-height: 1.6;
+    color: var(--text-secondary);
+}
+
+.video-description-content p {
+    margin-bottom: 10px;
+}
+
+/* Profile Card Styles */
+.profile-card-sidebar {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-card-sidebar:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.profile-header-sidebar {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.profile-avatar-sidebar {
+    position: relative;
+}
+
+.profile-avatar-img {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--coop-green);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.profile-avatar-img:hover {
+    transform: scale(1.05);
+}
+
+.profile-badge {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 0.8rem;
+    border: 2px solid var(--card-bg);
+    cursor: pointer;
+    z-index: 2;
+}
+
+.profile-badge.vip {
+    background: linear-gradient(135deg, #ffd700, #ff8c00);
+}
+
+.profile-badge.verified {
+    background: var(--coop-green);
+}
+
+.profile-info-sidebar {
+    flex: 1;
+}
+
+.profile-name-sidebar {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+}
+
+.profile-status-sidebar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+}
+
+.status-indicator {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.status-indicator.online {
+    background: var(--coop-green);
+    box-shadow: 0 0 8px var(--coop-green);
+}
+
+.status-indicator.offline {
+    background: var(--text-muted);
+}
+
+.profile-details-sidebar {
+    margin-bottom: 20px;
+}
+
+.profile-detail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.profile-detail-item:last-child {
+    border-bottom: none;
+}
+
+.profile-detail-item i {
+    color: var(--coop-green);
+    width: 20px;
+    text-align: center;
+}
+
+.profile-detail-text {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.profile-actions-sidebar {
+    display: grid;
+    gap: 10px;
+}
+
+/* Profile Picture Modal */
+.profile-pic-modal-img {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+/* Related Videos */
+.related-videos-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+}
+
+.related-videos-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: var(--text-primary);
+}
+
+.related-videos-grid {
+    display: grid;
+    gap: 16px;
+}
+
+.related-video-item {
+    background: var(--darker-bg);
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s ease;
+    text-decoration: none;
+}
+
+.related-video-item:hover {
+    transform: translateY(-5px);
+    text-decoration: none;
+}
+
+.related-video-thumbnail {
+    position: relative;
+    aspect-ratio: 16/9;
+    background: var(--dark-bg);
+    overflow: hidden;
+}
+
+.related-video-play {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 1.2rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.related-video-item:hover .related-video-play {
+    opacity: 1;
+}
+
+.related-video-info {
+    padding: 12px;
+}
+
+.related-video-title {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.related-video-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Comments Section */
+.comments-section {
+    background: var(--card-bg);
+    border-radius: 12px;
+    padding: 24px;
+    border: 1px solid var(--border-color);
+    margin-top: 24px;
+}
+
+.comments-title {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+}
+
+.comment-form {
+    margin-bottom: 30px;
+}
+
+.comment-input-group {
+    position: relative;
+}
+
+.comment-textarea {
+    width: 100%;
+    padding: 16px 60px 16px 20px;
+    background: var(--darker-bg);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.comment-textarea:focus {
+    border-color: var(--coop-green);
+    background: rgba(0, 168, 89, 0.05);
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 168, 89, 0.1);
+}
+
+.comment-submit-btn {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    background: var(--coop-green);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.comment-submit-btn:hover {
+    background: #009047;
+    transform: scale(1.1);
+}
+
+.comments-list {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 10px;
+}
+
+.comments-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.comments-list::-webkit-scrollbar-track {
+    background: var(--darker-bg);
+    border-radius: 3px;
+}
+
+.comments-list::-webkit-scrollbar-thumb {
+    background: var(--coop-green);
+    border-radius: 3px;
+}
+
+.comment-item {
+    padding: 16px;
+    margin-bottom: 16px;
+    background: var(--darker-bg);
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.05);
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.comment-author {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+}
+
+.comment-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--coop-green);
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.comment-avatar:hover {
+    transform: scale(1.05);
+}
+
+.comment-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-author-info {
+    flex: 1;
+}
+
+.comment-author-name {
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.comment-author-name:hover {
+    color: var(--coop-green);
+    text-decoration: underline;
+}
+
+.comment-time {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.comment-content {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+.comment-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
+}
+
+.comment-action-btn {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+}
+
+.comment-action-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+.comment-action-btn.delete:hover {
+    color: #dc3545;
+    background: rgba(220, 53, 69, 0.1);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .video-title {
+        font-size: 1.5rem;
+    }
+    
+    .profile-header-sidebar {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .profile-actions-sidebar {
+        grid-template-columns: 1fr;
+    }
+    
+    .related-videos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 576px) {
+    .video-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .video-actions {
+        flex-direction: column;
+    }
+    
+    .video-controls-row {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .video-controls-left, .video-controls-right {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .related-videos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Left Column - Video Player & Details -->
+        <div class="col-lg-8">
+            <!-- Video Player -->
+            <div class="video-player-container">
+                {% if video.video_file %}
+                <video class="video-player" id="mainVideo" preload="metadata" poster="{% if video.thumbnail %}{{ video.thumbnail.url }}{% endif %}">
+                    <source src="{{ video.video_file.url }}" type="video/mp4">
+                    <source src="{{ video.video_file.url }}" type="video/webm">
+                    Your browser does not support the video tag.
+                </video>
+                <div class="video-player-controls">
+                    <div class="video-progress">
+                        <div class="video-progress-bar" id="videoProgressBar"></div>
+                    </div>
+                    <div class="video-controls-row">
+                        <div class="video-controls-left">
+                            <button class="video-control-btn" id="playPauseBtn">
+                                <i class="fas fa-play"></i>
+                            </button>
+                            <div class="video-volume-container">
+                                <button class="video-control-btn" id="volumeBtn">
+                                    <i class="fas fa-volume-up"></i>
+                                </button>
+                                <div class="video-volume-slider">
+                                    <div class="video-volume-level" id="volumeLevel"></div>
+                                </div>
+                            </div>
+                            <span class="video-time" id="currentTime">0:00</span>
+                            <span class="video-time">/</span>
+                            <span class="video-time" id="duration">0:00</span>
+                        </div>
+                        <div class="video-controls-right">
+                            <button class="video-control-btn" id="fullscreenBtn">
+                                <i class="fas fa-expand"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                {% else %}
+                <div class="alert alert-warning text-center p-5">
+                    <i class="fas fa-exclamation-triangle fa-3x mb-3"></i>
+                    <h4>Video file not found</h4>
+                    <p class="mb-0">The video file is currently unavailable.</p>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Video Title & Actions -->
+            <div class="video-title-section">
+                <h1 class="video-title">{{ video.title|default:"Untitled Video" }}</h1>
+                <div class="video-meta">
+                    <div class="video-meta-item">
+                        <i class="fas fa-user"></i>
+                        {% if profile and profile.user and profile.user.username %}
+                        <a href="{% url 'profile_view' profile.user.username %}" class="text-coop">
+                            {{ profile.user.username }}
+                        </a>
+                        {% else %}
+                        <span>Unknown User</span>
+                        {% endif %}
+                    </div>
+                    <div class="video-meta-item">
+                        <i class="fas fa-calendar"></i>
+                        {{ video.uploaded_at|date:"M d, Y" }}
+                    </div>
+                    <div class="video-meta-item">
+                        <i class="fas fa-eye"></i>
+                        {{ video.views }} views
+                    </div>
+                    <div class="video-meta-item">
+                        <i class="fas fa-heart"></i>
+                        <span id="likesCount">{{ video.likes }}</span> likes
+                    </div>
+                    {% if video.duration %}
+                    <div class="video-meta-item">
+                        <i class="fas fa-clock"></i>
+                        {{ video.duration|floatformat:0 }} seconds
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <div class="video-actions">
+                    {% if not is_owner %}
+                    <button class="video-like-btn {% if user_has_liked %}liked{% endif %}" id="likeVideoBtn" data-video-id="{{ video.id }}">
+                        <i class="fas fa-heart"></i>
+                        <span id="likeText">{% if user_has_liked %}Liked{% else %}Like{% endif %}</span>
+                    </button>
+                    {% else %}
+                    <button class="btn btn-primary" id="editVideoBtn" data-video-id="{{ video.id }}">
+                        <i class="fas fa-edit"></i> Edit Video
+                    </button>
+                    <button class="btn btn-danger" id="deleteVideoBtn" data-video-id="{{ video.id }}">
+                        <i class="fas fa-trash"></i> Delete Video
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Video Description -->
+            {% if video.description %}
+            <div class="video-description">
+                <h3 class="video-description-title">Description</h3>
+                <div class="video-description-content">
+                    {{ video.description|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+                <h3 class="comments-title">Comments</h3>
+                
+                <!-- Comment Form -->
+                {% if request.user.is_authenticated %}
+                <form class="comment-form" id="commentForm">
+                    {% csrf_token %}
+                    <div class="comment-input-group">
+                        <textarea class="comment-textarea" id="commentText" placeholder="Add a comment..." rows="3" required></textarea>
+                        <button type="submit" class="comment-submit-btn">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </form>
+                {% else %}
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i>
+                    Please <a href="{% url 'account_login' %}">login</a> to comment.
+                </div>
+                {% endif %}
+
+                <!-- Comments List -->
+                <div class="comments-list" id="commentsList">
+                    {% if video.comments.all %}
+                        {% for comment in video.comments.all|slice:":10" %}
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-author" data-username="{{ comment.user.username }}">
+                                    <div class="comment-avatar" onclick="viewProfilePicture('{{ comment.user.profile.photos.first.image.url|default:'' }}', '{{ comment.user.username }}')">
+                                        {% if comment.user.profile.photos.first %}
+                                        <img src="{{ comment.user.profile.photos.first.image.url }}" 
+                                             alt="{{ comment.user.username }}">
+                                        {% else %}
+                                        <div class="d-flex align-items-center justify-content-center h-100" style="background: var(--coop-green);">
+                                            <i class="fas fa-user"></i>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="comment-author-info">
+                                        <div class="comment-author-name" onclick="window.location.href='{% url 'profile_view' comment.user.username %}'">
+                                            {{ comment.user.username }}
+                                        </div>
+                                        <div class="comment-time">{{ comment.created_at|timesince }} ago</div>
+                                    </div>
+                                </div>
+                                {% if comment.user == request.user or request.user.is_staff or is_owner %}
+                                <button class="comment-action-btn delete" data-comment-id="{{ comment.id }}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            <div class="comment-content">{{ comment.text }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                    <div class="text-center py-4">
+                        <i class="fas fa-comments fa-2x text-muted mb-2"></i>
+                        <p class="text-muted">No comments yet. Be the first to comment!</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column - Profile & Related Videos -->
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            {% if profile %}
+            <div class="profile-card-sidebar">
+                <div class="profile-header-sidebar" data-username="{{ profile.user.username }}" onclick="window.location.href='{% url 'profile_view' profile.user.username %}'">
+                    <div class="profile-avatar-sidebar" onclick="event.stopPropagation(); viewProfilePicture('{% if profile.photos.first %}{{ profile.photos.first.image.url }}{% endif %}', '{{ profile.user.username }}');">
+                        {% if profile.photos.first %}
+                        <img src="{{ profile.photos.first.image.url }}" 
+                             alt="{{ profile.user.username }}" 
+                             class="profile-avatar-img">
+                        {% else %}
+                        <div class="profile-avatar-img d-flex align-items-center justify-content-center" style="background: var(--coop-green);">
+                            <i class="fas fa-user fa-2x"></i>
+                        </div>
+                        {% endif %}
+                        {% if profile.is_vip %}
+                        <div class="profile-badge vip" title="VIP">
+                            <i class="fas fa-crown"></i>
+                        </div>
+                        {% elif profile.is_verified %}
+                        <div class="profile-badge verified" title="Verified">
+                            <i class="fas fa-check"></i>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="profile-info-sidebar">
+                        <h4 class="profile-name-sidebar">{{ profile.user.username|default:"User" }}</h4>
+                        <div class="profile-status-sidebar">
+                            <span class="status-indicator {% if profile.is_online %}online{% else %}offline{% endif %}"></span>
+                            <span>{% if profile.is_online %}Online Now{% else %}Offline{% endif %}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="profile-details-sidebar">
+                    {% if profile.city_town %}
+                    <div class="profile-detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span class="profile-detail-text">{{ profile.city_town }}{% if profile.county %}, {{ profile.county }}{% endif %}</span>
+                    </div>
+                    {% endif %}
+                    {% if profile.age %}
+                    <div class="profile-detail-item">
+                        <i class="fas fa-birthday-cake"></i>
+                        <span class="profile-detail-text">{{ profile.age }} years old</span>
+                    </div>
+                    {% endif %}
+                    {% if profile.services_offered %}
+                    <div class="profile-detail-item">
+                        <i class="fas fa-star"></i>
+                        <span class="profile-detail-text">{{ profile.services_offered|truncatechars:50 }}</span>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="profile-actions-sidebar">
+                    {% if not is_owner %}
+                    <a href="{% url 'conversation_user' username=profile.user.username %}" class="btn btn-primary">
+                        <i class="fas fa-envelope"></i> Send Message
+                    </a>
+                    <a href="{% url 'booking_create' username=profile.user.username %}" class="btn btn-secondary">
+                        <i class="fas fa-calendar-plus"></i> Book Service
+                    </a>
+                    {% else %}
+                    <a href="{% url 'upload_video' %}" class="btn btn-primary">
+                        <i class="fas fa-upload"></i> Upload New Video
+                    </a>
+                    <a href="{% url 'profile_edit' %}" class="btn btn-secondary">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Related Videos -->
+            {% if similar_videos %}
+            <div class="related-videos-section">
+                <h3 class="related-videos-title">More from {{ profile.user.username|default:"User" }}</h3>
+                <div class="related-videos-grid">
+                    {% for similar_video in similar_videos|slice:":4" %}
+                    <a href="{% url 'video_detail' similar_video.id %}" class="related-video-item">
+                        <div class="related-video-thumbnail">
+                            {% if similar_video.thumbnail %}
+                            <img src="{{ similar_video.thumbnail.url }}" alt="{{ similar_video.title }}" style="width:100%;height:100%;object-fit:cover;">
+                            {% else %}
+                            <div class="d-flex align-items-center justify-content-center h-100" style="background: var(--dark-bg);">
+                                <i class="fas fa-play-circle fa-3x" style="color: var(--coop-green);"></i>
+                            </div>
+                            {% endif %}
+                            <div class="related-video-play">
+                                <i class="fas fa-play"></i>
+                            </div>
+                        </div>
+                        <div class="related-video-info">
+                            <h4 class="related-video-title">{{ similar_video.title|default:"Video"|truncatechars:40 }}</h4>
+                            <div class="related-video-meta">
+                                <span>{{ similar_video.views }} views</span>
+                                <span>{{ similar_video.uploaded_at|timesince }} ago</span>
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Profile Picture Modal -->
+<div class="modal" id="profilePicModal">
+    <div class="modal-content">
+        <button class="modal-close" id="modalClose">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 id="profilePicModalLabel" class="card-title mb-3">Profile Picture</h3>
+        <div class="text-center p-4">
+            <img id="profilePicModalImg" class="profile-pic-modal-img" src="" alt="Profile Picture">
+            <div class="mt-3">
+                <a href="#" id="profilePicViewProfileBtn" class="btn btn-primary me-2">
+                    <i class="fas fa-user"></i> View Profile
+                </a>
+                <button type="button" class="btn btn-secondary" onclick="$('#profilePicModal').removeClass('active');">
+                    <i class="fas fa-times"></i> Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Video Modal -->
+<div class="modal" id="editVideoModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="$('#editVideoModal').removeClass('active');">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="card-title mb-3">Edit Video</h3>
+        <form id="editVideoForm">
+            {% csrf_token %}
+            <div class="form-group">
+                <label for="editTitle" class="form-label">Title</label>
+                <input type="text" class="form-control" id="editTitle" value="{{ video.title }}" required>
+            </div>
+            <div class="form-group">
+                <label for="editDescription" class="form-label">Description</label>
+                <textarea class="form-control" id="editDescription" rows="4">{{ video.description }}</textarea>
+            </div>
+            <div class="form-group">
+                <label for="editThumbnail" class="form-label">Thumbnail</label>
+                <input type="file" class="form-control" id="editThumbnail" accept="image/*">
+                {% if video.thumbnail %}
+                <div class="mt-2">
+                    <small>Current thumbnail:</small><br>
+                    <img src="{{ video.thumbnail.url }}" alt="Current thumbnail" style="max-width: 200px; border-radius: 5px; margin-top: 5px;">
+                </div>
+                {% endif %}
+            </div>
+            <div class="d-flex gap-2 mt-3">
+                <button type="button" class="btn btn-secondary" onclick="$('#editVideoModal').removeClass('active');">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="deleteVideoModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="$('#deleteVideoModal').removeClass('active');">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="text-center p-4">
+            <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+            <h4>Are you sure?</h4>
+            <p>This will permanently delete "<strong>{{ video.title }}</strong>" and all associated data.</p>
+            <p class="text-muted">This action cannot be undone.</p>
+            <div class="d-flex gap-2 mt-3 justify-center">
+                <button type="button" class="btn btn-secondary" onclick="$('#deleteVideoModal').removeClass('active');">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete Video</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Get CSRF token function
+    function getCSRFToken() {
+        return $('meta[name="csrf-token"]').attr('content') || 
+               $('input[name="csrfmiddlewaretoken"]').val();
+    }
+
+    // Show message function
+    function showMessage(message, type) {
+        const alertClass = type === 'success' ? 'alert-success' : 
+                          type === 'error' ? 'alert-error' : 
+                          type === 'warning' ? 'alert-warning' : 'alert-info';
+        
+        const iconClass = type === 'success' ? 'fa-check-circle' : 
+                         type === 'error' ? 'fa-exclamation-circle' : 
+                         type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle';
+        
+        const messageHtml = `
+            <div class="alert ${alertClass} fade-in">
+                <i class="fas ${iconClass}"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        
+        // Remove existing alerts
+        $('.messages-container .alert').remove();
+        
+        // Add new alert
+        $('.messages-container').append(messageHtml);
+        
+        // Auto dismiss after 5 seconds
+        setTimeout(function() {
+            $('.messages-container .alert').fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 5000);
+    }
+
+    // View profile picture function
+    window.viewProfilePicture = function(imageUrl, username) {
+        if (imageUrl) {
+            $('#profilePicModalImg').attr('src', imageUrl).attr('alt', `${username}'s profile picture`);
+            $('#profilePicViewProfileBtn').attr('href', `/profile/${username}/`);
+            $('#profilePicModalLabel').text(`${username}'s Profile Picture`);
+            $('#profilePicModal').addClass('active');
+        } else {
+            window.location.href = `/profile/${username}/`;
+        }
+    };
+
+    // Video Player Controls
+    const video = document.getElementById('mainVideo');
+    if (video) {
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeLevel = document.getElementById('volumeLevel');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const videoProgressBar = document.getElementById('videoProgressBar');
+        const currentTimeEl = document.getElementById('currentTime');
+        const durationEl = document.getElementById('duration');
+        
+        // Format time
+        function formatTime(seconds) {
+            const minutes = Math.floor(seconds / 60);
+            const remainingSeconds = Math.floor(seconds % 60);
+            return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+        }
+        
+        // Update time display
+        function updateTimeDisplay() {
+            if (video.duration) {
+                currentTimeEl.textContent = formatTime(video.currentTime);
+                durationEl.textContent = formatTime(video.duration);
+                videoProgressBar.style.width = (video.currentTime / video.duration * 100) + '%';
+            }
+        }
+        
+        // Play/Pause
+        if (playPauseBtn) {
+            playPauseBtn.addEventListener('click', function() {
+                if (video.paused) {
+                    video.play();
+                    playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+                } else {
+                    video.pause();
+                    playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+                }
+            });
+        }
+        
+        // Volume control
+        if (volumeBtn) {
+            volumeBtn.addEventListener('click', function() {
+                if (video.muted) {
+                    video.muted = false;
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else {
+                    video.muted = true;
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                }
+            });
+        }
+        
+        // Volume slider
+        const volumeSlider = document.querySelector('.video-volume-slider');
+        if (volumeSlider && volumeLevel) {
+            volumeSlider.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                video.volume = Math.max(0, Math.min(1, percent));
+                volumeLevel.style.width = (video.volume * 100) + '%';
+            });
+        }
+        
+        // Fullscreen
+        if (fullscreenBtn) {
+            fullscreenBtn.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    video.requestFullscreen().catch(err => {
+                        console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                    });
+                    fullscreenBtn.innerHTML = '<i class="fas fa-compress"></i>';
+                } else {
+                    document.exitFullscreen();
+                    fullscreenBtn.innerHTML = '<i class="fas fa-expand"></i>';
+                }
+            });
+        }
+        
+        // Update volume display
+        video.addEventListener('volumechange', function() {
+            if (volumeLevel) {
+                volumeLevel.style.width = (video.volume * 100) + '%';
+            }
+            if (volumeBtn) {
+                if (video.muted) {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-mute"></i>';
+                } else if (video.volume > 0.5) {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-up"></i>';
+                } else if (video.volume > 0) {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-down"></i>';
+                } else {
+                    volumeBtn.innerHTML = '<i class="fas fa-volume-off"></i>';
+                }
+            }
+        });
+        
+        // Update progress bar
+        video.addEventListener('timeupdate', updateTimeDisplay);
+        
+        // Click on progress bar to seek
+        const progressBar = document.querySelector('.video-progress');
+        if (progressBar) {
+            progressBar.addEventListener('click', function(e) {
+                const rect = this.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                video.currentTime = percent * video.duration;
+            });
+        }
+        
+        // Initialize time display
+        video.addEventListener('loadedmetadata', function() {
+            updateTimeDisplay();
+        });
+        
+        // Ensure audio is enabled
+        video.volume = 0.8;
+        video.muted = false;
+    }
+    
+    // Like Video
+    $('#likeVideoBtn').click(function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const videoId = btn.data('video-id');
+        const isLiked = btn.hasClass('liked');
+        
+        // Check if user is authenticated
+        if (!{{ request.user.is_authenticated|yesno:"true,false" }}) {
+            showMessage('Please login to like videos', 'warning');
+            return;
+        }
+        
+        btn.prop('disabled', true);
+        
+        $.ajax({
+            url: `/video/${videoId}/like/`,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    if (response.liked) {
+                        btn.addClass('liked');
+                        btn.find('#likeText').text('Liked');
+                    } else {
+                        btn.removeClass('liked');
+                        btn.find('#likeText').text('Like');
+                    }
+                    $('#likesCount').text(response.likes_count);
+                    showMessage('Video ' + (response.liked ? 'liked!' : 'unliked!'), 'success');
+                } else {
+                    showMessage('Error: ' + (response.error || 'Unknown error'), 'error');
+                }
+                btn.prop('disabled', false);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error liking video:', xhr.responseText);
+                const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error liking video. Please try again.';
+                showMessage(errorMsg, 'error');
+                btn.prop('disabled', false);
+            }
+        });
+    });
+    
+    // Edit Video
+    $('#editVideoBtn').click(function(e) {
+        e.preventDefault();
+        $('#editVideoModal').addClass('active');
+    });
+    
+    $('#editVideoForm').submit(function(e) {
+        e.preventDefault();
+        
+        const videoId = '{{ video.id }}';
+        const formData = new FormData();
+        
+        // Add form data
+        formData.append('title', $('#editTitle').val());
+        formData.append('description', $('#editDescription').val());
+        formData.append('csrfmiddlewaretoken', getCSRFToken());
+        
+        // Add thumbnail file if selected
+        const thumbnailFile = $('#editThumbnail')[0].files[0];
+        if (thumbnailFile) {
+            formData.append('thumbnail', thumbnailFile);
+        }
+        
+        const submitBtn = $(this).find('button[type="submit"]');
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        
+        $.ajax({
+            url: `/api/video/${videoId}/edit/`,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Video updated successfully!', 'success');
+                    $('#editVideoModal').removeClass('active');
+                    // Update the page with new data
+                    if (response.video) {
+                        $('.video-title').text(response.video.title);
+                        if (response.video.description) {
+                            $('.video-description-content').html(response.video.description.replace(/\n/g, '<br>'));
+                        }
+                        if (response.video.thumbnail_url) {
+                            $('video').attr('poster', response.video.thumbnail_url);
+                            $('video').trigger('load');
+                        }
+                    }
+                } else {
+                    showMessage('Error: ' + (response.error || 'Unknown error'), 'error');
+                    submitBtn.prop('disabled', false).html('Save Changes');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating video:', xhr.responseText);
+                const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error updating video. Please try again.';
+                showMessage(errorMsg, 'error');
+                submitBtn.prop('disabled', false).html('Save Changes');
+            }
+        });
+    });
+    
+    // Delete Video
+    $('#deleteVideoBtn').click(function(e) {
+        e.preventDefault();
+        $('#deleteVideoModal').addClass('active');
+    });
+    
+    $('#confirmDeleteBtn').click(function(e) {
+        e.preventDefault();
+        const btn = $(this);
+        const videoId = '{{ video.id }}';
+        btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
+        
+        $.ajax({
+            url: `/api/video/${videoId}/delete/`,
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            data: {
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Video deleted successfully!', 'success');
+                    $('#deleteVideoModal').removeClass('active');
+                    setTimeout(() => {
+                        window.location.href = "{% url 'profile' %}";
+                    }, 1500);
+                } else {
+                    showMessage('Error: ' + (response.error || 'Unknown error'), 'error');
+                    btn.prop('disabled', false).html('Delete Video');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting video:', xhr.responseText);
+                const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error deleting video. Please try again.';
+                showMessage(errorMsg, 'error');
+                btn.prop('disabled', false).html('Delete Video');
+            }
+        });
+    });
+    
+    // Comment Form
+    $('#commentForm').submit(function(e) {
+        e.preventDefault();
+        
+        const commentText = $('#commentText').val().trim();
+        if (!commentText) {
+            showMessage('Please enter a comment', 'warning');
+            return;
+        }
+        
+        // Check if user is authenticated
+        if (!{{ request.user.is_authenticated|yesno:"true,false" }}) {
+            showMessage('Please login to comment', 'warning');
+            return;
+        }
+        
+        const submitBtn = $(this).find('.comment-submit-btn');
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '{% url "api_video_comment" video_id=video.id %}',
+            method: 'POST',
+            data: {
+                text: commentText,
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#commentText').val('');
+                    // Add new comment to list
+                    const commentHtml = `
+                        <div class="comment-item">
+                            <div class="comment-header">
+                                <div class="comment-author" data-username="${response.comment.username}">
+                                    <div class="comment-avatar" onclick="viewProfilePicture('${response.comment.avatar_url || ''}', '${response.comment.username}')">
+                                        ${response.comment.avatar_url ? 
+                                            `<img src="${response.comment.avatar_url}" alt="${response.comment.username}">` :
+                                            `<div class="d-flex align-items-center justify-content-center h-100" style="background: var(--coop-green);">
+                                                <i class="fas fa-user"></i>
+                                            </div>`
+                                        }
+                                    </div>
+                                    <div class="comment-author-info">
+                                        <div class="comment-author-name" onclick="window.location.href='/profile/${response.comment.username}/'">
+                                            ${response.comment.username}
+                                        </div>
+                                        <div class="comment-time">Just now</div>
+                                    </div>
+                                </div>
+                                <button class="comment-action-btn delete" data-comment-id="${response.comment.id}">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                            <div class="comment-content">${response.comment.text}</div>
+                        </div>
+                    `;
+                    $('#commentsList').prepend(commentHtml);
+                    showMessage('Comment added!', 'success');
+                } else {
+                    showMessage('Error: ' + (response.error || 'Unknown error'), 'error');
+                }
+                submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error adding comment:', xhr.responseText);
+                const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error adding comment. Please try again.';
+                showMessage(errorMsg, 'error');
+                submitBtn.prop('disabled', false).html('<i class="fas fa-paper-plane"></i>');
+            }
+        });
+    });
+    
+    // Delete comment
+    $(document).on('click', '.comment-action-btn.delete', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const commentId = $(this).data('comment-id');
+        const commentItem = $(this).closest('.comment-item');
+        
+        if (confirm('Are you sure you want to delete this comment?')) {
+            $.ajax({
+                url: `/api/comment/${commentId}/delete/`,
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                data: {
+                    csrfmiddlewaretoken: getCSRFToken()
+                },
+                success: function(response) {
+                    if (response.success) {
+                        commentItem.fadeOut(300, function() {
+                            $(this).remove();
+                            showMessage('Comment deleted!', 'success');
+                        });
+                    } else {
+                        showMessage('Error: ' + (response.error || 'Unknown error'), 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error deleting comment:', xhr.responseText);
+                    const errorMsg = xhr.responseJSON && xhr.responseJSON.error ? xhr.responseJSON.error : 'Error deleting comment. Please try again.';
+                    showMessage(errorMsg, 'error');
+                }
+            });
+        }
+    });
+    
+    // Auto-play video when it's partially in viewport
+    function handleVideoAutoPlay() {
+        const videoElement = document.getElementById('mainVideo');
+        if (!videoElement) return;
+        
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+                        if (videoElement.paused) {
+                            videoElement.play().catch(e => {
+                                console.log('Autoplay prevented:', e);
+                            });
+                        }
+                    } else {
+                        if (!videoElement.paused) {
+                            videoElement.pause();
+                        }
+                    }
+                });
+            },
+            {
+                threshold: [0.5]
+            }
+        );
+        
+        observer.observe(videoElement);
+    }
+    
+    // Initialize video auto-play
+    if (document.getElementById('mainVideo')) {
+        handleVideoAutoPlay();
+    }
+    
+    // Close modals when clicking outside
+    $(document).on('click', '.modal', function(e) {
+        if (e.target === this) {
+            $(this).removeClass('active');
+        }
+    });
+    
+    // Close modals with escape key
+    $(document).keyup(function(e) {
+        if (e.key === "Escape") {
+            $('.modal.active').removeClass('active');
+        }
+    });
+});
+</script>
+{% endblock %}

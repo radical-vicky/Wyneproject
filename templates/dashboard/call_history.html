@@ -1,9 +1,581 @@
-<!-- main/templates/dashboard/call_history.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Call History - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Call History specific styles */
+.call-history-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.call-filter {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 8px 20px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+}
+
+.filter-btn:hover {
+    background: rgba(255,255,255,0.05);
+    color: var(--text-primary);
+}
+
+.filter-btn.active {
+    background: var(--coop-green);
+    color: white;
+    border-color: var(--coop-green);
+}
+
+.call-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 20px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 15px;
+    transition: all 0.3s ease;
+}
+
+.call-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow);
+    border-color: var(--coop-green);
+}
+
+.call-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 15px;
+}
+
+.call-user {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.call-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid var(--coop-green);
+    flex-shrink: 0;
+}
+
+.call-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.call-info {
+    flex: 1;
+}
+
+.call-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-bottom: 5px;
+}
+
+.call-direction {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+.direction-outgoing {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+}
+
+.direction-incoming {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.call-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 15px;
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius);
+    margin-bottom: 15px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    min-width: 150px;
+}
+
+.detail-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.call-type-badge {
+    display: inline-block;
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.type-audio {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+    border-left: 3px solid var(--info);
+}
+
+.type-video {
+    background: rgba(156, 39, 176, 0.2);
+    color: #9c27b0;
+    border-left: 3px solid #9c27b0;
+}
+
+.call-status {
+    display: inline-block;
+    padding: 5px 15px;
+    border-radius: 15px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-completed {
+    background: rgba(76, 175, 80, 0.2);
+    color: var(--success);
+}
+
+.status-missed {
+    background: rgba(244, 67, 54, 0.2);
+    color: var(--danger);
+}
+
+.status-declined {
+    background: rgba(255, 193, 7, 0.2);
+    color: var(--warning);
+}
+
+.status-pending {
+    background: rgba(33, 150, 243, 0.2);
+    color: var(--info);
+}
+
+.call-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.duration-display {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--coop-green);
+    text-align: right;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: var(--text-muted);
+    margin-bottom: 20px;
+}
+
+/* Call stats */
+.call-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+
+.stat-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    color: var(--coop-green);
+    margin-bottom: 10px;
+}
+
+.stat-number {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .call-header {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .call-user {
+        width: 100%;
+    }
+    
+    .duration-display {
+        text-align: left;
+    }
+    
+    .call-details {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .call-stats {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: call_history.html</h1>
-    <p>Content coming soon...</p>
+<div class="call-history-header">
+    <div>
+        <h1 class="card-title">Call History</h1>
+        <p class="card-subtitle">View your audio and video call logs</p>
+    </div>
+    <a href="{% url 'search' %}" class="btn btn-primary">
+        <i class="fas fa-phone-alt"></i> New Call
+    </a>
 </div>
+
+<!-- Call Stats -->
+<div class="call-stats">
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-phone-alt"></i>
+        </div>
+        <div class="stat-number">{{ total_calls|default:"0" }}</div>
+        <div class="stat-label">Total Calls</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-clock"></i>
+        </div>
+        <div class="stat-number">{{ total_duration|default:"0" }} min</div>
+        <div class="stat-label">Total Duration</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-number">{{ completed_calls|default:"0" }}</div>
+        <div class="stat-label">Completed Calls</div>
+    </div>
+    
+    <div class="stat-card">
+        <div class="stat-icon">
+            <i class="fas fa-video"></i>
+        </div>
+        <div class="stat-number">{{ video_calls|default:"0" }}</div>
+        <div class="stat-label">Video Calls</div>
+    </div>
+</div>
+
+<!-- Call Filter -->
+<div class="call-filter">
+    <button class="filter-btn active" data-filter="all">All Calls</button>
+    <button class="filter-btn" data-filter="audio">Audio Calls</button>
+    <button class="filter-btn" data-filter="video">Video Calls</button>
+    <button class="filter-btn" data-filter="completed">Completed</button>
+    <button class="filter-btn" data-filter="missed">Missed</button>
+    <button class="filter-btn" data-filter="outgoing">Outgoing</button>
+    <button class="filter-btn" data-filter="incoming">Incoming</button>
+</div>
+
+<!-- Call History List -->
+<div class="call-history-list">
+    {% if page_obj %}
+        {% for call in page_obj %}
+        <div class="call-card" data-type="{{ call.call_type }}" data-status="{{ call.status }}" data-direction="{% if call.caller == user %}outgoing{% else %}incoming{% endif %}">
+            <div class="call-header">
+                <div class="call-user">
+                    <div class="call-avatar">
+                        {% if call.caller == user %}
+                            <!-- Outgoing call - show receiver -->
+                            {% if call.receiver.profile.photos.first %}
+                            <img src="{{ call.receiver.profile.photos.first.image.url }}" alt="{{ call.receiver.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--primary-gradient);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        {% else %}
+                            <!-- Incoming call - show caller -->
+                            {% if call.caller.profile.photos.first %}
+                            <img src="{{ call.caller.profile.photos.first.image.url }}" alt="{{ call.caller.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--primary-gradient);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    
+                    <div class="call-info">
+                        <div class="call-name">
+                            {% if call.caller == user %}
+                                {{ call.receiver.username }}
+                            {% else %}
+                                {{ call.caller.username }}
+                            {% endif %}
+                        </div>
+                        
+                        <div class="call-direction {% if call.caller == user %}direction-outgoing{% else %}direction-incoming{% endif %}">
+                            {% if call.caller == user %}
+                                <i class="fas fa-arrow-up"></i> Outgoing
+                            {% else %}
+                                <i class="fas fa-arrow-down"></i> Incoming
+                            {% endif %}
+                        </div>
+                        
+                        <div class="text-secondary text-sm">
+                            <i class="far fa-clock"></i> {{ call.started_at|date:"M d, Y H:i" }}
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="duration-display">
+                    {% if call.duration %}
+                        {{ call.duration }} min
+                    {% else %}
+                        -
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="call-details">
+                <div class="detail-item">
+                    <div class="detail-label">Call Type</div>
+                    <div>
+                        <span class="call-type-badge type-{{ call.call_type }}">
+                            <i class="fas fa-{% if call.call_type == 'video' %}video{% else %}phone{% endif %}"></i>
+                            {{ call.call_type|title }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Status</div>
+                    <div>
+                        <span class="call-status status-{{ call.status }}">
+                            {% if call.status == 'completed' %}
+                                <i class="fas fa-check-circle"></i>
+                            {% elif call.status == 'missed' %}
+                                <i class="fas fa-times-circle"></i>
+                            {% elif call.status == 'declined' %}
+                                <i class="fas fa-ban"></i>
+                            {% else %}
+                                <i class="fas fa-clock"></i>
+                            {% endif %}
+                            {{ call.status|title }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Started At</div>
+                    <div class="detail-value">{{ call.started_at|date:"g:i A" }}</div>
+                </div>
+                
+                <div class="detail-item">
+                    <div class="detail-label">Ended At</div>
+                    <div class="detail-value">
+                        {% if call.ended_at %}
+                            {{ call.ended_at|date:"g:i A" }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="call-actions">
+                {% if call.status == 'completed' %}
+                    {% if call.caller == user %}
+                        <a href="{% url 'call_initiate' call.receiver.username %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-phone-alt"></i> Call Again
+                        </a>
+                    {% else %}
+                        <a href="{% url 'call_initiate' call.caller.username %}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-phone-alt"></i> Call Back
+                        </a>
+                    {% endif %}
+                {% endif %}
+                
+                {% if call.status == 'missed' and call.caller != user %}
+                    <a href="{% url 'call_initiate' call.caller.username %}" class="btn btn-primary btn-sm">
+                        <i class="fas fa-phone-alt"></i> Call Back
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'call_detail' call.id %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-info-circle"></i> Details
+                </a>
+                
+                {% if call.caller == user %}
+                    <a href="{% url 'profile_view' call.receiver.username %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                {% else %}
+                    <a href="{% url 'profile_view' call.caller.username %}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-user"></i> Profile
+                    </a>
+                {% endif %}
+                
+                <a href="{% url 'conversation_user' call.caller.username %}" class="btn btn-secondary btn-sm">
+                    <i class="fas fa-comment"></i> Message
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-phone-alt"></i>
+            </div>
+            <h3 class="mb-2">No Call History</h3>
+            <p class="text-secondary mb-4">Start making calls to build your call history</p>
+            <a href="{% url 'search' %}" class="btn btn-primary">
+                <i class="fas fa-search"></i> Find Someone to Call
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Pagination -->
+{% if page_obj.has_other_pages %}
+<nav class="mt-4">
+    <ul class="pagination justify-content-center">
+        {% if page_obj.has_previous %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if call_type %}&type={{ call_type }}{% endif %}" aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+            </a>
+        </li>
+        {% endif %}
+        
+        {% for i in page_obj.paginator.page_range %}
+        {% if page_obj.number == i %}
+        <li class="page-item active">
+            <span class="page-link">{{ i }}</span>
+        </li>
+        {% else %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ i }}{% if call_type %}&type={{ call_type }}{% endif %}">{{ i }}</a>
+        </li>
+        {% endif %}
+        {% endfor %}
+        
+        {% if page_obj.has_next %}
+        <li class="page-item">
+            <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if call_type %}&type={{ call_type }}{% endif %}" aria-label="Next">
+                <span aria-hidden="true">&raquo;</span>
+            </a>
+        </li>
+        {% endif %}
+    </ul>
+</nav>
+{% endif %}
+
+<script>
+$(document).ready(function() {
+    // Filter functionality
+    $('.filter-btn').click(function() {
+        $('.filter-btn').removeClass('active');
+        $(this).addClass('active');
+        
+        const filter = $(this).data('filter');
+        
+        if (filter === 'all') {
+            $('.call-card').show();
+        } else {
+            $('.call-card').hide();
+            $(`.call-card[data-${filter}]`).show();
+            
+            // Special handling for direction filters
+            if (filter === 'outgoing' || filter === 'incoming') {
+                $(`.call-card[data-direction="${filter}"]`).show();
+            }
+        }
+    });
+    
+    // Set active filter based on URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const callType = urlParams.get('type');
+    if (callType) {
+        $('.filter-btn').removeClass('active');
+        $(`[data-filter="${callType}"]`).addClass('active');
+        
+        // Apply filter
+        $('.call-card').hide();
+        $(`.call-card[data-type="${callType}"]`).show();
+    }
+    
+    // Initialize call duration formatting
+    $('.duration-display').each(function() {
+        const duration = $(this).text().trim();
+        if (duration !== '-' && !isNaN(duration)) {
+            const mins = parseInt(duration);
+            if (mins < 60) {
+                $(this).text(mins + ' min');
+            } else {
+                const hours = Math.floor(mins / 60);
+                const remainingMins = mins % 60;
+                $(this).text(hours + 'h ' + remainingMins + 'm');
+            }
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -1,244 +1,504 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Post - {{ post.user.username }} - CoopConnect{% endblock %}
+{% block title %}Post by {{ post.user.username }} - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+.post-detail {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.post-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.post-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.post-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.post-meta {
+    flex: 1;
+}
+
+.post-author {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.post-time {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.post-actions-header {
+    display: flex;
+    gap: 10px;
+}
+
+.post-content {
+    margin-bottom: 25px;
+    line-height: 1.6;
+}
+
+.post-media {
+    margin: 25px 0;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+}
+
+.post-media img, .post-media video {
+    width: 100%;
+    max-height: 500px;
+    object-fit: contain;
+    background: #000;
+}
+
+.post-stats {
+    display: flex;
+    gap: 20px;
+    padding: 15px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin: 20px 0;
+}
+
+.stat-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--text-secondary);
+}
+
+.interaction-buttons {
+    display: flex;
+    gap: 10px;
+    margin: 25px 0;
+}
+
+.interaction-btn {
+    flex: 1;
+    padding: 12px;
+    background: var(--darker-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.interaction-btn:hover {
+    background: rgba(255,255,255,0.05);
+}
+
+.interaction-btn.active {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+.interaction-btn.active.like {
+    background: rgba(244,67,54,0.1);
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.comments-section {
+    margin-top: 30px;
+}
+
+.comment-form {
+    margin-bottom: 30px;
+}
+
+.comment-list {
+    margin-top: 20px;
+}
+
+.comment-item {
+    padding: 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.comment-item:last-child {
+    border-bottom: none;
+}
+
+.comment-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.comment-avatar {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    overflow: hidden;
+}
+
+.comment-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.comment-author {
+    font-weight: 500;
+}
+
+.comment-time {
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+}
+
+.comment-actions {
+    margin-top: 10px;
+    display: flex;
+    gap: 15px;
+}
+
+.comment-action {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.comment-action:hover {
+    color: var(--coop-green);
+}
+
+.share-options {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.share-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px;
+    cursor: pointer;
+    border-radius: var(--radius);
+    transition: background 0.3s ease;
+}
+
+.share-option:hover {
+    background: rgba(255,255,255,0.05);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container">
+<div class="post-detail">
     <!-- Post Card -->
-    <div class="card mb-4">
-        <!-- Header -->
-        <div class="card-header bg-transparent">
-            <div class="d-flex justify-content-between align-items-center">
-                <div class="d-flex align-items-center">
-                    <a href="{% url 'profile_view' username=post.user.username %}" 
-                       class="text-decoration-none d-flex align-items-center">
-                        {% if post.user.profile.photos.all %}
-                        <img src="{{ post.user.profile.photos.first.image.url }}" 
-                             alt="{{ post.user.username }}"
-                             class="rounded-circle me-3" width="50" height="50"
-                             style="object-fit: cover;">
-                        {% else %}
-                        <div class="rounded-circle bg-gradient me-3 d-flex align-items-center justify-content-center"
-                             style="width: 50px; height: 50px; background: linear-gradient(135deg, var(--coop-blue), var(--coop-green));">
-                            <i class="fas fa-user text-light"></i>
-                        </div>
-                        {% endif %}
-                        <div>
-                            <h6 class="mb-0">{{ post.user.username }}</h6>
-                            <small class="text-secondary">{{ post.created_at|timesince }} ago</small>
-                        </div>
-                    </a>
+    <div class="card">
+        <!-- Post Header -->
+        <div class="post-header">
+            <div class="post-avatar">
+                {% if post.user.profile.photos.first %}
+                <img src="{{ post.user.profile.photos.first.image.url }}" alt="{{ post.user.username }}">
+                {% else %}
+                <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                    <i class="fas fa-user"></i>
                 </div>
-                
-                <!-- Dropdown -->
-                {% if user == post.user or user.is_staff %}
+                {% endif %}
+            </div>
+            
+            <div class="post-meta">
+                <div class="post-author">{{ post.user.username }}</div>
+                <div class="post-time">
+                    {{ post.created_at|timesince }} ago
+                    {% if post.location %} • {{ post.location }}{% endif %}
+                </div>
+            </div>
+            
+            <div class="post-actions-header">
+                {% if request.user == post.user %}
                 <div class="dropdown">
-                    <button class="btn btn-sm btn-secondary dropdown-toggle" 
-                            type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-secondary btn-sm" data-bs-toggle="dropdown">
                         <i class="fas fa-ellipsis-h"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end">
-                        {% if user == post.user %}
-                        <li><a class="dropdown-item" href="#"><i class="fas fa-edit me-2"></i>Edit</a></li>
-                        {% endif %}
-                        <li>
-                            <a class="dropdown-item" href="{% url 'post_archive' post_id=post.id %}">
-                                <i class="fas fa-archive me-2"></i>
-                                {% if post.is_archived %}Unarchive{% else %}Archive{% endif %}
-                            </a>
-                        </li>
-                        {% if user == post.user or user.is_staff %}
-                        <li><hr class="dropdown-divider"></li>
-                        <li>
-                            <a class="dropdown-item text-danger" 
-                               href="{% url 'post_delete' post_id=post.id %}">
-                                <i class="fas fa-trash me-2"></i>Delete
-                            </a>
-                        </li>
-                        {% endif %}
-                    </ul>
+                    <div class="dropdown-menu">
+                        <a class="dropdown-item" href="{% url 'post_archive' post.id %}">
+                            <i class="fas fa-archive"></i> {% if post.is_archived %}Unarchive{% else %}Archive{% endif %}
+                        </a>
+                        <a class="dropdown-item" href="#">
+                            <i class="fas fa-edit"></i> Edit Post
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a class="dropdown-item text-danger" href="{% url 'post_delete' post.id %}">
+                            <i class="fas fa-trash"></i> Delete Post
+                        </a>
+                    </div>
                 </div>
+                {% endif %}
+                
+                {% if post.is_pinned %}
+                <span class="badge badge-info">
+                    <i class="fas fa-thumbtack"></i> Pinned
+                </span>
+                {% endif %}
+                
+                {% if post.is_featured %}
+                <span class="badge badge-warning">
+                    <i class="fas fa-star"></i> Featured
+                </span>
                 {% endif %}
             </div>
         </div>
         
-        <!-- Content -->
+        <!-- Post Content -->
+        <div class="post-content">
+            <p>{{ post.content|linebreaks }}</p>
+        </div>
+        
+        <!-- Post Media -->
+        {% if post.image %}
+        <div class="post-media">
+            <img src="{{ post.image.url }}" alt="Post image" class="rounded">
+        </div>
+        {% endif %}
+        
+        {% if post.video %}
+        <div class="post-media">
+            <video controls class="rounded">
+                <source src="{{ post.video.url }}" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+        {% endif %}
+        
+        <!-- Post Stats -->
+        <div class="post-stats">
+            <div class="stat-item">
+                <i class="fas fa-eye"></i>
+                <span>{{ post.views }} views</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-heart"></i>
+                <span>{{ post.likes }} likes</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-comment"></i>
+                <span>{{ post.comments_count }} comments</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-share"></i>
+                <span>{{ post.shares }} shares</span>
+            </div>
+        </div>
+        
+        <!-- Interaction Buttons -->
+        <div class="interaction-buttons">
+            <button class="interaction-btn like-btn {% if user_interactions.like %}active like{% endif %}" 
+                    data-post-id="{{ post.id }}" data-action="like">
+                <i class="fas fa-heart"></i>
+                <span>Like</span>
+            </button>
+            
+            <button class="interaction-btn comment-btn" onclick="document.getElementById('commentInput').focus()">
+                <i class="fas fa-comment"></i>
+                <span>Comment</span>
+            </button>
+            
+            <button class="interaction-btn save-btn {% if user_interactions.save %}active{% endif %}" 
+                    data-post-id="{{ post.id }}" data-action="save">
+                <i class="fas fa-bookmark"></i>
+                <span>Save</span>
+            </button>
+            
+            <button class="interaction-btn share-btn" data-post-id="{{ post.id }}" data-action="share">
+                <i class="fas fa-share"></i>
+                <span>Share</span>
+            </button>
+        </div>
+    </div>
+    
+    <!-- Comments Section -->
+    <div class="card mt-4">
+        <div class="card-header">
+            <h3 class="card-title">Comments ({{ post.comments_count }})</h3>
+        </div>
+        
         <div class="card-body">
-            <p class="mb-3">{{ post.content }}</p>
-            
-            <!-- Media -->
-            {% if post.image %}
-            <div class="mb-3">
-                <img src="{{ post.image.url }}" alt="Post image" 
-                     class="img-fluid rounded-lg">
-            </div>
-            {% elif post.video %}
-            <div class="mb-3">
-                <video controls class="img-fluid rounded-lg" poster="{{ post.video.thumbnail.url }}">
-                    <source src="{{ post.video.video_file.url }}" type="video/mp4">
-                </video>
+            <!-- Comment Form -->
+            {% if user.is_authenticated %}
+            <form method="POST" action="{% url 'post_detail' post.id %}" class="comment-form">
+                {% csrf_token %}
+                <div class="form-group">
+                    <textarea class="form-control" id="commentInput" name="content" 
+                              rows="3" placeholder="Write a comment..." required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-paper-plane"></i> Post Comment
+                </button>
+            </form>
+            {% else %}
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                Please <a href="{% url 'account_login' %}">sign in</a> to leave a comment.
             </div>
             {% endif %}
             
-            <!-- Location -->
-            {% if post.location %}
-            <p class="text-secondary mb-0">
-                <i class="fas fa-map-marker-alt me-2"></i>{{ post.location }}
-            </p>
-            {% endif %}
-        </div>
-        
-        <!-- Stats -->
-        <div class="card-footer bg-transparent">
-            <div class="d-flex justify-content-between text-secondary">
-                <div>
-                    <span class="me-3">
-                        <i class="fas fa-heart me-1"></i>
-                        {{ post.likes }} likes
-                    </span>
-                    <span class="me-3">
-                        <i class="fas fa-comment me-1"></i>
-                        {{ post.comments_count }} comments
-                    </span>
-                    <span>
-                        <i class="fas fa-eye me-1"></i>
-                        {{ post.views }} views
-                    </span>
+            <!-- Comments List -->
+            <div class="comment-list">
+                {% for comment in comments %}
+                <div class="comment-item">
+                    <div class="comment-header">
+                        <div class="comment-avatar">
+                            {% if comment.user.profile.photos.first %}
+                            <img src="{{ comment.user.profile.photos.first.image.url }}" alt="{{ comment.user.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <div class="comment-author">{{ comment.user.username }}</div>
+                            <div class="comment-time">{{ comment.created_at|timesince }} ago</div>
+                        </div>
+                    </div>
+                    
+                    <div class="comment-content">
+                        <p>{{ comment.content|linebreaks }}</p>
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                    <div class="comment-actions">
+                        <button class="comment-action like-comment" data-comment-id="{{ comment.id }}">
+                            <i class="fas fa-thumbs-up"></i> Like
+                        </button>
+                        <button class="comment-action reply-comment" data-comment-id="{{ comment.id }}">
+                            <i class="fas fa-reply"></i> Reply
+                        </button>
+                        
+                        {% if user == comment.user or user == post.user %}
+                        <button class="comment-action text-danger delete-comment" data-comment-id="{{ comment.id }}">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                        {% endif %}
+                    </div>
+                    {% endif %}
                 </div>
-                <div>
-                    <span>
-                        <i class="fas fa-share me-1"></i>
-                        {{ post.shares }} shares
-                    </span>
+                {% empty %}
+                <div class="text-center p-4">
+                    <i class="fas fa-comments fa-3x text-secondary mb-3"></i>
+                    <p class="text-secondary">No comments yet. Be the first to comment!</p>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Actions -->
-        <div class="card-footer bg-transparent">
-            <div class="d-flex justify-content-around">
-                <button class="btn btn-sm btn-outline-danger like-btn" 
-                        data-post-id="{{ post.id }}"
-                        data-liked="{% if 'like' in user_interactions %}true{% else %}false{% endif %}">
-                    <i class="fas fa-heart me-2"></i>
-                    <span class="like-text">
-                        {% if 'like' in user_interactions %}Liked{% else %}Like{% endif %}
-                    </span>
-                </button>
-                
-                <button class="btn btn-sm btn-outline-secondary comment-btn" onclick="focusComment()">
-                    <i class="fas fa-comment me-2"></i>Comment
-                </button>
-                
-                <button class="btn btn-sm btn-outline-secondary share-btn" data-post-id="{{ post.id }}">
-                    <i class="fas fa-share-alt me-2"></i>Share
-                </button>
-                
-                <button class="btn btn-sm btn-outline-secondary save-btn"
-                        data-post-id="{{ post.id }}"
-                        data-saved="{% if 'save' in user_interactions %}true{% else %}false{% endif %}">
-                    <i class="fas fa-bookmark me-2"></i>
-                    <span class="save-text">
-                        {% if 'save' in user_interactions %}Saved{% else %}Save{% endif %}
-                    </span>
-                </button>
+                {% endfor %}
             </div>
         </div>
     </div>
     
-    <!-- Comments -->
-    <div class="card">
+    <!-- Related Posts -->
+    {% if related_posts %}
+    <div class="card mt-4">
         <div class="card-header">
-            <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Comments ({{ comments.count }})</h5>
+            <h3 class="card-title">More from {{ post.user.username }}</h3>
         </div>
-        
         <div class="card-body">
-            <!-- Add Comment -->
-            <form method="POST" class="mb-4" id="commentForm">
-                {% csrf_token %}
-                <div class="d-flex align-items-start">
-                    {% if user.profile.photos.all %}
-                    <img src="{{ user.profile.photos.first.image.url }}" 
-                         alt="{{ user.username }}"
-                         class="rounded-circle me-3" width="40" height="40"
-                         style="object-fit: cover;">
-                    {% else %}
-                    <div class="rounded-circle bg-gradient me-3 d-flex align-items-center justify-content-center"
-                         style="width: 40px; height: 40px; background: linear-gradient(135deg, var(--coop-blue), var(--coop-green));">
-                        <i class="fas fa-user text-light"></i>
-                    </div>
-                    {% endif %}
-                    <div class="flex-grow-1">
-                        <textarea name="content" class="form-control" 
-                                  rows="2" placeholder="Write a comment..." 
-                                  required id="commentInput"></textarea>
-                        <div class="text-end mt-2">
-                            <button type="submit" class="btn btn-primary">
-                                <i class="fas fa-paper-plane me-2"></i>Post Comment
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </form>
-            
-            <!-- Comments List -->
-            <div class="comments-list">
-                {% if comments %}
-                {% for comment in comments %}
-                <div class="comment-item mb-3 pb-3 border-bottom border-secondary">
-                    <div class="d-flex">
-                        <a href="{% url 'profile_view' username=comment.user.username %}"
-                           class="text-decoration-none">
-                            {% if comment.user.profile.photos.all %}
-                            <img src="{{ comment.user.profile.photos.first.image.url }}" 
-                                 alt="{{ comment.user.username }}"
-                                 class="rounded-circle me-3" width="35" height="35"
-                                 style="object-fit: cover;">
-                            {% else %}
-                            <div class="rounded-circle bg-gradient me-3 d-flex align-items-center justify-content-center"
-                                 style="width: 35px; height: 35px; background: linear-gradient(135deg, var(--coop-blue), var(--coop-green));">
-                                <i class="fas fa-user text-light"></i>
-                            </div>
-                            {% endif %}
-                        </a>
-                        <div class="flex-grow-1">
-                            <div class="d-flex justify-content-between">
-                                <div>
-                                    <h6 class="mb-0">{{ comment.user.username }}</h6>
-                                    <small class="text-secondary">{{ comment.created_at|timesince }} ago</small>
-                                </div>
-                                {% if user == comment.user or user == post.user or user.is_staff %}
-                                <div class="dropdown">
-                                    <button class="btn btn-sm btn-link text-secondary" 
-                                            type="button" data-bs-toggle="dropdown">
-                                        <i class="fas fa-ellipsis-h"></i>
-                                    </button>
-                                    <ul class="dropdown-menu">
-                                        {% if user == comment.user %}
-                                        <li><a class="dropdown-item" href="#">Edit</a></li>
-                                        {% endif %}
-                                        <li>
-                                            <a class="dropdown-item text-danger" 
-                                               href="#" 
-                                               onclick="return confirm('Delete this comment?')">
-                                                Delete
-                                            </a>
-                                        </li>
-                                    </ul>
+            <div class="row">
+                {% for related in related_posts %}
+                <div class="col-md-6 mb-3">
+                    <div class="related-post p-3 rounded" style="background: rgba(255,255,255,0.02);">
+                        <div class="d-flex align-center gap-2 mb-2">
+                            <div style="width: 30px; height: 30px; border-radius: 50%; overflow: hidden;">
+                                {% if related.user.profile.photos.first %}
+                                <img src="{{ related.user.profile.photos.first.image.url }}" 
+                                     alt="{{ related.user.username }}" style="width: 100%; height: 100%; object-fit: cover;">
+                                {% else %}
+                                <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                    <i class="fas fa-user"></i>
                                 </div>
                                 {% endif %}
                             </div>
-                            <p class="mb-0 mt-2">{{ comment.content }}</p>
+                            <strong>{{ related.user.username }}</strong>
+                        </div>
+                        <p class="text-secondary mb-2">{{ related.content|truncatewords:20 }}</p>
+                        <div class="d-flex justify-between align-center">
+                            <div class="text-secondary text-sm">
+                                {{ related.created_at|timesince }} ago
+                            </div>
+                            <a href="{% url 'post_detail' related.id %}" class="btn btn-sm btn-primary">
+                                View
+                            </a>
                         </div>
                     </div>
                 </div>
                 {% endfor %}
-                {% else %}
-                <div class="text-center py-4">
-                    <i class="fas fa-comment-slash fa-3x text-secondary mb-3"></i>
-                    <p class="text-secondary">No comments yet. Be the first to comment!</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Share Modal -->
+<div class="modal" id="shareModal">
+    <div class="modal-content">
+        <button class="modal-close" onclick="hideShareModal()">
+            <i class="fas fa-times"></i>
+        </button>
+        <h3 class="card-title mb-3">Share Post</h3>
+        <div class="share-options">
+            <div class="share-option" onclick="shareVia('copy')">
+                <i class="fas fa-copy"></i>
+                <div>
+                    <div>Copy Link</div>
+                    <div class="text-secondary text-sm">Copy post link to clipboard</div>
                 </div>
-                {% endif %}
+            </div>
+            <div class="share-option" onclick="shareVia('whatsapp')">
+                <i class="fab fa-whatsapp" style="color: #25D366;"></i>
+                <div>
+                    <div>Share on WhatsApp</div>
+                    <div class="text-secondary text-sm">Share via WhatsApp</div>
+                </div>
+            </div>
+            <div class="share-option" onclick="shareVia('facebook')">
+                <i class="fab fa-facebook" style="color: #1877F2;"></i>
+                <div>
+                    <div>Share on Facebook</div>
+                    <div class="text-secondary text-sm">Share on your timeline</div>
+                </div>
+            </div>
+            <div class="share-option" onclick="shareVia('twitter')">
+                <i class="fab fa-twitter" style="color: #1DA1F2;"></i>
+                <div>
+                    <div>Share on Twitter</div>
+                    <div class="text-secondary text-sm">Tweet this post</div>
+                </div>
+            </div>
+            <div class="share-option" onclick="shareVia('message')">
+                <i class="fas fa-comment"></i>
+                <div>
+                    <div>Share via Message</div>
+                    <div class="text-secondary text-sm">Send as private message</div>
+                </div>
             </div>
         </div>
     </div>
@@ -248,25 +508,23 @@
 $(document).ready(function() {
     // Like functionality
     $('.like-btn').click(function() {
-        const btn = $(this);
-        const postId = btn.data('post-id');
-        const isLiked = btn.data('liked') === 'true';
+        const postId = $(this).data('post-id');
+        const isActive = $(this).hasClass('active');
         
         $.ajax({
-            url: '/post/' + postId + '/interact/like/',
-            type: 'POST',
-            headers: {
-                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+            url: `{% url 'post_interact' post.id 'like' %}`.replace('like', 'like'),
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
             },
-            success: function(data) {
-                if (data.success) {
-                    btn.data('liked', !isLiked);
-                    btn.find('.like-text').text(isLiked ? 'Like' : 'Liked');
-                    if (isLiked) {
-                        btn.removeClass('btn-danger').addClass('btn-outline-danger');
-                    } else {
-                        btn.removeClass('btn-outline-danger').addClass('btn-danger');
-                    }
+            success: function(response) {
+                if (response.success) {
+                    $('.like-btn').toggleClass('active like');
+                    $('.like-btn span').text(response.is_active ? 'Liked' : 'Like');
+                    
+                    // Update like count in stats
+                    const likeStat = $('.stat-item:contains("likes")');
+                    likeStat.find('span').text(response.likes_count + ' likes');
                 }
             }
         });
@@ -274,25 +532,18 @@ $(document).ready(function() {
     
     // Save functionality
     $('.save-btn').click(function() {
-        const btn = $(this);
-        const postId = btn.data('post-id');
-        const isSaved = btn.data('saved') === 'true';
+        const postId = $(this).data('post-id');
         
         $.ajax({
-            url: '/post/' + postId + '/interact/save/',
-            type: 'POST',
-            headers: {
-                'X-CSRFToken': $('meta[name="csrf-token"]').attr('content')
+            url: `{% url 'post_interact' post.id 'save' %}`.replace('save', 'save'),
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
             },
-            success: function(data) {
-                if (data.success) {
-                    btn.data('saved', !isSaved);
-                    btn.find('.save-text').text(isSaved ? 'Save' : 'Saved');
-                    if (isSaved) {
-                        btn.removeClass('btn-warning').addClass('btn-outline-secondary');
-                    } else {
-                        btn.removeClass('btn-outline-secondary').addClass('btn-warning');
-                    }
+            success: function(response) {
+                if (response.success) {
+                    $('.save-btn').toggleClass('active');
+                    $('.save-btn span').text(response.is_active ? 'Saved' : 'Save');
                 }
             }
         });
@@ -300,46 +551,169 @@ $(document).ready(function() {
     
     // Share functionality
     $('.share-btn').click(function() {
-        const postId = $(this).data('post-id');
-        const shareUrl = window.location.origin + '/post/' + postId + '/';
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'Check out this post on CoopConnect',
-                url: shareUrl
-            });
-        } else {
-            navigator.clipboard.writeText(shareUrl).then(function() {
-                alert('Link copied to clipboard!');
-            });
-        }
+        showShareModal();
     });
     
-    // Comment form submission
-    $('#commentForm').submit(function(e) {
-        e.preventDefault();
-        const form = $(this);
-        const content = form.find('textarea').val();
-        
-        if (!content.trim()) return;
+    // Comment like
+    $('.like-comment').click(function() {
+        const commentId = $(this).data('comment-id');
         
         $.ajax({
-            url: window.location.href,
-            type: 'POST',
-            data: form.serialize(),
-            success: function(data) {
-                if (data.success) {
-                    // Reload page to show new comment
-                    location.reload();
+            url: `/api/comment/${commentId}/like/`,
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    const btn = $(`[data-comment-id="${commentId}"]`);
+                    btn.find('i').toggleClass('fa-thumbs-up fa-thumbs-up text-primary');
                 }
             }
         });
     });
     
-    // Focus comment input
-    window.focusComment = function() {
-        $('#commentInput').focus();
-    }
+    // Delete comment
+    $('.delete-comment').click(function() {
+        const commentId = $(this).data('comment-id');
+        
+        if (confirm('Are you sure you want to delete this comment?')) {
+            $.ajax({
+                url: `/api/comment/${commentId}/delete/`,
+                method: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        $(`[data-comment-id="${commentId}"]`).closest('.comment-item').remove();
+                    }
+                }
+            });
+        }
+    });
+    
+    // Report post
+    $('.report-post').click(function() {
+        if (confirm('Report this post for violating community guidelines?')) {
+            $.ajax({
+                url: `{% url 'post_interact' post.id 'report' %}`,
+                method: 'POST',
+                data: {
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function(response) {
+                    if (response.success) {
+                        alert('Thank you for reporting. Our team will review this post.');
+                    }
+                }
+            });
+        }
+    });
 });
+
+function showShareModal() {
+    $('#shareModal').addClass('active');
+    $('body').css('overflow', 'hidden');
+}
+
+function hideShareModal() {
+    $('#shareModal').removeClass('active');
+    $('body').css('overflow', 'auto');
+}
+
+function shareVia(platform) {
+    const postUrl = window.location.href;
+    const postTitle = 'Check out this post on CoopConnect';
+    
+    switch(platform) {
+        case 'copy':
+            navigator.clipboard.writeText(postUrl)
+                .then(() => alert('Link copied to clipboard!'))
+                .catch(() => {
+                    // Fallback for older browsers
+                    const textArea = document.createElement('textarea');
+                    textArea.value = postUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('Link copied to clipboard!');
+                });
+            break;
+            
+        case 'whatsapp':
+            window.open(`https://wa.me/?text=${encodeURIComponent(postTitle + ': ' + postUrl)}`, '_blank');
+            break;
+            
+        case 'facebook':
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(postUrl)}`, '_blank');
+            break;
+            
+        case 'twitter':
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(postTitle)}&url=${encodeURIComponent(postUrl)}`, '_blank');
+            break;
+            
+        case 'message':
+            // For CoopConnect messaging
+            showModal(`
+                <div class="p-3">
+                    <h4>Share via Message</h4>
+                    <p>Enter username to share this post:</p>
+                    <div class="form-group mt-3">
+                        <input type="text" class="form-control" id="shareUsername" placeholder="Enter username">
+                    </div>
+                    <div class="d-flex gap-3 mt-4">
+                        <button class="btn btn-primary" onclick="sendPostViaMessage()">Send</button>
+                        <button class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+                    </div>
+                </div>
+            `);
+            break;
+    }
+    
+    hideShareModal();
+}
+
+function sendPostViaMessage() {
+    const username = $('#shareUsername').val();
+    const postUrl = window.location.href;
+    
+    if (!username) {
+        alert('Please enter a username');
+        return;
+    }
+    
+    $.ajax({
+        url: '{% url "conversation_user" "username" %}'.replace('username', username),
+        method: 'POST',
+        data: {
+            content: `Check out this post: ${postUrl}`,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            hideModal();
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3>Message Sent!</h3>
+                    <p>Post shared successfully with ${username}.</p>
+                    <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                </div>
+            `);
+        },
+        error: function() {
+            hideModal();
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-exclamation-circle fa-3x text-danger mb-3"></i>
+                    <h3>Error</h3>
+                    <p>Could not send message. User may not exist.</p>
+                    <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                </div>
+            `);
+        }
+    });
+}
 </script>
 {% endblock %}

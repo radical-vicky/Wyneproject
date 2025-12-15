@@ -172,8 +172,15 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 ACCOUNT_LOGIN_METHODS = {'email', 'username'}
 ACCOUNT_SIGNUP_FIELDS = ['email*', 'username*', 'password1*', 'password2*']
 ACCOUNT_EMAIL_VERIFICATION = 'optional'
-ACCOUNT_LOGOUT_REDIRECT_URL = '/'
 LOGIN_REDIRECT_URL = '/dashboard/'
+
+# settings.py
+# Allauth Settings
+ACCOUNT_LOGOUT_REDIRECT_URL = '/'
+ACCOUNT_LOGOUT_ON_GET = True  # This allows logout without confirmation page
+ACCOUNT_SESSION_REMEMBER = True
+ACCOUNT_LOGOUT_ON_PASSWORD_CHANGE = True
+
 
 # SECURITY SETTINGS - DISABLE HTTPS FOR LOCAL DEVELOPMENT
 SECURE_SSL_REDIRECT = False

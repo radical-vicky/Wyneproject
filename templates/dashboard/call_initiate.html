@@ -1,9 +1,1351 @@
-<!-- main/templates/dashboard/call_initiate.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Initiate Call - {{ profile.user.username }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Call Initiate Specific Styles */
+.call-initiate-header {
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.1), rgba(0, 102, 179, 0.1));
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0, 168, 89, 0.2);
+}
+
+.call-types-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.call-type-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.call-type-card:hover {
+    transform: translateY(-5px);
+    border-color: var(--coop-green);
+    box-shadow: var(--shadow-lg);
+}
+
+.call-type-card.active {
+    border-color: var(--coop-green);
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.05), rgba(0, 102, 179, 0.05));
+}
+
+.call-type-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    margin: 0 auto 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+}
+
+.voice-call-icon {
+    background: linear-gradient(135deg, var(--coop-green), #00cc73);
+}
+
+.video-call-icon {
+    background: linear-gradient(135deg, var(--coop-blue), #3399ff);
+}
+
+.group-call-icon {
+    background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+}
+
+.call-type-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.call-type-desc {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.call-type-price {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--coop-green);
+}
+
+.call-type-price span {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.call-options {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.option-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.option-row:last-child {
+    border-bottom: none;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.option-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(0, 168, 89, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--coop-green);
+}
+
+.option-info {
+    flex: 1;
+}
+
+.option-title {
+    font-weight: 600;
+    margin-bottom: 3px;
+}
+
+.option-desc {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.option-control {
+    min-width: 100px;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 26px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(255,255,255,0.1);
+    transition: .4s;
+    border-radius: 34px;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked + .toggle-slider {
+    background-color: var(--coop-green);
+}
+
+input:checked + .toggle-slider:before {
+    transform: translateX(24px);
+}
+
+.duration-slider {
+    width: 100%;
+    margin: 10px 0;
+    -webkit-appearance: none;
+    height: 6px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 3px;
+    outline: none;
+}
+
+.duration-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    cursor: pointer;
+}
+
+.duration-slider::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--coop-green);
+    cursor: pointer;
+}
+
+.duration-display {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--coop-green);
+    margin-top: 10px;
+}
+
+.participants-selection {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.participants-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    gap: 15px;
+    margin: 15px 0;
+}
+
+.participant-select-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+}
+
+.participant-select-card:hover {
+    border-color: var(--coop-green);
+}
+
+.participant-select-card.selected {
+    border-color: var(--coop-green);
+    background: rgba(0, 168, 89, 0.05);
+}
+
+.participant-select-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 10px;
+    border: 2px solid var(--border-color);
+}
+
+.participant-select-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.participant-select-name {
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-bottom: 5px;
+}
+
+.participant-select-status {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+}
+
+.participant-select-status.online {
+    color: var(--coop-green);
+}
+
+.call-cost-summary {
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.05), rgba(0, 102, 179, 0.05));
+    border-radius: var(--radius-lg);
+    padding: 25px;
+    margin: 30px 0;
+    border: 1px solid rgba(0, 168, 89, 0.2);
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--border-color);
+}
+
+.cost-item:last-child {
+    border-bottom: none;
+}
+
+.cost-total {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--coop-green);
+}
+
+.schedule-section {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.datetime-input {
+    display: flex;
+    gap: 10px;
+    margin: 15px 0;
+}
+
+.datetime-input input {
+    flex: 1;
+    padding: 12px;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.timezone-select {
+    margin: 15px 0;
+}
+
+.wallet-balance {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.balance-amount {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--coop-green);
+}
+
+.low-balance {
+    color: var(--danger);
+}
+
+.balance-warning {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-radius: var(--radius);
+    padding: 15px;
+    margin: 20px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.call-processing {
+    text-align: center;
+    padding: 40px 20px;
+}
+
+.processing-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--coop-green), var(--coop-blue));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 2rem;
+    color: white;
+    animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+}
+
+.processing-steps {
+    display: flex;
+    justify-content: space-between;
+    margin: 30px 0;
+    position: relative;
+}
+
+.processing-steps::before {
+    content: '';
+    position: absolute;
+    top: 20px;
+    left: 10%;
+    right: 10%;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.processing-step {
+    text-align: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.step-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--darker-bg);
+    border: 2px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 10px;
+    color: var(--text-muted);
+    transition: all 0.3s ease;
+}
+
+.processing-step.active .step-icon {
+    background: var(--coop-green);
+    border-color: var(--coop-green);
+    color: white;
+}
+
+.processing-step.completed .step-icon {
+    background: var(--coop-green);
+    border-color: var(--coop-green);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.processing-step.active .step-label {
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+.processing-step.completed .step-label {
+    color: var(--text-primary);
+}
+
+.countdown-timer {
+    font-size: 3rem;
+    font-weight: 700;
+    color: var(--coop-green);
+    margin: 20px 0;
+    font-family: 'Poppins', monospace;
+}
+
+.call-notes {
+    margin: 20px 0;
+}
+
+.call-notes textarea {
+    min-height: 100px;
+}
+
+@media (max-width: 768px) {
+    .call-types-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .option-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .option-control {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .datetime-input {
+        flex-direction: column;
+    }
+    
+    .participants-grid {
+        grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    }
+    
+    .processing-steps {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .processing-steps::before {
+        display: none;
+    }
+    
+    .processing-step {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        text-align: left;
+    }
+    
+    .step-icon {
+        margin: 0;
+        min-width: 40px;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: call_initiate.html</h1>
-    <p>Content coming soon...</p>
+<div class="fade-in">
+    <!-- Header -->
+    <div class="call-initiate-header">
+        <div class="row align-center">
+            <div class="col-md-8">
+                <h1 class="mb-1">Initiate Call</h1>
+                <p class="text-secondary">Calling <strong>{{ profile.user.username }}</strong></p>
+                
+                <div class="mt-3">
+                    <div class="d-flex align-center gap-3">
+                        <div class="user-avatar" style="width: 60px; height: 60px;">
+                            {% if profile.photos.first %}
+                            <img src="{{ profile.photos.first.image.url }}" alt="{{ profile.user.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div>
+                            <h3>{{ profile.user.get_full_name|default:profile.user.username }}</h3>
+                            <div class="d-flex gap-3 text-secondary">
+                                <span><i class="fas fa-map-marker-alt"></i> {{ profile.location|default:"Location not set" }}</span>
+                                <span><i class="fas fa-user-tag"></i> {{ profile.get_occupation_display|default:"Occupation not set" }}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4 text-center">
+                <div class="d-flex flex-column gap-2">
+                    <div class="text-primary">
+                        <i class="fas fa-star"></i> {{ profile.rating|default:"4.5" }}/5.0
+                    </div>
+                    <div class="text-secondary">
+                        <i class="fas fa-phone"></i> {{ profile.successful_calls|default:"0" }} calls
+                    </div>
+                    {% if profile.is_online %}
+                    <div class="text-success">
+                        <i class="fas fa-circle"></i> Online Now
+                    </div>
+                    {% else %}
+                    <div class="text-muted">
+                        <i class="fas fa-clock"></i> Last seen {{ profile.last_seen|timesince }} ago
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call Processing View (Initially Hidden) -->
+    <div id="callProcessingView" class="d-none">
+        <div class="call-processing">
+            <div class="processing-icon">
+                <i class="fas fa-phone"></i>
+            </div>
+            
+            <h2 class="mb-2">Connecting Call</h2>
+            <p class="text-secondary mb-4">Please wait while we connect you to {{ profile.user.username }}</p>
+            
+            <div class="processing-steps">
+                <div class="processing-step active" id="step1">
+                    <div class="step-icon">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div class="step-label">Initializing</div>
+                </div>
+                
+                <div class="processing-step" id="step2">
+                    <div class="step-icon">
+                        <i class="fas fa-phone"></i>
+                    </div>
+                    <div class="step-label">Connecting</div>
+                </div>
+                
+                <div class="processing-step" id="step3">
+                    <div class="step-icon">
+                        <i class="fas fa-user-check"></i>
+                    </div>
+                    <div class="step-label">Verifying</div>
+                </div>
+                
+                <div class="processing-step" id="step4">
+                    <div class="step-icon">
+                        <i class="fas fa-comments"></i>
+                    </div>
+                    <div class="step-label">Connected</div>
+                </div>
+            </div>
+            
+            <div class="countdown-timer" id="countdownTimer">00:30</div>
+            
+            <div class="mt-4">
+                <button class="btn btn-danger btn-lg" onclick="cancelCall()">
+                    <i class="fas fa-phone-slash"></i> Cancel Call
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Call Configuration View -->
+    <div id="callConfigView">
+        <div class="row">
+            <!-- Left Column: Call Configuration -->
+            <div class="col-md-8">
+                <!-- Call Type Selection -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Select Call Type</h2>
+                        <p class="card-subtitle">Choose the type of call you want to make</p>
+                    </div>
+                    <div class="call-types-grid">
+                        <div class="call-type-card active" data-type="voice" onclick="selectCallType('voice')">
+                            <div class="call-type-icon voice-call-icon">
+                                <i class="fas fa-phone"></i>
+                            </div>
+                            <div class="call-type-title">Voice Call</div>
+                            <div class="call-type-desc">Traditional audio-only call</div>
+                            <div class="call-type-price">
+                                KES {{ profile.voice_call_rate|default:"50" }} <span>/min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="call-type-card" data-type="video" onclick="selectCallType('video')">
+                            <div class="call-type-icon video-call-icon">
+                                <i class="fas fa-video"></i>
+                            </div>
+                            <div class="call-type-title">Video Call</div>
+                            <div class="call-type-desc">Face-to-face video conversation</div>
+                            <div class="call-type-price">
+                                KES {{ profile.video_call_rate|default:"80" }} <span>/min</span>
+                            </div>
+                        </div>
+                        
+                        <div class="call-type-card" data-type="group" onclick="selectCallType('group')">
+                            <div class="call-type-icon group-call-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="call-type-title">Group Call</div>
+                            <div class="call-type-desc">Call with multiple participants</div>
+                            <div class="call-type-price">
+                                KES {{ profile.group_call_rate|default:"120" }} <span>/min</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Options -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Call Options</h2>
+                        <p class="card-subtitle">Customize your call experience</p>
+                    </div>
+                    <div class="call-options">
+                        <div class="option-row">
+                            <div class="option-label">
+                                <div class="option-icon">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="option-info">
+                                    <div class="option-title">Call Duration</div>
+                                    <div class="option-desc">Set maximum call length</div>
+                                </div>
+                            </div>
+                            <div class="option-control">
+                                <input type="range" min="5" max="60" value="30" class="duration-slider" id="durationSlider">
+                                <div class="duration-display" id="durationDisplay">30 minutes</div>
+                            </div>
+                        </div>
+                        
+                        <div class="option-row">
+                            <div class="option-label">
+                                <div class="option-icon">
+                                    <i class="fas fa-record-vinyl"></i>
+                                </div>
+                                <div class="option-info">
+                                    <div class="option-title">Record Call</div>
+                                    <div class="option-desc">Save call for future reference</div>
+                                </div>
+                            </div>
+                            <div class="option-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="recordCall" checked>
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="option-row">
+                            <div class="option-label">
+                                <div class="option-icon">
+                                    <i class="fas fa-shield-alt"></i>
+                                </div>
+                                <div class="option-info">
+                                    <div class="option-title">Enhanced Privacy</div>
+                                    <div class="option-desc">Encrypted end-to-end connection</div>
+                                </div>
+                            </div>
+                            <div class="option-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="enhancedPrivacy">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div class="option-row">
+                            <div class="option-label">
+                                <div class="option-icon">
+                                    <i class="fas fa-camera"></i>
+                                </div>
+                                <div class="option-info">
+                                    <div class="option-title">Virtual Background</div>
+                                    <div class="option-desc">Blur or replace your background</div>
+                                </div>
+                            </div>
+                            <div class="option-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="virtualBackground">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Group Participants (Only for Group Calls) -->
+                <div id="groupParticipantsSection" class="card d-none">
+                    <div class="card-header">
+                        <h2 class="card-title">Select Participants</h2>
+                        <p class="card-subtitle">Choose additional people to join the call</p>
+                    </div>
+                    <div class="participants-selection">
+                        <div class="search-box mb-3">
+                            <i class="fas fa-search search-icon"></i>
+                            <input type="text" class="search-input" placeholder="Search contacts..." id="participantSearch">
+                        </div>
+                        
+                        <div class="participants-grid" id="participantsGrid">
+                            <!-- Participants will be loaded here via AJAX -->
+                            <div class="text-center p-3">
+                                <i class="fas fa-spinner fa-spin"></i> Loading contacts...
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <button class="btn btn-secondary" onclick="loadMoreParticipants()">
+                                <i class="fas fa-plus"></i> Load More Contacts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Schedule Call Option -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Schedule Call</h2>
+                        <p class="card-subtitle">Schedule for later if user is not available now</p>
+                    </div>
+                    <div class="schedule-section">
+                        <div class="option-row">
+                            <div class="option-label">
+                                <div class="option-icon">
+                                    <i class="fas fa-calendar-alt"></i>
+                                </div>
+                                <div class="option-info">
+                                    <div class="option-title">Schedule for Later</div>
+                                    <div class="option-desc">Set a specific date and time</div>
+                                </div>
+                            </div>
+                            <div class="option-control">
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="scheduleCall">
+                                    <span class="toggle-slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <div id="scheduleOptions" class="d-none">
+                            <div class="datetime-input">
+                                <input type="date" id="callDate" value="{{ today|date:'Y-m-d' }}" min="{{ today|date:'Y-m-d' }}">
+                                <input type="time" id="callTime" value="19:00">
+                            </div>
+                            
+                            <div class="timezone-select">
+                                <label class="form-label">Timezone</label>
+                                <select class="form-control" id="timezoneSelect">
+                                    <option value="UTC+3">East Africa Time (UTC+3)</option>
+                                    <option value="UTC+0">GMT (UTC+0)</option>
+                                    <option value="UTC-5">EST (UTC-5)</option>
+                                    <!-- More timezone options -->
+                                </select>
+                            </div>
+                            
+                            <div class="call-notes">
+                                <label class="form-label">Scheduling Note</label>
+                                <textarea class="form-control" id="scheduleNote" placeholder="Add a note about why you're scheduling this call..."></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Call Notes -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Call Notes (Optional)</h2>
+                        <p class="card-subtitle">Add any notes or talking points for this call</p>
+                    </div>
+                    <div class="call-notes">
+                        <textarea class="form-control" id="callNotes" placeholder="Add your notes here..."></textarea>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Summary & Actions -->
+            <div class="col-md-4">
+                <!-- Cost Summary -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Cost Summary</h2>
+                    </div>
+                    <div class="call-cost-summary">
+                        <div class="cost-item">
+                            <span>Call Type</span>
+                            <span id="summaryCallType">Voice Call</span>
+                        </div>
+                        
+                        <div class="cost-item">
+                            <span>Rate per minute</span>
+                            <span id="summaryRate">KES {{ profile.voice_call_rate|default:"50" }}</span>
+                        </div>
+                        
+                        <div class="cost-item">
+                            <span>Estimated Duration</span>
+                            <span id="summaryDuration">30 minutes</span>
+                        </div>
+                        
+                        <div class="cost-item">
+                            <span>Subtotal</span>
+                            <span id="summarySubtotal">KES 1,500</span>
+                        </div>
+                        
+                        <div class="cost-item">
+                            <span>Service Fee</span>
+                            <span id="summaryFee">KES 150</span>
+                        </div>
+                        
+                        {% if profile.is_vip %}
+                        <div class="cost-item">
+                            <span>VIP Discount</span>
+                            <span class="text-success" id="summaryDiscount">-KES 150</span>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="cost-item cost-total">
+                            <span>Total Estimated Cost</span>
+                            <span id="summaryTotal">KES 1,500</span>
+                        </div>
+                        
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">Charges apply only when call is answered</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Wallet Balance -->
+                <div class="wallet-balance">
+                    <div>
+                        <div class="text-secondary">Your Balance</div>
+                        <div class="balance-amount" id="walletBalance">
+                            KES {{ user.wallet.balance|default:"0.00" }}
+                        </div>
+                    </div>
+                    <a href="{% url 'wallet' %}" class="btn btn-sm btn-primary">Top Up</a>
+                </div>
+
+                <!-- Balance Warning -->
+                <div id="balanceWarning" class="balance-warning d-none">
+                    <i class="fas fa-exclamation-triangle text-danger"></i>
+                    <div>
+                        <strong>Insufficient Balance</strong>
+                        <div class="text-sm">You need <span id="neededAmount">KES 0.00</span> more to make this call</div>
+                    </div>
+                </div>
+
+                <!-- Call Actions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">Ready to Call?</h2>
+                    </div>
+                    <div class="d-flex flex-column gap-2 p-3">
+                        <button class="btn btn-primary btn-lg" id="initiateCallBtn" onclick="initiateCall()">
+                            <i class="fas fa-phone"></i> Initiate Call Now
+                        </button>
+                        
+                        <button class="btn btn-secondary" id="scheduleCallBtn" onclick="scheduleCall()">
+                            <i class="fas fa-calendar-check"></i> Schedule Call
+                        </button>
+                        
+                        <a href="{% url 'profile' profile.id %}" class="btn btn-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Profile
+                        </a>
+                        
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="fas fa-lock"></i> Your payment is secure
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Terms & Conditions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" style="font-size: 1rem;">Terms & Conditions</h3>
+                    </div>
+                    <div class="p-3">
+                        <div class="form-check mb-2">
+                            <input type="checkbox" class="form-check-input" id="termsAgree">
+                            <label class="form-check-label text-sm" for="termsAgree">
+                                I agree to the <a href="#" onclick="showTerms()">Terms of Service</a>
+                            </label>
+                        </div>
+                        
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input" id="privacyAgree">
+                            <label class="form-check-label text-sm" for="privacyAgree">
+                                I have read the <a href="#" onclick="showPrivacy()">Privacy Policy</a>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Terms Modal Content -->
+<div id="termsModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Terms of Service</h3>
+    <div style="max-height: 400px; overflow-y: auto;">
+        <h4>Call Conduct</h4>
+        <p>All calls must adhere to our community guidelines...</p>
+        <!-- Add full terms content -->
+    </div>
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="hideModal()">I Understand</button>
+    </div>
+</div>
+
+<!-- Privacy Modal Content -->
+<div id="privacyModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Privacy Policy</h3>
+    <div style="max-height: 400px; overflow-y: auto;">
+        <h4>Data Collection</h4>
+        <p>We collect minimal data necessary for call functionality...</p>
+        <!-- Add full privacy content -->
+    </div>
+    <div class="mt-3">
+        <button class="btn btn-primary" onclick="hideModal()">I Understand</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize values
+    let callType = 'voice';
+    let duration = 30;
+    let callRate = parseFloat("{{ profile.voice_call_rate|default:'50' }}");
+    let selectedParticipants = [];
+    
+    // Update duration display
+    $('#durationSlider').on('input', function() {
+        duration = parseInt($(this).val());
+        $('#durationDisplay').text(duration + ' minutes');
+        updateCostSummary();
+    });
+    
+    // Toggle schedule options
+    $('#scheduleCall').change(function() {
+        if ($(this).is(':checked')) {
+            $('#scheduleOptions').removeClass('d-none');
+            $('#initiateCallBtn').addClass('d-none');
+            $('#scheduleCallBtn').removeClass('d-none');
+        } else {
+            $('#scheduleOptions').addClass('d-none');
+            $('#initiateCallBtn').removeClass('d-none');
+            $('#scheduleCallBtn').addClass('d-none');
+        }
+    });
+    
+    // Load participants for group calls
+    function loadParticipants() {
+        $.ajax({
+            url: '{% url "api_get_contacts" %}',
+            method: 'GET',
+            success: function(response) {
+                $('#participantsGrid').empty();
+                response.contacts.forEach(contact => {
+                    $('#participantsGrid').append(`
+                        <div class="participant-select-card" data-id="${contact.id}" onclick="toggleParticipant(${contact.id})">
+                            <div class="participant-select-avatar">
+                                <img src="${contact.avatar}" alt="${contact.name}">
+                            </div>
+                            <div class="participant-select-name">${contact.name}</div>
+                            <div class="participant-select-status ${contact.status}">${contact.status}</div>
+                        </div>
+                    `);
+                });
+            }
+        });
+    }
+    
+    // Calculate and update cost summary
+    function updateCostSummary() {
+        let subtotal = callRate * duration;
+        let serviceFee = subtotal * 0.1; // 10% service fee
+        let discount = 0;
+        
+        // Apply VIP discount
+        {% if profile.is_vip %}
+        discount = subtotal * 0.1; // 10% discount for VIP
+        {% endif %}
+        
+        let total = subtotal + serviceFee - discount;
+        
+        // Update display
+        $('#summaryCallType').text(callType === 'voice' ? 'Voice Call' : 
+                                   callType === 'video' ? 'Video Call' : 'Group Call');
+        $('#summaryRate').text('KES ' + callRate.toFixed(2));
+        $('#summaryDuration').text(duration + ' minutes');
+        $('#summarySubtotal').text('KES ' + subtotal.toFixed(2));
+        $('#summaryFee').text('KES ' + serviceFee.toFixed(2));
+        
+        {% if profile.is_vip %}
+        $('#summaryDiscount').text('-KES ' + discount.toFixed(2));
+        {% endif %}
+        
+        $('#summaryTotal').text('KES ' + total.toFixed(2));
+        
+        // Check wallet balance
+        checkBalance(total);
+    }
+    
+    // Check if user has sufficient balance
+    function checkBalance(requiredAmount) {
+        const currentBalance = parseFloat("{{ user.wallet.balance|default:'0.00' }}");
+        const needed = requiredAmount - currentBalance;
+        
+        if (needed > 0) {
+            $('#balanceWarning').removeClass('d-none');
+            $('#neededAmount').text('KES ' + needed.toFixed(2));
+            $('#initiateCallBtn').prop('disabled', true);
+        } else {
+            $('#balanceWarning').addClass('d-none');
+            $('#initiateCallBtn').prop('disabled', false);
+        }
+    }
+    
+    // Initialize
+    updateCostSummary();
+});
+
+// Call type selection
+function selectCallType(type) {
+    callType = type;
+    
+    // Update UI
+    $('.call-type-card').removeClass('active');
+    $(`.call-type-card[data-type="${type}"]`).addClass('active');
+    
+    // Update rate based on call type
+    if (type === 'voice') {
+        callRate = parseFloat("{{ profile.voice_call_rate|default:'50' }}");
+        $('#groupParticipantsSection').addClass('d-none');
+    } else if (type === 'video') {
+        callRate = parseFloat("{{ profile.video_call_rate|default:'80' }}");
+        $('#groupParticipantsSection').addClass('d-none');
+    } else if (type === 'group') {
+        callRate = parseFloat("{{ profile.group_call_rate|default:'120' }}");
+        $('#groupParticipantsSection').removeClass('d-none');
+        loadParticipants();
+    }
+    
+    updateCostSummary();
+}
+
+// Toggle participant selection for group calls
+function toggleParticipant(participantId) {
+    const index = selectedParticipants.indexOf(participantId);
+    const card = $(`[data-id="${participantId}"]`);
+    
+    if (index === -1) {
+        // Add participant
+        selectedParticipants.push(participantId);
+        card.addClass('selected');
+    } else {
+        // Remove participant
+        selectedParticipants.splice(index, 1);
+        card.removeClass('selected');
+    }
+    
+    // Update cost for group calls (additional participants may affect rate)
+    if (callType === 'group') {
+        // Add surcharge for each additional participant
+        const participantCount = selectedParticipants.length + 1; // +1 for the main profile
+        callRate = parseFloat("{{ profile.group_call_rate|default:'120' }}") * participantCount;
+        updateCostSummary();
+    }
+}
+
+// Load more participants
+function loadMoreParticipants() {
+    // Implement pagination for participants
+    // This would typically load additional contacts from the server
+    console.log('Loading more participants...');
+}
+
+// Initiate call
+function initiateCall() {
+    // Validate terms agreement
+    if (!$('#termsAgree').is(':checked') || !$('#privacyAgree').is(':checked')) {
+        alert('Please agree to the Terms of Service and Privacy Policy before making a call.');
+        return;
+    }
+    
+    // Get call configuration
+    const callConfig = {
+        profile_id: "{{ profile.id }}",
+        call_type: callType,
+        duration: duration,
+        record_call: $('#recordCall').is(':checked'),
+        enhanced_privacy: $('#enhancedPrivacy').is(':checked'),
+        virtual_background: $('#virtualBackground').is(':checked'),
+        notes: $('#callNotes').val(),
+        participants: selectedParticipants
+    };
+    
+    // Show processing view
+    $('#callConfigView').addClass('d-none');
+    $('#callProcessingView').removeClass('d-none');
+    
+    // Start countdown
+    startCountdown(30);
+    
+    // Start processing animation
+    simulateCallConnection();
+    
+    // Send AJAX request to initiate call
+    $.ajax({
+        url: '{% url "api_initiate_call" %}',
+        method: 'POST',
+        data: {
+            ...callConfig,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                // Update UI based on response
+                updateProcessingSteps('connected');
+                
+                // Redirect to call interface
+                setTimeout(() => {
+                    window.location.href = response.call_url;
+                }, 2000);
+            } else {
+                // Show error
+                cancelCall();
+                alert('Failed to initiate call: ' + response.message);
+            }
+        },
+        error: function() {
+            cancelCall();
+            alert('Error initiating call. Please try again.');
+        }
+    });
+}
+
+// Schedule call for later
+function scheduleCall() {
+    if (!$('#termsAgree').is(':checked') || !$('#privacyAgree').is(':checked')) {
+        alert('Please agree to the Terms of Service and Privacy Policy before scheduling a call.');
+        return;
+    }
+    
+    const scheduledDate = $('#callDate').val();
+    const scheduledTime = $('#callTime').val();
+    const timezone = $('#timezoneSelect').val();
+    const note = $('#scheduleNote').val();
+    
+    const scheduleData = {
+        profile_id: "{{ profile.id }}",
+        call_type: callType,
+        scheduled_date: scheduledDate,
+        scheduled_time: scheduledTime,
+        timezone: timezone,
+        notes: note,
+        duration: duration,
+        record_call: $('#recordCall').is(':checked'),
+        participants: selectedParticipants
+    };
+    
+    $.ajax({
+        url: '{% url "api_schedule_call" %}',
+        method: 'POST',
+        data: {
+            ...scheduleData,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function(response) {
+            if (response.success) {
+                showMessage('Call scheduled successfully!', 'success');
+                setTimeout(() => {
+                    window.location.href = '{% url "booking_list" %}';
+                }, 1500);
+            } else {
+                alert('Failed to schedule call: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error scheduling call. Please try again.');
+        }
+    });
+}
+
+// Countdown timer
+function startCountdown(seconds) {
+    let timeLeft = seconds;
+    const timerElement = $('#countdownTimer');
+    
+    const countdown = setInterval(() => {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        timerElement.text(
+            minutes.toString().padStart(2, '0') + ':' + 
+            seconds.toString().padStart(2, '0')
+        );
+        
+        if (timeLeft <= 0) {
+            clearInterval(countdown);
+            cancelCall();
+        }
+        
+        timeLeft--;
+    }, 1000);
+}
+
+// Simulate call connection steps
+function simulateCallConnection() {
+    const steps = ['#step1', '#step2', '#step3', '#step4'];
+    let currentStep = 0;
+    
+    const interval = setInterval(() => {
+        if (currentStep < steps.length) {
+            $(steps[currentStep]).addClass('active').addClass('completed');
+            currentStep++;
+            
+            // Update step icons
+            $(steps.slice(0, currentStep)).find('.step-icon').html('<i class="fas fa-check"></i>');
+            
+            if (currentStep === steps.length) {
+                clearInterval(interval);
+            }
+        }
+    }, 3000);
+}
+
+function updateProcessingSteps(status) {
+    // Update UI based on connection status
+    if (status === 'connected') {
+        $('#step4').addClass('active').addClass('completed');
+        $('#countdownTimer').text('Connected!');
+    }
+}
+
+function cancelCall() {
+    // Send cancellation request
+    $.ajax({
+        url: '{% url "api_cancel_call" %}',
+        method: 'POST',
+        data: {
+            profile_id: "{{ profile.id }}",
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        }
+    });
+    
+    // Return to configuration view
+    $('#callProcessingView').addClass('d-none');
+    $('#callConfigView').removeClass('d-none');
+}
+
+// Modal functions
+function showTerms() {
+    showModal($('#termsModalContent').html());
+}
+
+function showPrivacy() {
+    showModal($('#privacyModalContent').html());
+}
+
+function showMessage(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type}">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `);
+    
+    $('.messages-container').append(alert);
+    
+    setTimeout(() => {
+        alert.fadeOut(300, () => alert.remove());
+    }, 5000);
+}
+</script>
 {% endblock %}

@@ -45,10 +45,29 @@ class ProfileAdmin(admin.ModelAdmin):
 
 @admin.register(Video)
 class VideoAdmin(admin.ModelAdmin):
-    list_display = ('title', 'profile', 'views', 'duration', 'uploaded_at')
+    list_display = ('title', 'profile', 'views', 'likes', 'duration', 'uploaded_at')
     list_filter = ('uploaded_at',)
-    search_fields = ('title', 'profile__user__username')
+    search_fields = ('title', 'profile__user__username', 'description')
     readonly_fields = ('views', 'uploaded_at')
+    fieldsets = (
+        ('Basic Info', {
+            'fields': ('profile', 'title', 'description')
+        }),
+        ('Media Files', {
+            'fields': ('video_file', 'thumbnail')
+        }),
+        ('Statistics', {
+            'fields': ('views', 'likes', 'duration')
+        }),
+    )
+
+# Add VideoLike model to admin
+@admin.register(VideoLike)
+class VideoLikeAdmin(admin.ModelAdmin):
+    list_display = ('user', 'video', 'created_at')
+    list_filter = ('created_at',)
+    search_fields = ('user__username', 'video__title')
+    readonly_fields = ('created_at',)
 
 @admin.register(Post)
 class PostAdmin(admin.ModelAdmin):
@@ -90,3 +109,4 @@ admin.site.register(Wallet)
 admin.site.register(SavedSearch)
 admin.site.register(Invitation)
 admin.site.register(UserSetting)
+admin.site.register(VideoComment)

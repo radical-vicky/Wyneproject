@@ -162,6 +162,10 @@ class Video(models.Model):
     # Statistics
     views = models.IntegerField(default=0)
     likes = models.IntegerField(default=0)
+
+    @property
+    def likes_count(self):
+        return self.video_likes.count()
     
     # Metadata
     duration = models.IntegerField(help_text="Duration in seconds", default=0)
@@ -179,6 +183,8 @@ class Video(models.Model):
         minutes = self.duration // 60
         seconds = self.duration % 60
         return f"{minutes}:{seconds:02d}"
+    
+    
 
 # ================================
 # 3. SOCIAL & POSTS
@@ -230,6 +236,20 @@ class Post(models.Model):
     
     def get_absolute_url(self):
         return f"/post/{self.id}/"
+    
+
+class VideoComment(models.Model):
+    """Comments on videos"""
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='comments')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['created_at']
+    
+    def __str__(self):
+        return f"Comment by {self.user.username} on {self.video.title}"
 
 class PostInteraction(models.Model):
     """Track likes, saves, shares for posts"""
@@ -552,3 +572,15 @@ class UserSetting(models.Model):
     
     def __str__(self):
         return f"Settings for {self.user.username}"
+    
+class VideoLike(models.Model):
+    """Track which users liked which videos"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    video = models.ForeignKey(Video, on_delete=models.CASCADE, related_name='video_likes')
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ['user', 'video']
+    
+    def __str__(self):
+        return f"{self.user.username} liked {self.video.title}"

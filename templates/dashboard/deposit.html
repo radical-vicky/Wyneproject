@@ -1,9 +1,1094 @@
-<!-- main/templates/dashboard/deposit.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+
+{% block title %}Deposit Funds - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Deposit specific styles */
+.deposit-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.deposit-container {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.deposit-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 30px;
+    border: 1px solid var(--border-color);
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+}
+
+.deposit-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.deposit-subtitle {
+    color: var(--text-secondary);
+    margin-bottom: 25px;
+    font-size: 1rem;
+    line-height: 1.6;
+}
+
+/* Payment methods */
+.payment-methods {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.payment-method {
+    padding: 20px;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.payment-method:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.payment-method.selected {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    box-shadow: 0 0 0 2px rgba(0,168,89,0.2);
+}
+
+.payment-method.selected::after {
+    content: '✓';
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 25px;
+    height: 25px;
+    background: var(--coop-green);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: bold;
+}
+
+.payment-icon {
+    font-size: 2.5rem;
+    color: var(--coop-green);
+    margin-bottom: 15px;
+}
+
+.payment-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 1.1rem;
+}
+
+.payment-description {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.payment-fee {
+    font-size: 0.8rem;
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+/* Amount selection */
+.amount-selection {
+    margin-bottom: 30px;
+}
+
+.amount-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+}
+
+.amount-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.amount-option {
+    padding: 15px 10px;
+    background: rgba(255,255,255,0.02);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+}
+
+.amount-option:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: var(--coop-green);
+}
+
+.amount-option.selected {
+    background: rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+.amount-value {
+    font-size: 1.3rem;
+    font-weight: 700;
+    margin-bottom: 5px;
+}
+
+.amount-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.custom-amount {
+    margin-top: 15px;
+}
+
+.custom-amount .input-group {
+    max-width: 300px;
+}
+
+/* Wallet info */
+.wallet-info {
+    background: linear-gradient(135deg, rgba(0,168,89,0.1), rgba(0,102,179,0.1));
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 30px;
+    border: 1px solid rgba(0,168,89,0.3);
+}
+
+.wallet-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.wallet-title {
+    font-weight: 600;
+    color: var(--coop-green);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.wallet-balance {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-align: center;
+    margin: 10px 0;
+}
+
+.wallet-label {
+    color: var(--text-secondary);
+    text-align: center;
+    font-size: 0.9rem;
+}
+
+/* Form styling */
+.form-section {
+    margin-bottom: 25px;
+}
+
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.section-title i {
+    color: var(--coop-green);
+}
+
+/* Progress indicator */
+.deposit-progress {
+    display: flex;
+    justify-content: space-between;
+    position: relative;
+    margin: 30px 0;
+    padding: 0 20px;
+}
+
+.deposit-progress:before {
+    content: '';
+    position: absolute;
+    top: 15px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--border-color);
+    z-index: 1;
+}
+
+.progress-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    z-index: 2;
+    flex: 1;
+}
+
+.step-dot {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    transition: all 0.3s ease;
+    color: var(--text-secondary);
+}
+
+.progress-step.active .step-dot {
+    background: var(--coop-green);
+    color: white;
+}
+
+.progress-step.completed .step-dot {
+    background: var(--success);
+    color: white;
+}
+
+.step-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.progress-step.active .step-label {
+    color: var(--coop-green);
+    font-weight: 600;
+}
+
+.progress-step.completed .step-label {
+    color: var(--success);
+}
+
+/* Bank transfer details */
+.bank-details {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+    border: 1px solid var(--border-color);
+}
+
+.bank-row {
+    display: flex;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+}
+
+.bank-label {
+    min-width: 150px;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.bank-value {
+    flex: 1;
+    color: var(--text-primary);
+    font-weight: 600;
+    word-break: break-all;
+}
+
+.bank-value.copyable {
+    cursor: pointer;
+    position: relative;
+    padding-right: 25px;
+}
+
+.bank-value.copyable:hover {
+    color: var(--coop-green);
+}
+
+.bank-value.copyable:after {
+    content: '📋';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.9rem;
+    opacity: 0.7;
+}
+
+/* Payment instructions */
+.payment-instructions {
+    background: rgba(33, 150, 243, 0.1);
+    border: 1px solid rgba(33, 150, 243, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.instructions-title {
+    color: var(--info);
+    font-weight: 600;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.instructions-list {
+    color: var(--text-secondary);
+    padding-left: 20px;
+}
+
+.instructions-list li {
+    margin-bottom: 8px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .deposit-card {
+        padding: 20px;
+    }
+    
+    .payment-methods {
+        grid-template-columns: 1fr;
+    }
+    
+    .amount-options {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    .deposit-progress {
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .deposit-progress:before {
+        display: none;
+    }
+    
+    .progress-step {
+        flex-direction: row;
+        gap: 15px;
+    }
+    
+    .step-dot {
+        margin-bottom: 0;
+    }
+    
+    .bank-row {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .bank-label {
+        min-width: auto;
+    }
+}
+
+/* Success/Error states */
+.success-message {
+    background: rgba(76, 175, 80, 0.1);
+    border: 1px solid rgba(76, 175, 80, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+.error-message {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 20px 0;
+}
+
+/* Quick deposit amounts */
+.quick-deposit {
+    background: rgba(255,255,255,0.02);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-top: 20px;
+}
+
+.quick-title {
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: var(--text-secondary);
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: deposit.html</h1>
-    <p>Content coming soon...</p>
+<div class="deposit-header">
+    <div>
+        <h1 class="card-title">Deposit Funds</h1>
+        <p class="card-subtitle">Add money to your CoopConnect wallet</p>
+    </div>
+    <a href="{% url 'wallet' %}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Back to Wallet
+    </a>
 </div>
+
+<div class="deposit-container">
+    <!-- Wallet Information -->
+    <div class="wallet-info">
+        <div class="wallet-header">
+            <div class="wallet-title">
+                <i class="fas fa-wallet"></i>
+                Current Wallet Balance
+            </div>
+            <div class="wallet-balance">
+                KES {{ wallet.balance|default:"0.00" }}
+            </div>
+        </div>
+        <div class="wallet-label">Available for bookings, calls, and other services</div>
+    </div>
+
+    <!-- Progress Indicator -->
+    <div class="deposit-progress">
+        <div class="progress-step active" id="step1">
+            <div class="step-dot">1</div>
+            <div class="step-label">Method</div>
+        </div>
+        
+        <div class="progress-step" id="step2">
+            <div class="step-dot">2</div>
+            <div class="step-label">Amount</div>
+        </div>
+        
+        <div class="progress-step" id="step3">
+            <div class="step-dot">3</div>
+            <div class="step-label">Details</div>
+        </div>
+        
+        <div class="progress-step" id="step4">
+            <div class="step-dot">4</div>
+            <div class="step-label">Confirm</div>
+        </div>
+    </div>
+
+    <!-- Deposit Card -->
+    <div class="deposit-card">
+        <div class="deposit-title">
+            <i class="fas fa-coins"></i>
+            Deposit Money
+        </div>
+        
+        <div class="deposit-subtitle">
+            Choose your preferred payment method and amount to add funds to your wallet.
+            Deposits are processed instantly for most methods.
+        </div>
+
+        <!-- Payment Methods -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-credit-card"></i>
+                Select Payment Method
+            </div>
+            
+            <div class="payment-methods">
+                <div class="payment-method selected" data-method="mpesa">
+                    <div class="payment-icon">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <div class="payment-name">M-Pesa</div>
+                    <div class="payment-description">Instant mobile money</div>
+                    <div class="payment-fee">No fees</div>
+                </div>
+                
+                <div class="payment-method" data-method="card">
+                    <div class="payment-icon">
+                        <i class="fas fa-credit-card"></i>
+                    </div>
+                    <div class="payment-name">Card</div>
+                    <div class="payment-description">Visa/Mastercard</div>
+                    <div class="payment-fee">2.9% fee</div>
+                </div>
+                
+                <div class="payment-method" data-method="bank">
+                    <div class="payment-icon">
+                        <i class="fas fa-university"></i>
+                    </div>
+                    <div class="payment-name">Bank Transfer</div>
+                    <div class="payment-description">Direct bank deposit</div>
+                    <div class="payment-fee">KES 50 fee</div>
+                </div>
+                
+                <div class="payment-method" data-method="airtel">
+                    <div class="payment-icon">
+                        <i class="fas fa-sim-card"></i>
+                    </div>
+                    <div class="payment-name">Airtel Money</div>
+                    <div class="payment-description">Airtel mobile money</div>
+                    <div class="payment-fee">No fees</div>
+                </div>
+            </div>
+            
+            <input type="hidden" name="payment_method" id="paymentMethod" value="mpesa">
+        </div>
+
+        <!-- Amount Selection -->
+        <div class="form-section">
+            <div class="section-title">
+                <i class="fas fa-money-bill-wave"></i>
+                Select Amount
+            </div>
+            
+            <div class="amount-selection">
+                <div class="amount-title">Quick Select</div>
+                
+                <div class="amount-options">
+                    <div class="amount-option" data-amount="100">
+                        <div class="amount-value">KES 100</div>
+                        <div class="amount-label">Starter</div>
+                    </div>
+                    
+                    <div class="amount-option selected" data-amount="500">
+                        <div class="amount-value">KES 500</div>
+                        <div class="amount-label">Basic</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="1000">
+                        <div class="amount-value">KES 1,000</div>
+                        <div class="amount-label">Standard</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="5000">
+                        <div class="amount-value">KES 5,000</div>
+                        <div class="amount-label">Premium</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="10000">
+                        <div class="amount-value">KES 10,000</div>
+                        <div class="amount-label">VIP</div>
+                    </div>
+                    
+                    <div class="amount-option" data-amount="20000">
+                        <div class="amount-value">KES 20,000</div>
+                        <div class="amount-label">Executive</div>
+                    </div>
+                </div>
+                
+                <div class="custom-amount">
+                    <div class="amount-title">Custom Amount</div>
+                    <div class="input-group" style="max-width: 300px;">
+                        <span class="input-group-text" style="background: var(--darker-bg); color: var(--text-primary); border: 1px solid var(--border-color);">KES</span>
+                        <input type="number" class="form-control" id="customAmount" placeholder="Enter amount" min="100" max="1000000" step="100">
+                    </div>
+                    <div class="text-sm text-secondary mt-1">Minimum: KES 100 | Maximum: KES 1,000,000</div>
+                </div>
+                
+                <input type="hidden" name="deposit_amount" id="depositAmount" value="500">
+            </div>
+        </div>
+
+        <!-- Payment Details (Changes based on method) -->
+        <div class="form-section" id="paymentDetails">
+            <!-- M-Pesa Details -->
+            <div class="payment-method-details" id="mpesaDetails">
+                <div class="section-title">
+                    <i class="fas fa-mobile-alt"></i>
+                    M-Pesa Details
+                </div>
+                
+                <form method="POST" id="mpesaForm" action="{% url 'deposit' %}">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_method" value="mpesa">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">M-Pesa Phone Number</label>
+                        <input type="tel" class="form-control" name="phone_number" id="mpesaPhone" placeholder="07XXXXXXXX" required value="{{ user.profile.phone_number|default:'' }}">
+                        <div class="text-sm text-secondary mt-1">Enter the phone number registered with M-Pesa</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        You will receive an M-Pesa STK Push notification to complete the payment
+                    </div>
+                    
+                    <div class="payment-instructions">
+                        <div class="instructions-title">
+                            <i class="fas fa-list-ol"></i>
+                            M-Pesa Payment Steps
+                        </div>
+                        <ol class="instructions-list">
+                            <li>Enter your M-Pesa registered phone number</li>
+                            <li>Click "Deposit with M-Pesa"</li>
+                            <li>Check your phone for STK Push notification</li>
+                            <li>Enter your M-Pesa PIN when prompted</li>
+                            <li>Wait for confirmation (usually within 30 seconds)</li>
+                        </ol>
+                    </div>
+                    
+                    <div class="d-flex gap-3 mt-4">
+                        <button type="submit" class="btn btn-primary flex-1 btn-lg" id="mpesaSubmit">
+                            <i class="fas fa-mobile-alt"></i> Deposit with M-Pesa
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="window.history.back()">
+                            Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Card Details (Hidden by default) -->
+            <div class="payment-method-details" id="cardDetails" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-credit-card"></i>
+                    Card Details
+                </div>
+                
+                <form method="POST" id="cardForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_method" value="card">
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label">Card Number</label>
+                                <input type="text" class="form-control" name="card_number" placeholder="1234 5678 9012 3456" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">Expiry Date</label>
+                                <input type="text" class="form-control" name="expiry_date" placeholder="MM/YY" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label class="form-label">CVV</label>
+                                <input type="text" class="form-control" name="cvv" placeholder="123" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Cardholder Name</label>
+                        <input type="text" class="form-control" name="cardholder_name" placeholder="John Doe" required>
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-credit-card"></i> Pay with Card
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Bank Transfer Details (Hidden by default) -->
+            <div class="payment-method-details" id="bankDetails" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-university"></i>
+                    Bank Transfer Details
+                </div>
+                
+                <div class="bank-details">
+                    <div class="bank-row">
+                        <div class="bank-label">Bank Name:</div>
+                        <div class="bank-value">Co-operative Bank of Kenya</div>
+                    </div>
+                    
+                    <div class="bank-row">
+                        <div class="bank-label">Account Name:</div>
+                        <div class="bank-value">CoopConnect Premium Ltd</div>
+                    </div>
+                    
+                    <div class="bank-row">
+                        <div class="bank-label">Account Number:</div>
+                        <div class="bank-value copyable" onclick="copyToClipboard('0112345678900')">0112345678900</div>
+                    </div>
+                    
+                    <div class="bank-row">
+                        <div class="bank-label">Branch:</div>
+                        <div class="bank-value">Nairobi Main Branch</div>
+                    </div>
+                    
+                    <div class="bank-row">
+                        <div class="bank-label">SWIFT Code:</div>
+                        <div class="bank-value copyable" onclick="copyToClipboard('CPBKKENA')">CPBKKENA</div>
+                    </div>
+                    
+                    <div class="bank-row">
+                        <div class="bank-label">Reference:</div>
+                        <div class="bank-value copyable" onclick="copyToClipboard('{{ user.username }}')">{{ user.username }}</div>
+                    </div>
+                </div>
+                
+                <div class="payment-instructions">
+                    <div class="instructions-title">
+                        <i class="fas fa-list-ol"></i>
+                        Bank Transfer Instructions
+                    </div>
+                    <ol class="instructions-list">
+                        <li>Use the bank details above for your transfer</li>
+                        <li>Use <strong>{{ user.username }}</strong> as the reference</li>
+                        <li>Make payment from your bank account or mobile app</li>
+                        <li>Take a screenshot of the payment confirmation</li>
+                        <li>Click "I Have Paid" below and upload the screenshot</li>
+                    </ol>
+                </div>
+                
+                <form method="POST" id="bankForm" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_method" value="bank">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Payment Proof (Screenshot/Receipt)</label>
+                        <input type="file" class="form-control" name="payment_proof" accept="image/*,.pdf" required>
+                        <div class="text-sm text-secondary mt-1">Upload a screenshot of your bank transfer confirmation</div>
+                    </div>
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Transaction Reference (Optional)</label>
+                        <input type="text" class="form-control" name="transaction_ref" placeholder="Bank transaction reference">
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-check-circle"></i> I Have Paid
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <!-- Airtel Money Details (Hidden by default) -->
+            <div class="payment-method-details" id="airtelDetails" style="display: none;">
+                <div class="section-title">
+                    <i class="fas fa-sim-card"></i>
+                    Airtel Money Details
+                </div>
+                
+                <form method="POST" id="airtelForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="payment_method" value="airtel">
+                    
+                    <div class="form-group mb-3">
+                        <label class="form-label">Airtel Money Number</label>
+                        <input type="tel" class="form-control" name="phone_number" placeholder="07XXXXXXXX" required>
+                        <div class="text-sm text-secondary mt-1">Enter your Airtel Money registered number</div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        You will receive a USSD prompt to complete the payment
+                    </div>
+                    
+                    <div class="d-flex gap-3">
+                        <button type="submit" class="btn btn-primary flex-1">
+                            <i class="fas fa-sim-card"></i> Deposit with Airtel Money
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Quick Deposit for Returning Users -->
+        <div class="quick-deposit">
+            <div class="quick-title">Quick Deposit (Saved Methods)</div>
+            <div class="d-flex gap-3 flex-wrap">
+                <button class="btn btn-outline-secondary" onclick="quickDeposit(500)">
+                    <i class="fas fa-bolt"></i> KES 500 via M-Pesa
+                </button>
+                <button class="btn btn-outline-secondary" onclick="quickDeposit(1000)">
+                    <i class="fas fa-bolt"></i> KES 1,000 via M-Pesa
+                </button>
+                <button class="btn btn-outline-secondary" onclick="quickDeposit(5000)">
+                    <i class="fas fa-bolt"></i> KES 5,000 via M-Pesa
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Security Notice -->
+    <div class="text-center mt-4">
+        <p class="text-secondary text-sm">
+            <i class="fas fa-shield-alt"></i>
+            Your payment information is securely encrypted. We never store your card details.
+        </p>
+    </div>
+</div>
+
+<script>
+$(document).ready(function() {
+    // Initialize progress steps
+    updateProgressSteps('method');
+    
+    // Payment method selection
+    $('.payment-method').click(function() {
+        $('.payment-method').removeClass('selected');
+        $(this).addClass('selected');
+        
+        const method = $(this).data('method');
+        $('#paymentMethod').val(method);
+        
+        // Show corresponding payment details
+        $('.payment-method-details').hide();
+        $(`#${method}Details`).show();
+        
+        // Update progress
+        updateProgressSteps('amount');
+    });
+    
+    // Amount selection
+    $('.amount-option').click(function() {
+        $('.amount-option').removeClass('selected');
+        $(this).addClass('selected');
+        
+        const amount = $(this).data('amount');
+        $('#depositAmount').val(amount);
+        $('#customAmount').val(amount);
+        
+        // Update progress
+        updateProgressSteps('details');
+    });
+    
+    // Custom amount input
+    $('#customAmount').on('input', function() {
+        const amount = parseInt($(this).val()) || 0;
+        if (amount >= 100 && amount <= 1000000) {
+            $('#depositAmount').val(amount);
+            $('.amount-option').removeClass('selected');
+            
+            // Update progress
+            updateProgressSteps('details');
+        }
+    });
+    
+    // Form submission handling
+    $('form').submit(function(e) {
+        e.preventDefault();
+        
+        const form = $(this);
+        const submitBtn = form.find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        // Validate amount
+        const amount = parseInt($('#depositAmount').val());
+        if (amount < 100) {
+            alert('Minimum deposit amount is KES 100');
+            return;
+        }
+        
+        if (amount > 1000000) {
+            alert('Maximum deposit amount is KES 1,000,000');
+            return;
+        }
+        
+        // Show processing state
+        submitBtn.prop('disabled', true).html(`
+            <i class="fas fa-spinner fa-spin"></i> Processing...
+        `);
+        
+        // For M-Pesa, show STK Push simulation
+        if (form.attr('id') === 'mpesaForm') {
+            simulateMpesaPayment(form, amount);
+        } else {
+            // For other methods, submit normally
+            form[0].submit();
+        }
+    });
+    
+    // M-Pesa payment simulation
+    function simulateMpesaPayment(form, amount) {
+        const phone = $('#mpesaPhone').val().trim();
+        
+        if (!phone) {
+            alert('Please enter your M-Pesa phone number');
+            form.find('button[type="submit"]').prop('disabled', false).html('<i class="fas fa-mobile-alt"></i> Deposit with M-Pesa');
+            return;
+        }
+        
+        // Show M-Pesa simulation
+        showModal(`
+            <div class="text-center p-4">
+                <div class="mb-4">
+                    <div class="payment-icon">
+                        <i class="fas fa-mobile-alt fa-3x"></i>
+                    </div>
+                    <h3 class="mt-3">M-Pesa Payment</h3>
+                </div>
+                
+                <div class="mpesa-simulation" style="background: white; color: black; border-radius: 10px; padding: 20px; max-width: 300px; margin: 0 auto; font-family: Arial, sans-serif;">
+                    <div style="background: #00A859; color: white; padding: 10px; border-radius: 5px 5px 0 0; margin: -20px -20px 20px -20px; text-align: center;">
+                        <strong>M-PESA</strong>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 0.9rem; color: #666;">Sending to:</div>
+                        <div style="font-weight: bold; font-size: 1.1rem;">COOPCONNECT PREMIUM</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 15px;">
+                        <div style="font-size: 0.9rem; color: #666;">Amount:</div>
+                        <div style="font-weight: bold; font-size: 1.1rem;">KES ${amount.toLocaleString()}</div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <div style="font-size: 0.9rem; color: #666;">Account:</div>
+                        <div style="font-weight: bold; font-size: 1.1rem;">${phone}</div>
+                    </div>
+                    
+                    <div style="text-align: center; padding: 15px; background: #f5f5f5; border-radius: 5px; margin-bottom: 15px;">
+                        <div style="font-size: 0.9rem; color: #666;">Enter your M-Pesa PIN</div>
+                        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 10px;">
+                            <div style="width: 15px; height: 15px; border-radius: 50%; background: black;"></div>
+                            <div style="width: 15px; height: 15px; border-radius: 50%; background: black;"></div>
+                            <div style="width: 15px; height: 15px; border-radius: 50%; background: black;"></div>
+                            <div style="width: 15px; height: 15px; border-radius: 50%; background: black;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                        <button style="padding: 10px; border: 1px solid #00A859; background: white; color: #00A859; border-radius: 5px; cursor: pointer;" onclick="cancelMpesa()">
+                            Cancel
+                        </button>
+                        <button style="padding: 10px; border: none; background: #00A859; color: white; border-radius: 5px; cursor: pointer;" onclick="confirmMpesa(${amount})">
+                            OK
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="mt-4 text-secondary">
+                    <i class="fas fa-info-circle"></i>
+                    Simulated M-Pesa payment interface
+                </div>
+            </div>
+        `);
+    }
+    
+    // Quick deposit function
+    window.quickDeposit = function(amount) {
+        $('#depositAmount').val(amount);
+        $('.amount-option').removeClass('selected');
+        $(`.amount-option[data-amount="${amount}"]`).addClass('selected');
+        $('#customAmount').val(amount);
+        
+        // Show M-Pesa form and submit
+        $('.payment-method-details').hide();
+        $('#mpesaDetails').show();
+        
+        // Trigger M-Pesa payment
+        simulateMpesaPayment($('#mpesaForm'), amount);
+    };
+    
+    // Copy to clipboard function
+    window.copyToClipboard = function(text) {
+        navigator.clipboard.writeText(text).then(function() {
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3>Copied!</h3>
+                    <p>${text}</p>
+                    <p class="text-secondary">Copied to clipboard</p>
+                    <button class="btn btn-primary mt-3" onclick="hideModal()">OK</button>
+                </div>
+            `);
+        });
+    };
+    
+    // Update progress steps
+    function updateProgressSteps(activeStep) {
+        // Reset all steps
+        $('.progress-step').removeClass('active completed');
+        
+        if (activeStep === 'method') {
+            $('#step1').addClass('active');
+        } else if (activeStep === 'amount') {
+            $('#step1').addClass('completed');
+            $('#step2').addClass('active');
+        } else if (activeStep === 'details') {
+            $('#step1, #step2').addClass('completed');
+            $('#step3').addClass('active');
+        } else if (activeStep === 'confirm') {
+            $('#step1, #step2, #step3').addClass('completed');
+            $('#step4').addClass('active');
+        }
+    }
+    
+    // M-Pesa confirmation (simulated)
+    window.confirmMpesa = function(amount) {
+        // Close M-Pesa simulation
+        hideModal();
+        
+        // Show processing
+        showModal(`
+            <div class="text-center p-4">
+                <i class="fas fa-spinner fa-spin fa-3x text-info mb-3"></i>
+                <h3>Processing Payment</h3>
+                <p>Completing M-Pesa transaction for KES ${amount.toLocaleString()}...</p>
+                <div class="progress mt-4" style="height: 10px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%"></div>
+                </div>
+            </div>
+        `);
+        
+        // Simulate API call delay
+        setTimeout(function() {
+            // Show success
+            showModal(`
+                <div class="text-center p-4">
+                    <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                    <h3>Payment Successful!</h3>
+                    <p>KES ${amount.toLocaleString()} has been added to your wallet.</p>
+                    <div class="mt-4">
+                        <a href="{% url 'wallet' %}" class="btn btn-primary">
+                            <i class="fas fa-wallet"></i> View Wallet
+                        </a>
+                        <button class="btn btn-secondary" onclick="hideModal()">
+                            Make Another Deposit
+                        </button>
+                    </div>
+                </div>
+            `);
+            
+            // In a real application, you would submit the form here
+            // $('#mpesaForm')[0].submit();
+        }, 2000);
+    };
+    
+    window.cancelMpesa = function() {
+        hideModal();
+        $('#mpesaForm').find('button[type="submit"]').prop('disabled', false).html('<i class="fas fa-mobile-alt"></i> Deposit with M-Pesa');
+    };
+});
+</script>
 {% endblock %}

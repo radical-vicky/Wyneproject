@@ -1,0 +1,736 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Post - CoopConnect Premium{% endblock %}
+
+{% block extra_css %}
+<style>
+/* ========== POST EDIT PAGE STYLES ========== */
+.edit-post-container {
+    padding: 2rem 0;
+}
+
+.edit-post-card {
+    border: none;
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    background: var(--card-bg);
+}
+
+.edit-post-card .card-header {
+    background: linear-gradient(135deg, var(--coop-green), var(--coop-blue));
+    color: white;
+    padding: 1.5rem 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.edit-post-card .card-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.edit-post-card .card-title i {
+    font-size: 1.25rem;
+}
+
+.edit-post-card .card-body {
+    padding: 2rem;
+}
+
+/* Form Styles */
+.post-edit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* Textarea Styling */
+.post-content-wrapper {
+    position: relative;
+}
+
+.post-content-textarea {
+    width: 100%;
+    min-height: 180px;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    line-height: 1.6;
+    resize: vertical;
+    transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
+}
+
+.post-content-textarea:focus {
+    outline: none;
+    border-color: var(--coop-green);
+    background: rgba(0, 168, 89, 0.03);
+    box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1);
+}
+
+.post-content-textarea::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}
+
+/* Character Counter */
+.char-counter {
+    position: absolute;
+    bottom: 0.75rem;
+    right: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    background: rgba(26, 26, 46, 0.8);
+    padding: 0.25rem 0.5rem;
+    border-radius: var(--radius-sm);
+}
+
+/* Media Upload Sections */
+.media-upload-section {
+    background: rgba(255, 255, 255, 0.02);
+    border: 2px dashed var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+}
+
+.media-upload-section:hover {
+    border-color: var(--coop-green);
+    background: rgba(0, 168, 89, 0.02);
+}
+
+.media-upload-section h4 {
+    font-size: 1rem;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.media-upload-section h4 i {
+    color: var(--coop-green);
+}
+
+.media-preview {
+    margin-top: 1rem;
+}
+
+.media-preview img,
+.media-preview video {
+    max-width: 100%;
+    max-height: 200px;
+    border-radius: var(--radius);
+    object-fit: cover;
+}
+
+.current-media {
+    background: rgba(255, 255, 255, 0.03);
+    padding: 1rem;
+    border-radius: var(--radius);
+    margin-bottom: 1rem;
+}
+
+.current-media-label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.current-media-file {
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    word-break: break-all;
+}
+
+.media-input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.media-input-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.media-file-input {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.media-file-input:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--coop-green);
+}
+
+.media-file-input::-webkit-file-upload-button {
+    display: none;
+}
+
+.media-browse-btn {
+    padding: 0.75rem 1.25rem;
+    background: rgba(0, 168, 89, 0.1);
+    border: 1px solid var(--coop-green);
+    color: var(--coop-green);
+    border-radius: var(--radius);
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.media-browse-btn:hover {
+    background: rgba(0, 168, 89, 0.2);
+}
+
+/* Location Input */
+.location-input-wrapper {
+    position: relative;
+}
+
+.location-input {
+    width: 100%;
+    padding: 1rem 1rem 1rem 3rem;
+    background: rgba(255, 255, 255, 0.03);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+.location-input:focus {
+    outline: none;
+    border-color: var(--coop-green);
+    background: rgba(0, 168, 89, 0.03);
+    box-shadow: 0 0 0 4px rgba(0, 168, 89, 0.1);
+}
+
+.location-icon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+}
+
+/* Checkbox Styling */
+.checkbox-group {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+}
+
+.custom-checkbox {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    cursor: pointer;
+    user-select: none;
+}
+
+.custom-checkbox input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-display {
+    width: 20px;
+    height: 20px;
+    border: 2px solid var(--border-color);
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.checkbox-display i {
+    color: white;
+    font-size: 0.8rem;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .checkbox-display {
+    background: var(--coop-green);
+    border-color: var(--coop-green);
+}
+
+.custom-checkbox input[type="checkbox"]:checked + .checkbox-display i {
+    opacity: 1;
+}
+
+.checkbox-label {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    font-weight: 500;
+}
+
+.checkbox-description {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+}
+
+/* Action Buttons */
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.action-btn {
+    padding: 1rem 2rem;
+    border-radius: var(--radius);
+    font-weight: 500;
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    transition: all 0.3s ease;
+    border: none;
+    cursor: pointer;
+    min-width: 140px;
+}
+
+.btn-update {
+    background: linear-gradient(135deg, var(--coop-green), var(--coop-blue));
+    color: white;
+}
+
+.btn-update:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 168, 89, 0.3);
+}
+
+.btn-cancel {
+    background: rgba(255, 255, 255, 0.05);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-cancel:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.btn-delete {
+    background: rgba(244, 67, 54, 0.1);
+    color: var(--danger);
+    border: 1px solid var(--danger);
+    margin-left: auto;
+}
+
+.btn-delete:hover {
+    background: rgba(244, 67, 54, 0.2);
+    transform: translateY(-2px);
+}
+
+/* Error Styling */
+.form-error {
+    background: rgba(244, 67, 54, 0.1);
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    color: var(--danger);
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.form-error ul {
+    margin: 0;
+    padding-left: 1.5rem;
+}
+
+.form-error li {
+    margin-bottom: 0.25rem;
+}
+
+.form-error li:last-child {
+    margin-bottom: 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .edit-post-container {
+        padding: 1rem 0;
+    }
+    
+    .edit-post-card .card-body {
+        padding: 1.5rem;
+    }
+    
+    .edit-post-card .card-header {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .edit-post-card .card-title {
+        font-size: 1.25rem;
+    }
+    
+    .media-upload-section {
+        padding: 1.25rem;
+    }
+    
+    .form-actions {
+        flex-direction: column;
+    }
+    
+    .action-btn {
+        width: 100%;
+        min-width: auto;
+    }
+    
+    .btn-delete {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 576px) {
+    .edit-post-card .card-body {
+        padding: 1.25rem;
+    }
+    
+    .post-content-textarea {
+        min-height: 150px;
+    }
+    
+    .media-input-wrapper {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .media-browse-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .checkbox-group {
+        padding: 1rem;
+    }
+}
+
+/* Animation for form elements */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.post-edit-form > * {
+    animation: fadeIn 0.3s ease-out;
+}
+
+.post-edit-form > *:nth-child(1) { animation-delay: 0.1s; }
+.post-edit-form > *:nth-child(2) { animation-delay: 0.2s; }
+.post-edit-form > *:nth-child(3) { animation-delay: 0.3s; }
+.post-edit-form > *:nth-child(4) { animation-delay: 0.4s; }
+.post-edit-form > *:nth-child(5) { animation-delay: 0.5s; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="edit-post-container">
+    <div class="row">
+        <div class="col-lg-8 col-xl-6 mx-auto">
+            <div class="card edit-post-card shadow-lg">
+                <div class="card-header">
+                    <h2 class="card-title">
+                        <i class="fas fa-edit"></i> Edit Post
+                    </h2>
+                </div>
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data" class="post-edit-form">
+                        {% csrf_token %}
+                        
+                        <!-- Content Field -->
+                        <div class="post-content-wrapper">
+                            <label for="id_content" class="form-label">
+                                <i class="fas fa-pen me-2"></i>Post Content
+                            </label>
+                            <textarea 
+                                name="content" 
+                                id="id_content" 
+                                class="post-content-textarea"
+                                placeholder="What's on your mind? Share your thoughts with the community..."
+                                rows="6">{{ form.content.value|default:"" }}</textarea>
+                            <div class="char-counter" id="charCounter">
+                                <span id="charCount">0</span>/5000
+                            </div>
+                            {% if form.content.errors %}
+                            <div class="form-error">
+                                {{ form.content.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Media Upload Section -->
+                        <div class="media-upload-section">
+                            <h4><i class="fas fa-image"></i> Media Attachments</h4>
+                            
+                            <!-- Current Media Display -->
+                            {% if post.image %}
+                            <div class="current-media">
+                                <span class="current-media-label">Current Image:</span>
+                                <div class="current-media-file">
+                                    <i class="fas fa-image me-2"></i>
+                                    {{ post.image.name|slice:"-30:" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            {% if post.video %}
+                            <div class="current-media">
+                                <span class="current-media-label">Current Video:</span>
+                                <div class="current-media-file">
+                                    <i class="fas fa-video me-2"></i>
+                                    {{ post.video.name|slice:"-30:" }}
+                                </div>
+                            </div>
+                            {% endif %}
+                            
+                            <!-- Image Upload -->
+                            <div class="media-input-group">
+                                <label class="form-label">New Image (Optional)</label>
+                                <div class="media-input-wrapper">
+                                    <input 
+                                        type="file" 
+                                        name="image" 
+                                        id="id_image" 
+                                        class="media-file-input"
+                                        accept="image/*">
+                                    <label for="id_image" class="media-browse-btn">
+                                        <i class="fas fa-folder-open me-2"></i>Browse
+                                    </label>
+                                </div>
+                                {% if form.image.errors %}
+                                <div class="form-error">
+                                    {{ form.image.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+
+                            <!-- Video Upload -->
+                            <div class="media-input-group">
+                                <label class="form-label">New Video (Optional)</label>
+                                <div class="media-input-wrapper">
+                                    <input 
+                                        type="file" 
+                                        name="video" 
+                                        id="id_video" 
+                                        class="media-file-input"
+                                        accept="video/*">
+                                    <label for="id_video" class="media-browse-btn">
+                                        <i class="fas fa-folder-open me-2"></i>Browse
+                                    </label>
+                                </div>
+                                {% if form.video.errors %}
+                                <div class="form-error">
+                                    {{ form.video.errors }}
+                                </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Location Field -->
+                        <div class="location-input-wrapper">
+                            <label for="id_location" class="form-label">
+                                <i class="fas fa-map-marker-alt me-2"></i>Location
+                            </label>
+                            <div class="position-relative">
+                                <input 
+                                    type="text" 
+                                    name="location" 
+                                    id="id_location" 
+                                    class="location-input"
+                                    placeholder="Add a location (optional)"
+                                    value="{{ form.location.value|default:"" }}">
+                                <i class="fas fa-map-marker-alt location-icon"></i>
+                            </div>
+                            {% if form.location.errors %}
+                            <div class="form-error">
+                                {{ form.location.errors }}
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Checkbox Options -->
+                        <div class="checkbox-group">
+                            <!-- Archive Option -->
+                            <label class="custom-checkbox">
+                                <input 
+                                    type="checkbox" 
+                                    name="is_archived" 
+                                    id="id_is_archived"
+                                    {% if form.is_archived.value %}checked{% endif %}>
+                                <span class="checkbox-display">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <div>
+                                    <span class="checkbox-label">Archive Post</span>
+                                    <p class="checkbox-description">
+                                        Archived posts are only visible to you
+                                    </p>
+                                </div>
+                            </label>
+
+                            <!-- Pin Option -->
+                            <label class="custom-checkbox">
+                                <input 
+                                    type="checkbox" 
+                                    name="is_pinned" 
+                                    id="id_is_pinned"
+                                    {% if form.is_pinned.value %}checked{% endif %}>
+                                <span class="checkbox-display">
+                                    <i class="fas fa-check"></i>
+                                </span>
+                                <div>
+                                    <span class="checkbox-label">Pin to Top</span>
+                                    <p class="checkbox-description">
+                                        Pinned posts appear at the top of your profile
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- Form Actions -->
+                        <div class="form-actions">
+                            <button type="submit" class="action-btn btn-update">
+                                <i class="fas fa-save me-2"></i> Update Post
+                            </button>
+                            <a href="{% url 'post_detail' post.id %}" class="action-btn btn-cancel">
+                                <i class="fas fa-times me-2"></i> Cancel
+                            </a>
+                            <a href="{% url 'post_delete' post.id %}" class="action-btn btn-delete">
+                                <i class="fas fa-trash me-2"></i> Delete Post
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Character counter
+    const textarea = document.getElementById('id_content');
+    const charCounter = document.getElementById('charCounter');
+    const charCount = document.getElementById('charCount');
+    
+    if (textarea) {
+        // Initialize count
+        charCount.textContent = textarea.value.length;
+        
+        // Update count on input
+        textarea.addEventListener('input', function() {
+            const count = this.value.length;
+            charCount.textContent = count;
+            
+            // Change color based on length
+            if (count > 4500) {
+                charCounter.style.color = 'var(--danger)';
+            } else if (count > 4000) {
+                charCounter.style.color = 'var(--warning)';
+            } else {
+                charCounter.style.color = 'var(--text-muted)';
+            }
+        });
+        
+        // Auto-resize textarea
+        textarea.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = (this.scrollHeight) + 'px';
+        });
+        
+        // Trigger input to set initial height
+        textarea.dispatchEvent(new Event('input'));
+    }
+    
+    // File input preview
+    const imageInput = document.getElementById('id_image');
+    const videoInput = document.getElementById('id_video');
+    
+    if (imageInput) {
+        imageInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Update UI to show selected file
+                const label = this.nextElementSibling;
+                if (label && label.classList.contains('media-browse-btn')) {
+                    label.innerHTML = `<i class="fas fa-check me-2"></i>Selected`;
+                    label.style.background = 'rgba(0, 168, 89, 0.2)';
+                }
+            }
+        });
+    }
+    
+    if (videoInput) {
+        videoInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                // Update UI to show selected file
+                const label = this.nextElementSibling;
+                if (label && label.classList.contains('media-browse-btn')) {
+                    label.innerHTML = `<i class="fas fa-check me-2"></i>Selected`;
+                    label.style.background = 'rgba(0, 168, 89, 0.2)';
+                }
+            }
+        });
+    }
+    
+    // Form submission handling
+    const form = document.querySelector('.post-edit-form');
+    if (form) {
+        form.addEventListener('submit', function(e) {
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Updating...';
+                submitBtn.disabled = true;
+            }
+        });
+    }
+    
+    // Add smooth scrolling to error messages
+    const errorMessages = document.querySelectorAll('.form-error');
+    if (errorMessages.length > 0) {
+        errorMessages[0].scrollIntoView({
+            behavior: 'smooth',
+            block: 'center'
+        });
+    }
+});
+</script>
+{% endblock %}

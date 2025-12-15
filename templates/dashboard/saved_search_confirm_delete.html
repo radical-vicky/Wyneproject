@@ -1,9 +1,1292 @@
-<!-- main/templates/dashboard/saved_search_confirm_delete.html -->
-{% extends "base/base.html" %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Delete Saved Search - {{ saved_search.name }}{% endblock %}
+
+{% block extra_css %}
+<style>
+/* Delete Saved Search Specific Styles */
+.delete-confirmation-container {
+    max-width: 700px;
+    margin: 50px auto;
+    padding: 20px;
+}
+
+.confirmation-card {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: 40px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-lg);
+    text-align: center;
+}
+
+.warning-icon {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+    border: 2px solid rgba(244, 67, 54, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 30px;
+    color: var(--danger);
+    font-size: 3rem;
+}
+
+.search-preview {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 30px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.search-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.search-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, rgba(0, 168, 89, 0.1), rgba(0, 102, 179, 0.1));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--coop-green);
+    font-size: 1.5rem;
+}
+
+.search-info {
+    flex: 1;
+}
+
+.search-name {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-bottom: 5px;
+    color: var(--text-primary);
+}
+
+.search-meta {
+    display: flex;
+    gap: 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.search-params {
+    margin: 25px 0;
+}
+
+.param-group {
+    margin-bottom: 15px;
+}
+
+.param-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.param-value {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 10px 15px;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.param-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+.param-chip {
+    padding: 4px 12px;
+    background: rgba(0, 168, 89, 0.1);
+    border: 1px solid rgba(0, 168, 89, 0.2);
+    border-radius: 20px;
+    font-size: 0.8rem;
+    color: var(--coop-green);
+}
+
+.search-stats {
+    display: flex;
+    gap: 30px;
+    padding: 20px 0;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--border-color);
+    margin: 25px 0;
+    justify-content: center;
+}
+
+.stat-item {
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--coop-green);
+    margin-bottom: 5px;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.consequences-section {
+    background: rgba(244, 67, 54, 0.05);
+    border: 1px solid rgba(244, 67, 54, 0.2);
+    border-radius: var(--radius);
+    padding: 25px;
+    margin: 30px 0;
+    text-align: left;
+}
+
+.consequence-title {
+    color: var(--danger);
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.consequences-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.consequence-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.consequence-icon {
+    color: var(--danger);
+    font-size: 1.1rem;
+    min-width: 20px;
+    padding-top: 2px;
+}
+
+.consequence-text {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 15px;
+    margin-top: 30px;
+    justify-content: center;
+}
+
+.alternative-options {
+    margin-top: 40px;
+    padding-top: 30px;
+    border-top: 1px solid var(--border-color);
+}
+
+.alternative-title {
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    font-size: 1rem;
+}
+
+.alternative-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.alternative-card {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.alternative-card:hover {
+    border-color: var(--coop-green);
+    transform: translateY(-2px);
+}
+
+.alternative-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: rgba(0, 168, 89, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 15px;
+    color: var(--coop-green);
+    font-size: 1.5rem;
+}
+
+.alternative-name {
+    font-weight: 600;
+    margin-bottom: 5px;
+    font-size: 0.95rem;
+}
+
+.alternative-desc {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+}
+
+.recent-results {
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 25px;
+    margin: 30px 0;
+}
+
+.results-title {
+    color: var(--info);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+
+.results-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.result-card {
+    background: var(--card-bg);
+    border-radius: var(--radius);
+    padding: 15px;
+    text-align: center;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s ease;
+}
+
+.result-card:hover {
+    border-color: var(--coop-green);
+}
+
+.result-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    overflow: hidden;
+    margin: 0 auto 10px;
+    border: 2px solid var(--border-color);
+}
+
+.result-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.result-name {
+    font-weight: 600;
+    font-size: 0.85rem;
+    margin-bottom: 3px;
+}
+
+.result-details {
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.no-results {
+    text-align: center;
+    padding: 20px;
+    color: var(--text-muted);
+}
+
+.export-options {
+    margin-top: 30px;
+    background: var(--darker-bg);
+    border-radius: var(--radius);
+    padding: 20px;
+    text-align: center;
+}
+
+.export-title {
+    color: var(--warning);
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 1rem;
+}
+
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-top: 15px;
+    flex-wrap: wrap;
+}
+
+.export-btn {
+    padding: 10px 20px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius);
+    color: var(--text-secondary);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-btn:hover {
+    background: rgba(0, 168, 89, 0.1);
+    border-color: var(--coop-green);
+    color: var(--coop-green);
+}
+
+.final-warning {
+    background: linear-gradient(135deg, rgba(244, 67, 54, 0.1), rgba(244, 67, 54, 0.05));
+    border: 1px solid rgba(244, 67, 54, 0.3);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 25px 0;
+    text-align: center;
+}
+
+.warning-text {
+    color: var(--danger);
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.warning-note {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.schedule-info {
+    background: linear-gradient(135deg, rgba(33, 150, 243, 0.1), rgba(33, 150, 243, 0.05));
+    border: 1px solid rgba(33, 150, 243, 0.2);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin: 25px 0;
+}
+
+.schedule-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.schedule-icon {
+    color: var(--info);
+    font-size: 1.2rem;
+}
+
+.schedule-title {
+    color: var(--info);
+    font-weight: 600;
+}
+
+.schedule-details {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .delete-confirmation-container {
+        margin: 20px auto;
+        padding: 10px;
+    }
+    
+    .confirmation-card {
+        padding: 25px;
+    }
+    
+    .warning-icon {
+        width: 80px;
+        height: 80px;
+        font-size: 2.5rem;
+        margin-bottom: 20px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .search-header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+    
+    .search-meta {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .search-stats {
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .alternative-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .results-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+    
+    .export-buttons {
+        flex-direction: column;
+    }
+    
+    .export-btn {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 576px) {
+    .confirmation-card {
+        padding: 20px;
+    }
+    
+    .warning-icon {
+        width: 60px;
+        height: 60px;
+        font-size: 2rem;
+    }
+    
+    .search-preview {
+        padding: 20px;
+    }
+    
+    .search-stats {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .stat-item {
+        margin-bottom: 15px;
+    }
+    
+    .stat-item:last-child {
+        margin-bottom: 0;
+    }
+}
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container py-4">
-    <h1>Template: saved_search_confirm_delete.html</h1>
-    <p>Content coming soon...</p>
+<div class="fade-in">
+    <div class="delete-confirmation-container">
+        <div class="confirmation-card">
+            <!-- Warning Icon -->
+            <div class="warning-icon">
+                <i class="fas fa-search-minus"></i>
+            </div>
+            
+            <!-- Title -->
+            <h1 class="mb-2">Delete Saved Search</h1>
+            <p class="text-secondary mb-4">Are you sure you want to delete this saved search?</p>
+            
+            <!-- Search Preview -->
+            <div class="search-preview">
+                <div class="search-header">
+                    <div class="search-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <div class="search-info">
+                        <div class="search-name">{{ saved_search.name }}</div>
+                        <div class="search-meta">
+                            <span><i class="fas fa-calendar"></i> Created {{ saved_search.created_at|date:"M j, Y" }}</span>
+                            <span><i class="fas fa-sync-alt"></i> {% if saved_search.is_active %}Active{% else %}Inactive{% endif %}</span>
+                            {% if saved_search.last_run %}
+                            <span><i class="fas fa-history"></i> Last run {{ saved_search.last_run|timesince }} ago</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Search Parameters -->
+                <div class="search-params">
+                    <h4 class="mb-3">Search Parameters</h4>
+                    
+                    {% if saved_search.keywords %}
+                    <div class="param-group">
+                        <div class="param-label">
+                            <i class="fas fa-key"></i> Keywords
+                        </div>
+                        <div class="param-value">{{ saved_search.keywords }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if saved_search.location %}
+                    <div class="param-group">
+                        <div class="param-label">
+                            <i class="fas fa-map-marker-alt"></i> Location
+                        </div>
+                        <div class="param-value">{{ saved_search.location }}</div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if saved_search.categories.all %}
+                    <div class="param-group">
+                        <div class="param-label">
+                            <i class="fas fa-tags"></i> Categories
+                        </div>
+                        <div class="param-chips">
+                            {% for category in saved_search.categories.all %}
+                            <span class="param-chip">{{ category.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if saved_search.filters %}
+                    <div class="param-group">
+                        <div class="param-label">
+                            <i class="fas fa-filter"></i> Additional Filters
+                        </div>
+                        <div class="param-chips">
+                            {% for filter_key, filter_value in saved_search.get_filters_dict.items %}
+                            <span class="param-chip">{{ filter_key }}: {{ filter_value }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    {% if saved_search.notification_frequency %}
+                    <div class="param-group">
+                        <div class="param-label">
+                            <i class="fas fa-bell"></i> Notification Frequency
+                        </div>
+                        <div class="param-value">
+                            {{ saved_search.get_notification_frequency_display }}
+                            {% if saved_search.notification_time %}
+                            at {{ saved_search.notification_time|time:"g:i A" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+                
+                <!-- Search Statistics -->
+                <div class="search-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">{{ saved_search.total_results|default:"0" }}</div>
+                        <div class="stat-label">Total Results</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ saved_search.new_results|default:"0" }}</div>
+                        <div class="stat-label">New This Week</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">{{ saved_search.match_count|default:"0" }}</div>
+                        <div class="stat-label">Matches Found</div>
+                    </div>
+                </div>
+                
+                <!-- Schedule Info -->
+                {% if saved_search.is_scheduled %}
+                <div class="schedule-info">
+                    <div class="schedule-header">
+                        <div class="schedule-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="schedule-title">Scheduled Search</div>
+                    </div>
+                    <div class="schedule-details">
+                        This search runs automatically {% if saved_search.notification_frequency == 'daily' %}every day{% elif saved_search.notification_frequency == 'weekly' %}every week{% else %}on schedule{% endif %}.
+                        {% if saved_search.next_run %}
+                        Next run: {{ saved_search.next_run|date:"M j, Y g:i A" }}
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Recent Results -->
+            <div class="recent-results">
+                <div class="results-title">
+                    <i class="fas fa-users text-info"></i>
+                    <span>Recent Search Results</span>
+                </div>
+                
+                {% if recent_results %}
+                <div class="results-grid">
+                    {% for result in recent_results|slice:":6" %}
+                    <div class="result-card">
+                        <div class="result-avatar">
+                            {% if result.profile.photos.first %}
+                            <img src="{{ result.profile.photos.first.image.url }}" alt="{{ result.profile.user.username }}">
+                            {% else %}
+                            <div class="d-flex align-center justify-center h-100" style="background: var(--coop-green);">
+                                <i class="fas fa-user"></i>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="result-name">{{ result.profile.user.username|truncatechars:12 }}</div>
+                        <div class="result-details">{{ result.match_score }}% match</div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                {% if saved_search.total_results > 6 %}
+                <div class="text-center mt-3">
+                    <small class="text-muted">Showing 6 of {{ saved_search.total_results }} recent results</small>
+                </div>
+                {% endif %}
+                
+                {% else %}
+                <div class="no-results">
+                    <i class="fas fa-search fa-2x mb-3"></i>
+                    <p>No recent results found for this search.</p>
+                </div>
+                {% endif %}
+            </div>
+            
+            <!-- Consequences Warning -->
+            <div class="consequences-section">
+                <div class="consequence-title">
+                    <i class="fas fa-exclamation-circle"></i>
+                    This will:
+                </div>
+                <div class="consequences-list">
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-trash"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Permanently delete this saved search
+                        </div>
+                    </div>
+                    
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Stop all notifications from this search
+                        </div>
+                    </div>
+                    
+                    {% if saved_search.is_scheduled %}
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Cancel all scheduled search runs
+                        </div>
+                    </div>
+                    {% endif %}
+                    
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Delete search history and statistics
+                        </div>
+                    </div>
+                    
+                    {% if saved_search.bookmarked_results.exists %}
+                    <div class="consequence-item">
+                        <div class="consequence-icon">
+                            <i class="fas fa-bookmark"></i>
+                        </div>
+                        <div class="consequence-text">
+                            Remove {{ saved_search.bookmarked_results.count }} bookmarked results
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <!-- Final Warning -->
+            <div class="final-warning">
+                <div class="warning-text">
+                    <i class="fas fa-ban"></i> This action cannot be undone
+                </div>
+                <div class="warning-note">
+                    Once deleted, this search configuration cannot be recovered.
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <form method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger btn-lg">
+                        <i class="fas fa-trash"></i> Yes, Delete Search
+                    </button>
+                </form>
+                
+                <a href="{% url 'saved_searches' %}" class="btn btn-secondary btn-lg">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+            </div>
+            
+            <!-- Export Options -->
+            <div class="export-options">
+                <div class="export-title">
+                    <i class="fas fa-download text-warning"></i>
+                    <span>Export Search Results Before Deleting?</span>
+                </div>
+                <div class="export-buttons">
+                    <button class="export-btn" onclick="exportResults()">
+                        <i class="fas fa-file-export"></i> Export Results
+                    </button>
+                    <button class="export-btn" onclick="saveSearchConfig()">
+                        <i class="fas fa-save"></i> Save Configuration
+                    </button>
+                    <button class="export-btn" onclick="duplicateSearch()">
+                        <i class="fas fa-copy"></i> Duplicate Search
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Alternative Options -->
+            <div class="alternative-options">
+                <div class="alternative-title">
+                    <i class="fas fa-lightbulb text-warning"></i>
+                    Consider these alternatives instead:
+                </div>
+                <div class="alternative-grid">
+                    <div class="alternative-card" onclick="disableSearch()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-toggle-off"></i>
+                        </div>
+                        <div class="alternative-name">Disable Search</div>
+                        <div class="alternative-desc">Keep configuration but stop notifications</div>
+                    </div>
+                    
+                    <div class="alternative-card" onclick="editSearch()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-edit"></i>
+                        </div>
+                        <div class="alternative-name">Edit Search</div>
+                        <div class="alternative-desc">Update parameters instead of deleting</div>
+                    </div>
+                    
+                    <div class="alternative-card" onclick="pauseSearch()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-pause-circle"></i>
+                        </div>
+                        <div class="alternative-name">Pause Temporarily</div>
+                        <div class="alternative-desc">Suspend for a specified period</div>
+                    </div>
+                    
+                    <div class="alternative-card" onclick="archiveSearch()">
+                        <div class="alternative-icon">
+                            <i class="fas fa-archive"></i>
+                        </div>
+                        <div class="alternative-name">Archive Search</div>
+                        <div class="alternative-desc">Move to archive for later use</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
+<!-- Export Results Modal -->
+<div id="exportModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Export Search Results</h3>
+    <form id="exportForm" onsubmit="processExport(event)">
+        <div class="form-group">
+            <label class="form-label">Export Format</label>
+            <select class="form-control" name="format">
+                <option value="csv">CSV (Excel/Spreadsheet)</option>
+                <option value="json">JSON (API/Developer)</option>
+                <option value="pdf">PDF (Printable)</option>
+                <option value="html">HTML (Web Page)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Data to Include</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_profile" checked>
+                    <span class="form-check-label">Profile Information</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_contact" checked>
+                    <span class="form-check-label">Contact Details</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_match" checked>
+                    <span class="form-check-label">Match Scores</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_notes" checked>
+                    <span class="form-check-label">Personal Notes</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_metadata" checked>
+                    <span class="form-check-label">Search Metadata</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Date Range</label>
+            <div class="row">
+                <div class="col-6">
+                    <input type="date" class="form-control" name="start_date">
+                </div>
+                <div class="col-6">
+                    <input type="date" class="form-control" name="end_date">
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Export Information</strong>
+                <div class="text-sm">Export may take a few minutes for large result sets.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-download"></i> Export Results
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Save Configuration Modal -->
+<div id="saveConfigModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Save Search Configuration</h3>
+    <form id="saveConfigForm" onsubmit="processSaveConfig(event)">
+        <div class="form-group">
+            <label class="form-label">Save As</label>
+            <input type="text" class="form-control" name="config_name" value="{{ saved_search.name }} Backup" required>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Include</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_params" checked>
+                    <span class="form-check-label">Search Parameters</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_filters" checked>
+                    <span class="form-check-label">Filter Settings</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_schedule" checked>
+                    <span class="form-check-label">Schedule Settings</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="include_results" checked>
+                    <span class="form-check-label">Recent Results</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Format</label>
+            <select class="form-control" name="format">
+                <option value="json">JSON Configuration</option>
+                <option value="txt">Text Summary</option>
+                <option value="xml">XML Format</option>
+            </select>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-save"></i> Save Configuration
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+
+<!-- Pause Search Modal -->
+<div id="pauseModalContent" style="display: none;">
+    <h3 class="card-title mb-3">Pause Saved Search</h3>
+    <form id="pauseForm" onsubmit="processPause(event)">
+        <div class="form-group">
+            <label class="form-label">Pause Duration</label>
+            <select class="form-control" name="duration">
+                <option value="1">24 Hours</option>
+                <option value="7">7 Days</option>
+                <option value="30">30 Days</option>
+                <option value="90">90 Days</option>
+                <option value="custom">Custom Date</option>
+            </select>
+        </div>
+        
+        <div id="customPauseDate" class="form-group d-none">
+            <label class="form-label">Resume On</label>
+            <input type="date" class="form-control" name="resume_date">
+        </div>
+        
+        <div class="form-group">
+            <label class="form-label">Pause Options</label>
+            <div class="d-flex flex-column gap-2">
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="keep_bookmarks" checked>
+                    <span class="form-check-label">Keep bookmarked results</span>
+                </label>
+                <label class="form-check">
+                    <input type="checkbox" class="form-check-input" name="notify_resume" checked>
+                    <span class="form-check-label">Notify me when search resumes</span>
+                </label>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Pausing Search</strong>
+                <div class="text-sm">Search will be disabled but configuration preserved.</div>
+            </div>
+        </div>
+        
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-primary flex-1">
+                <i class="fas fa-pause-circle"></i> Pause Search
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="hideModal()">Cancel</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    // Initialize form handlers
+    initializeForms();
+});
+
+// Initialize form handlers
+function initializeForms() {
+    // Handle pause duration change
+    $('select[name="duration"]').change(function() {
+        const duration = $(this).val();
+        if (duration === 'custom') {
+            $('#customPauseDate').removeClass('d-none');
+        } else {
+            $('#customPauseDate').addClass('d-none');
+        }
+    });
+    
+    // Form submission confirmation
+    $('form').on('submit', function(e) {
+        if ($(this).find('button[type="submit"]').hasClass('btn-danger')) {
+            // Final confirmation for deletion
+            e.preventDefault();
+            
+            showModal(`
+                <div class="text-center p-4">
+                    <div class="warning-icon mb-4" style="width: 80px; height: 80px; font-size: 2.5rem;">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="mb-3">Final Confirmation</h3>
+                    <p class="text-secondary mb-4">Are you absolutely sure you want to delete this saved search?</p>
+                    
+                    <div class="consequences-list mb-4">
+                        <div class="consequence-item">
+                            <div class="consequence-icon">
+                                <i class="fas fa-search-minus"></i>
+                            </div>
+                            <div class="consequence-text">
+                                This search will be permanently deleted
+                            </div>
+                        </div>
+                        <div class="consequence-item">
+                            <div class="consequence-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <div class="consequence-text">
+                                {{ saved_search.total_results|default:"0" }} search results will be lost
+                            </div>
+                        </div>
+                        <div class="consequence-item">
+                            <div class="consequence-icon">
+                                <i class="fas fa-cogs"></i>
+                            </div>
+                            <div class="consequence-text">
+                                All search configuration will be removed
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="final-warning mb-4">
+                        <div class="warning-text">
+                            <i class="fas fa-ban"></i> NO UNDO - NO RECOVERY
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-danger flex-1" onclick="confirmDeletion()">
+                            <i class="fas fa-check"></i> DELETE SEARCH
+                        </button>
+                        <button class="btn btn-secondary flex-1" onclick="hideModal()">
+                            <i class="fas fa-times"></i> CANCEL
+                        </button>
+                    </div>
+                </div>
+            `);
+        }
+    });
+}
+
+// Confirm deletion
+function confirmDeletion() {
+    hideModal();
+    $('form').off('submit').submit();
+}
+
+// Export functions
+function exportResults() {
+    showModal($('#exportModalContent').html());
+}
+
+function processExport(event) {
+    event.preventDefault();
+    
+    // Show processing
+    $('#modalContent').html(`
+        <div class="text-center p-5">
+            <div class="processing-icon mb-4">
+                <i class="fas fa-spinner fa-spin fa-3x"></i>
+            </div>
+            <h4 class="mb-2">Preparing Export</h4>
+            <p class="text-secondary">Exporting {{ saved_search.total_results|default:"0" }} search results...</p>
+            <div class="progress-bar mt-4">
+                <div class="progress-fill" id="exportProgress" style="width: 0%"></div>
+            </div>
+        </div>
+    `);
+    
+    // Simulate export process
+    let progress = 0;
+    const interval = setInterval(() => {
+        progress += 2;
+        $('#exportProgress').css('width', progress + '%');
+        
+        if (progress >= 100) {
+            clearInterval(interval);
+            
+            // Simulate download
+            const blob = new Blob(['Search results export'], { type: 'application/zip' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'search-results-export.zip';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            
+            showMessage('Search results exported successfully!', 'success');
+            hideModal();
+        }
+    }, 100);
+}
+
+function saveSearchConfig() {
+    showModal($('#saveConfigModalContent').html());
+}
+
+function processSaveConfig(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '/api/search/{{ saved_search.id }}/save-config/',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                // Download configuration
+                const blob = new Blob([response.config_data], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = response.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                
+                showMessage('Configuration saved successfully!', 'success');
+                hideModal();
+            } else {
+                alert('Failed to save configuration: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error saving configuration. Please try again.');
+        }
+    });
+}
+
+function duplicateSearch() {
+    if (confirm('Create a copy of this search?')) {
+        $.ajax({
+            url: '/api/search/{{ saved_search.id }}/duplicate/',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Search duplicated successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "saved_searches" %}';
+                    }, 1500);
+                } else {
+                    alert('Failed to duplicate search: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error duplicating search. Please try again.');
+            }
+        });
+    }
+}
+
+// Alternative actions
+function disableSearch() {
+    if (confirm('Disable this search? It will be saved but will not run or send notifications.')) {
+        $.ajax({
+            url: '/api/search/{{ saved_search.id }}/disable/',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Search disabled successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "saved_searches" %}';
+                    }, 1500);
+                } else {
+                    alert('Failed to disable search: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error disabling search. Please try again.');
+            }
+        });
+    }
+}
+
+function editSearch() {
+    window.location.href = '{% url "edit_saved_search" saved_search.id %}';
+}
+
+function pauseSearch() {
+    showModal($('#pauseModalContent').html());
+}
+
+function processPause(event) {
+    event.preventDefault();
+    const formData = $(event.target).serialize();
+    
+    $.ajax({
+        url: '/api/search/{{ saved_search.id }}/pause/',
+        method: 'POST',
+        data: formData,
+        success: function(response) {
+            if (response.success) {
+                showMessage('Search paused successfully!', 'success');
+                hideModal();
+                setTimeout(() => {
+                    window.location.href = '{% url "saved_searches" %}';
+                }, 1500);
+            } else {
+                alert('Failed to pause search: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('Error pausing search. Please try again.');
+        }
+    });
+}
+
+function archiveSearch() {
+    if (confirm('Archive this search? It will be moved to your archive and can be restored later.')) {
+        $.ajax({
+            url: '/api/search/{{ saved_search.id }}/archive/',
+            method: 'POST',
+            data: {
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showMessage('Search archived successfully!', 'success');
+                    setTimeout(() => {
+                        window.location.href = '{% url "saved_searches" %}';
+                    }, 1500);
+                } else {
+                    alert('Failed to archive search: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('Error archiving search. Please try again.');
+            }
+        });
+    }
+}
+
+// Show message
+function showMessage(message, type) {
+    const alert = $(`
+        <div class="alert alert-${type}">
+            <i class="fas ${type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle'}"></i>
+            <span>${message}</span>
+        </div>
+    `);
+    
+    $('.messages-container').append(alert);
+    
+    setTimeout(() => {
+        alert.fadeOut(300, () => alert.remove());
+    }, 5000);
+}
+</script>
 {% endblock %}

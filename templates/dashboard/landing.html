@@ -1,1177 +1,1265 @@
-{% extends 'base.html' %}
+<!-- templates/landing.html - LANDING PAGE TEMPLATE -->
 {% load static %}
-
-{% block title %}ConnectPlus | Premium Dating & Social App{% endblock %}
-
-{% block content %}
-<style>
-    /* Landing Page Specific Styles */
-    .landing-page {
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoopConnect Premium - Find Your Perfect Match</title>
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="{% static 'favicon.ico' %}">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    
+    <!-- CSRF Token -->
+    <meta name="csrf-token" content="{{ csrf_token }}">
+    
+    <style>
+    /* ========== GLOBAL STYLES ========== */
+    :root {
+        --coop-green: #00A859;
+        --coop-blue: #0066B3;
+        --dark-bg: #0a0a0f;
+        --darker-bg: #11111f;
+        --card-bg: #1a1a2e;
+        --sidebar-bg: #11111f;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0d0;
+        --text-muted: #8888aa;
+        --border-color: rgba(255,255,255,0.1);
+        --primary-gradient: linear-gradient(135deg, var(--coop-green), var(--coop-blue));
+        --success: #4caf50;
+        --danger: #f44336;
+        --warning: #ffc107;
+        --info: #2196f3;
+        --shadow: 0 10px 30px rgba(0,0,0,0.3);
+        --shadow-lg: 0 20px 60px rgba(0,0,0,0.4);
+        --radius-sm: 8px;
+        --radius: 12px;
+        --radius-lg: 16px;
+    }
+    
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--dark-bg);
+        color: var(--text-primary);
         min-height: 100vh;
-        background: linear-gradient(135deg, var(--bg-primary) 0%, #1a1a2e 50%, #16213e 100%);
-        position: relative;
-        overflow: hidden;
+        overflow-x: hidden;
     }
-
-    .hero-section {
-        position: relative;
-        padding: 8rem 2rem 6rem;
-        text-align: center;
-        z-index: 1;
-    }
-
-    .hero-background {
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: radial-gradient(circle at 30% 20%, rgba(255, 77, 141, 0.1) 0%, transparent 50%),
-                    radial-gradient(circle at 70% 80%, rgba(138, 43, 226, 0.1) 0%, transparent 50%);
-        z-index: -1;
-    }
-
-    .hero-content {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .hero-title {
-        font-size: 4rem;
-        font-weight: 800;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 1.5rem;
-        line-height: 1.2;
-    }
-
-    .hero-subtitle {
-        font-size: 1.5rem;
-        color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0 auto 3rem;
-        line-height: 1.6;
-    }
-
-    .hero-buttons {
-        display: flex;
-        gap: 1.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .hero-btn {
-        padding: 1rem 2.5rem;
-        font-size: 1.1rem;
-        border-radius: var(--radius-lg);
+    
+    h1, h2, h3, h4, h5, h6 {
+        font-family: 'Poppins', sans-serif;
         font-weight: 600;
-        transition: all 0.3s ease;
     }
-
-    .hero-btn-primary {
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        color: white;
+    
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+    
+    /* ========== BUTTONS ========== */
+    .btn {
+        padding: 12px 24px;
+        border-radius: var(--radius);
+        font-weight: 500;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
         border: none;
-    }
-
-    .hero-btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(255, 77, 141, 0.3);
-    }
-
-    .hero-btn-secondary {
-        background: transparent;
-        border: 2px solid var(--accent-primary);
-        color: var(--accent-primary);
-    }
-
-    .hero-btn-secondary:hover {
-        background: var(--accent-primary);
-        color: white;
-        transform: translateY(-3px);
-    }
-
-    .hero-stats {
-        display: flex;
-        justify-content: center;
-        gap: 3rem;
-        margin-top: 4rem;
-        flex-wrap: wrap;
-    }
-
-    .stat-item {
-        text-align: center;
-    }
-
-    .stat-number {
-        font-size: 2.5rem;
-        font-weight: 700;
-        color: var(--accent-primary);
-        margin-bottom: 0.5rem;
-    }
-
-    .stat-label {
-        color: var(--text-muted);
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-
-    .features-section {
-        padding: 6rem 2rem;
-        background: var(--bg-secondary);
-    }
-
-    .section-title {
-        text-align: center;
-        font-size: 2.5rem;
-        margin-bottom: 1rem;
-        color: var(--text-primary);
-    }
-
-    .section-subtitle {
-        text-align: center;
-        color: var(--text-secondary);
-        max-width: 600px;
-        margin: 0 auto 4rem;
-        font-size: 1.1rem;
-    }
-
-    .features-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .feature-card {
-        background: var(--bg-glass);
-        backdrop-filter: var(--glass-blur);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 2.5rem;
-        text-align: center;
-        transition: all 0.3s ease;
-    }
-
-    .feature-card:hover {
-        transform: translateY(-10px);
-        box-shadow: var(--shadow-lg);
-        border-color: var(--accent-primary);
-    }
-
-    .feature-icon {
-        width: 80px;
-        height: 80px;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        border-radius: 50%;
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        margin: 0 auto 2rem;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+    }
+    
+    .btn-primary {
+        background: var(--primary-gradient);
         color: white;
-        font-size: 2rem;
     }
-
-    .feature-title {
-        font-size: 1.5rem;
-        margin-bottom: 1rem;
+    
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 30px rgba(0, 168, 89, 0.3);
+    }
+    
+    .btn-secondary {
+        background: var(--darker-bg);
         color: var(--text-primary);
-    }
-
-    .feature-description {
-        color: var(--text-secondary);
-        line-height: 1.6;
-    }
-
-    .profiles-section {
-        padding: 6rem 2rem;
-        background: var(--bg-primary);
-    }
-
-    .profiles-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-        gap: 2rem;
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .profile-card-landing {
-        background: var(--bg-glass);
-        backdrop-filter: var(--glass-blur);
         border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        overflow: hidden;
-        transition: all 0.3s ease;
     }
-
-    .profile-card-landing:hover {
-        transform: translateY(-5px);
-        box-shadow: var(--shadow-lg);
+    
+    .btn-secondary:hover {
+        background: rgba(255,255,255,0.05);
+        border-color: var(--coop-green);
     }
-
-    .profile-image {
-        height: 200px;
-        overflow: hidden;
+    
+    .btn-sm {
+        padding: 8px 16px;
+        font-size: 0.85rem;
     }
-
-    .profile-image img {
+    
+    .btn-lg {
+        padding: 15px 30px;
+        font-size: 1rem;
+    }
+    
+    .w-100 {
         width: 100%;
-        height: 100%;
-        object-fit: cover;
-        transition: transform 0.5s ease;
     }
-
-    .profile-card-landing:hover .profile-image img {
-        transform: scale(1.1);
-    }
-
-    .profile-info {
-        padding: 1.5rem;
-    }
-
-    .profile-name {
-        font-size: 1.25rem;
-        font-weight: 600;
-        margin-bottom: 0.5rem;
-        color: var(--text-primary);
-    }
-
-    .profile-location {
-        color: var(--accent-primary);
-        font-size: 0.9rem;
-        margin-bottom: 1rem;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .profile-stats-landing {
-        display: flex;
-        gap: 1rem;
-        margin-top: 1rem;
-    }
-
-    .profile-stat {
-        text-align: center;
-        flex: 1;
-    }
-
-    .profile-stat-value {
-        font-size: 1.1rem;
-        font-weight: 600;
-        color: var(--accent-primary);
-    }
-
-    .profile-stat-label {
-        font-size: 0.8rem;
-        color: var(--text-muted);
-        text-transform: uppercase;
-    }
-
-    .how-it-works {
-        padding: 6rem 2rem;
-        background: var(--bg-secondary);
-    }
-
-    .steps-container {
-        max-width: 1000px;
-        margin: 0 auto;
-        position: relative;
-    }
-
-    .steps-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 2rem;
-        position: relative;
-        z-index: 1;
-    }
-
-    .step-card {
-        background: var(--bg-glass);
-        backdrop-filter: var(--glass-blur);
-        border: 1px solid var(--border-color);
-        border-radius: var(--radius-lg);
-        padding: 2rem;
-        text-align: center;
-        position: relative;
-    }
-
-    .step-number {
-        width: 50px;
-        height: 50px;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin: 0 auto 1.5rem;
-    }
-
-    .step-title {
-        font-size: 1.3rem;
-        margin-bottom: 1rem;
-        color: var(--text-primary);
-    }
-
-    .step-description {
-        color: var(--text-secondary);
-        line-height: 1.6;
-    }
-
-    .cta-section {
-        padding: 8rem 2rem;
-        text-align: center;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        color: white;
+    
+    .mt-1 { margin-top: 10px; }
+    .mt-2 { margin-top: 20px; }
+    
+    /* ========== LANDING PAGE SPECIFIC STYLES ========== */
+    .landing-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, rgba(10, 10, 15, 0.95) 0%, rgba(26, 26, 46, 0.9) 100%);
         position: relative;
         overflow: hidden;
     }
-
-    .cta-background {
+    
+    .landing-container::before {
+        content: '';
         position: absolute;
         top: 0;
         left: 0;
         right: 0;
         bottom: 0;
-        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.1' fill-rule='evenodd'/%3E%3C/svg%3E");
-        opacity: 0.3;
+        background-image: url("{% static 'images/landing-bg.jpg' %}");
+        background-size: cover;
+        background-position: center;
+        opacity: 0.15;
+        z-index: 0;
     }
-
-    .cta-content {
-        position: relative;
-        z-index: 1;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-
-    .cta-title {
-        font-size: 3rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        line-height: 1.2;
-    }
-
-    .cta-subtitle {
-        font-size: 1.25rem;
-        opacity: 0.9;
-        margin-bottom: 3rem;
-        line-height: 1.6;
-    }
-
-    .cta-buttons {
-        display: flex;
-        gap: 1.5rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-
-    .cta-btn {
-        padding: 1rem 2.5rem;
-        font-size: 1.1rem;
-        border-radius: var(--radius-lg);
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-    .cta-btn-primary {
-        background: white;
-        color: var(--accent-primary);
-        border: none;
-    }
-
-    .cta-btn-primary:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(255, 255, 255, 0.3);
-    }
-
-    .cta-btn-secondary {
-        background: transparent;
-        border: 2px solid white;
-        color: white;
-    }
-
-    .cta-btn-secondary:hover {
-        background: white;
-        color: var(--accent-primary);
-        transform: translateY(-3px);
-    }
-
-    .footer-section {
-        padding: 4rem 2rem;
-        background: var(--bg-tertiary);
-    }
-
-    .footer-content {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .footer-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        gap: 3rem;
-        margin-bottom: 3rem;
-    }
-
-    .footer-logo {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .footer-logo .logo {
-        width: 40px;
-        height: 40px;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        border-radius: var(--radius-md);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: 700;
-        font-size: 1.5rem;
-    }
-
-    .footer-logo-text {
-        font-family: 'Montserrat', sans-serif;
-        font-weight: 700;
-        font-size: 1.5rem;
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-    }
-
-    .footer-description {
-        color: var(--text-secondary);
-        line-height: 1.6;
-        margin-bottom: 1.5rem;
-    }
-
-    .social-links {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .social-link {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: var(--bg-secondary);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: var(--text-primary);
-        transition: all 0.3s ease;
-    }
-
-    .social-link:hover {
-        background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
-        color: white;
-        transform: translateY(-3px);
-    }
-
-    .footer-column h3 {
-        font-size: 1.2rem;
-        margin-bottom: 1.5rem;
-        color: var(--text-primary);
-    }
-
-    .footer-links {
-        list-style: none;
-    }
-
-    .footer-links li {
-        margin-bottom: 0.75rem;
-    }
-
-    .footer-links a {
-        color: var(--text-secondary);
-        transition: color 0.3s ease;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .footer-links a:hover {
-        color: var(--accent-primary);
-    }
-
-    .footer-bottom {
-        padding-top: 2rem;
-        border-top: 1px solid var(--border-color);
+    
+    /* FIXED NAVBAR */
+    .landing-header {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 1000;
+        padding: 15px 5%;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        flex-wrap: wrap;
-        gap: 1rem;
+        background: rgba(10, 10, 15, 0.95);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+        transition: all 0.3s ease;
     }
-
-    .copyright {
-        color: var(--text-muted);
-        font-size: 0.9rem;
+    
+    .landing-header.scrolled {
+        padding: 10px 5%;
+        background: rgba(10, 10, 15, 0.98);
+        box-shadow: 0 5px 20px rgba(0,0,0,0.3);
     }
-
-    .footer-legal {
+    
+    .landing-logo {
         display: flex;
-        gap: 2rem;
+        align-items: center;
+        gap: 12px;
     }
-
-    .footer-legal a {
-        color: var(--text-muted);
-        font-size: 0.9rem;
+    
+    .landing-logo-icon {
+        width: 45px;
+        height: 45px;
+        background: var(--primary-gradient);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        color: #fff;
+    }
+    
+    .landing-logo-text {
+        display: flex;
+        flex-direction: column;
+        line-height: 1.2;
+    }
+    
+    .landing-logo-primary {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #fff;
+    }
+    
+    .landing-logo-secondary {
+        font-size: 0.8rem;
+        color: var(--coop-green);
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        margin-top: 2px;
+    }
+    
+    .landing-nav {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+    }
+    
+    .landing-nav a {
+        color: var(--text-secondary);
+        font-weight: 500;
         transition: color 0.3s ease;
+        font-size: 0.95rem;
+        position: relative;
     }
-
-    .footer-legal a:hover {
-        color: var(--accent-primary);
+    
+    .landing-nav a:hover {
+        color: var(--text-primary);
     }
-
-    /* Animations */
-    @keyframes float {
-        0%, 100% {
+    
+    .landing-nav a.active {
+        color: var(--coop-green);
+    }
+    
+    .landing-nav a.active::after {
+        content: '';
+        position: absolute;
+        bottom: -5px;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background: var(--coop-green);
+        border-radius: 2px;
+    }
+    
+    /* Add padding to body to account for fixed navbar */
+    body {
+        padding-top: 80px;
+    }
+    
+    .landing-hero {
+        position: relative;
+        z-index: 10;
+        padding: 80px 5% 100px;
+        text-align: center;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .hero-title {
+        font-size: 3rem;
+        font-weight: 700;
+        line-height: 1.1;
+        margin-bottom: 20px;
+        background: linear-gradient(135deg, #fff 30%, var(--text-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+    
+    .hero-subtitle {
+        font-size: 1.2rem;
+        color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0 auto 40px;
+        line-height: 1.6;
+    }
+    
+    .hero-cta {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+        margin-bottom: 60px;
+        flex-wrap: wrap;
+    }
+    
+    .hero-stats {
+        display: flex;
+        justify-content: center;
+        gap: 40px;
+        flex-wrap: wrap;
+    }
+    
+    .stat-box {
+        text-align: center;
+        min-width: 120px;
+    }
+    
+    .stat-number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1;
+        margin-bottom: 5px;
+    }
+    
+    .stat-label {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    
+    .landing-features {
+        position: relative;
+        z-index: 10;
+        padding: 100px 5%;
+        background: rgba(17, 17, 31, 0.8);
+    }
+    
+    .section-title {
+        text-align: center;
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+    
+    .section-subtitle {
+        text-align: center;
+        color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0 auto 50px;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 25px;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+    
+    .feature-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        padding: 30px;
+        border: 1px solid var(--border-color);
+        transition: all 0.3s ease;
+        text-align: center;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-8px);
+        border-color: var(--coop-green);
+        box-shadow: var(--shadow-lg);
+    }
+    
+    .feature-icon {
+        width: 65px;
+        height: 65px;
+        background: var(--primary-gradient);
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 26px;
+        color: #fff;
+        margin: 0 auto 20px;
+    }
+    
+    .feature-title {
+        font-size: 1.3rem;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: var(--text-primary);
+    }
+    
+    .feature-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        font-size: 0.95rem;
+    }
+    
+    .landing-testimonials {
+        position: relative;
+        z-index: 10;
+        padding: 100px 5%;
+    }
+    
+    .testimonials-slider {
+        max-width: 900px;
+        margin: 0 auto;
+        position: relative;
+    }
+    
+    .testimonial-card {
+        background: var(--card-bg);
+        border-radius: var(--radius-lg);
+        padding: 35px;
+        border: 1px solid var(--border-color);
+        text-align: center;
+        margin: 0 15px;
+    }
+    
+    .testimonial-avatar {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin: 0 auto 20px;
+        border: 3px solid var(--coop-green);
+    }
+    
+    .testimonial-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .testimonial-text {
+        font-size: 1.05rem;
+        line-height: 1.7;
+        color: var(--text-secondary);
+        margin-bottom: 20px;
+        font-style: italic;
+    }
+    
+    .testimonial-author {
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 5px;
+    }
+    
+    .testimonial-role {
+        font-size: 0.85rem;
+        color: var(--coop-green);
+    }
+    
+    .landing-cta {
+        position: relative;
+        z-index: 10;
+        padding: 100px 5%;
+        text-align: center;
+        background: rgba(0, 168, 89, 0.1);
+    }
+    
+    .cta-title {
+        font-size: 2.2rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+    
+    .cta-subtitle {
+        color: var(--text-secondary);
+        max-width: 700px;
+        margin: 0 auto 40px;
+        font-size: 1.1rem;
+        line-height: 1.6;
+    }
+    
+    .landing-footer {
+        position: relative;
+        z-index: 10;
+        padding: 50px 5% 25px;
+        background: var(--darker-bg);
+        border-top: 1px solid var(--border-color);
+    }
+    
+    .footer-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 35px;
+        max-width: 1200px;
+        margin: 0 auto 35px;
+    }
+    
+    .footer-column h4 {
+        font-size: 1.2rem;
+        margin-bottom: 20px;
+        color: var(--text-primary);
+    }
+    
+    .footer-links {
+        list-style: none;
+    }
+    
+    .footer-links li {
+        margin-bottom: 12px;
+    }
+    
+    .footer-links a {
+        color: var(--text-secondary);
+        transition: color 0.3s ease;
+        font-size: 0.95rem;
+    }
+    
+    .footer-links a:hover {
+        color: var(--coop-green);
+    }
+    
+    .footer-bottom {
+        text-align: center;
+        padding-top: 25px;
+        border-top: 1px solid var(--border-color);
+        color: var(--text-muted);
+        font-size: 0.85rem;
+    }
+    
+    /* ========== MOBILE NAVIGATION ========== */
+    .mobile-menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 8px;
+        z-index: 100;
+    }
+    
+    .mobile-nav {
+        position: fixed;
+        top: 0;
+        right: -100%;
+        width: 280px;
+        height: 100vh;
+        background: var(--sidebar-bg);
+        z-index: 1000;
+        padding: 80px 25px 30px;
+        transition: right 0.3s ease;
+        border-left: 1px solid var(--border-color);
+    }
+    
+    .mobile-nav.active {
+        right: 0;
+    }
+    
+    .mobile-nav-close {
+        position: absolute;
+        top: 25px;
+        right: 25px;
+        background: none;
+        border: none;
+        color: var(--text-primary);
+        font-size: 1.5rem;
+        cursor: pointer;
+    }
+    
+    .mobile-nav-links {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+    }
+    
+    .mobile-nav-links a {
+        color: var(--text-secondary);
+        font-size: 1.1rem;
+        padding: 12px 0;
+        border-bottom: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .mobile-nav-links a:hover {
+        color: var(--text-primary);
+    }
+    
+    .mobile-nav-links a.active {
+        color: var(--coop-green);
+    }
+    
+    .mobile-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.7);
+        z-index: 999;
+    }
+    
+    .mobile-overlay.active {
+        display: block;
+    }
+    
+    .d-none {
+        display: none !important;
+    }
+    
+    /* ========== ANIMATIONS ========== */
+    @keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+    
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
             transform: translateY(0);
         }
-        50% {
-            transform: translateY(-20px);
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease-out;
+    }
+    
+    /* ========== RESPONSIVE DESIGN ========== */
+    @media (max-width: 992px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 1.1rem;
+        }
+        
+        .section-title, .cta-title {
+            font-size: 2rem;
+        }
+        
+        .stat-number {
+            font-size: 1.8rem;
+        }
+        
+        .landing-nav {
+            display: none;
+        }
+        
+        .mobile-menu-toggle {
+            display: block;
+        }
+        
+        .landing-hero {
+            padding: 60px 5% 80px;
+        }
+        
+        .landing-features,
+        .landing-testimonials,
+        .landing-cta {
+            padding: 80px 5%;
+        }
+        
+        /* Adjust body padding for mobile */
+        body {
+            padding-top: 70px;
+        }
+        
+        .landing-header {
+            padding: 12px 5%;
         }
     }
-
-    .floating-element {
-        animation: float 6s ease-in-out infinite;
-    }
-
-    .fade-in {
-        opacity: 0;
-        transform: translateY(30px);
-        transition: opacity 0.8s ease, transform 0.8s ease;
-    }
-
-    .fade-in.visible {
-        opacity: 1;
-        transform: translateY(0);
-    }
-
-    /* Responsive Design */
+    
     @media (max-width: 768px) {
         .hero-title {
-            font-size: 2.5rem;
-        }
-
-        .hero-subtitle {
-            font-size: 1.2rem;
-        }
-
-        .hero-buttons {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .hero-btn {
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .hero-stats {
-            gap: 2rem;
-        }
-
-        .stat-number {
             font-size: 2rem;
         }
-
-        .section-title {
-            font-size: 2rem;
-        }
-
-        .cta-title {
-            font-size: 2.5rem;
-        }
-
-        .cta-buttons {
-            flex-direction: column;
-            align-items: center;
-        }
-
-        .cta-btn {
-            width: 100%;
-            max-width: 300px;
-        }
-
-        .footer-bottom {
-            flex-direction: column;
-            text-align: center;
-        }
-
-        .footer-legal {
-            justify-content: center;
-        }
-    }
-
-    @media (max-width: 480px) {
-        .hero-title {
-            font-size: 2rem;
-        }
-
+        
         .hero-subtitle {
             font-size: 1rem;
+            margin-bottom: 30px;
         }
-
-        .section-title {
-            font-size: 1.75rem;
+        
+        .section-title, .cta-title {
+            font-size: 1.7rem;
         }
-
-        .cta-title {
-            font-size: 2rem;
+        
+        .section-subtitle, .cta-subtitle {
+            font-size: 1rem;
+        }
+        
+        .hero-cta {
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .hero-stats {
+            gap: 25px;
+        }
+        
+        .stat-box {
+            min-width: 100px;
+        }
+        
+        .stat-number {
+            font-size: 1.6rem;
+        }
+        
+        .stat-label {
+            font-size: 0.8rem;
+        }
+        
+        .feature-card {
+            padding: 25px;
+        }
+        
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+        }
+        
+        .testimonial-card {
+            padding: 25px;
+            margin: 0 10px;
+        }
+        
+        .footer-grid {
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 30px;
         }
     }
-</style>
-
-<div class="landing-page">
-    <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-background"></div>
-        <div class="hero-content">
-            <h1 class="hero-title fade-in">
-                Connect, Meet & Discover <br>
-                <span class="gradient-text">Premium Dating</span>
-            </h1>
-            <p class="hero-subtitle fade-in" data-delay="0.2s">
-                Join Kenya's most exclusive dating community. Find genuine connections, 
-                meet interesting people, and create unforgettable experiences.
-            </p>
-            <div class="hero-buttons fade-in" data-delay="0.4s">
+    
+    @media (max-width: 576px) {
+        .hero-title {
+            font-size: 1.7rem;
+        }
+        
+        .hero-subtitle {
+            font-size: 0.95rem;
+        }
+        
+        .section-title, .cta-title {
+            font-size: 1.5rem;
+        }
+        
+        .hero-stats {
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .stat-box {
+            min-width: auto;
+        }
+        
+        .features-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .feature-card {
+            padding: 20px;
+        }
+        
+        .testimonial-card {
+            padding: 20px 15px;
+        }
+        
+        .landing-header {
+            padding: 10px 4%;
+        }
+        
+        .landing-hero {
+            padding: 50px 4% 70px;
+        }
+        
+        .landing-features,
+        .landing-testimonials,
+        .landing-cta {
+            padding: 70px 4%;
+        }
+        
+        .landing-footer {
+            padding: 40px 4% 20px;
+        }
+        
+        /* Further adjust body padding for small mobile */
+        body {
+            padding-top: 60px;
+        }
+    }
+    
+    @media (max-width: 400px) {
+        .hero-title {
+            font-size: 1.5rem;
+        }
+        
+        .btn-lg {
+            padding: 12px 20px;
+            font-size: 0.95rem;
+        }
+        
+        .landing-logo-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 20px;
+        }
+        
+        .landing-logo-primary {
+            font-size: 1.3rem;
+        }
+        
+        .landing-header {
+            padding: 8px 4%;
+        }
+        
+        body {
+            padding-top: 55px;
+        }
+    }
+    </style>
+</head>
+<body>
+    <!-- Mobile Overlay -->
+    <div class="mobile-overlay" id="mobileOverlay"></div>
+    
+    <!-- Messages Container -->
+    {% if messages %}
+    <div class="messages-container" style="position: fixed; top: 90px; right: 20px; z-index: 9999; width: 350px; max-width: 90%;">
+        {% for message in messages %}
+        <div class="alert" style="padding: 15px 20px; border-radius: var(--radius); margin-bottom: 10px; display: flex; align-items: center; gap: 12px; animation: slideInRight 0.3s ease; border: 1px solid transparent; background: rgba(76,175,80,0.1); border-color: rgba(76,175,80,0.3); color: var(--success);">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ message }}</span>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    
+    <div class="landing-container">
+        <!-- FIXED NAVBAR -->
+        <header class="landing-header" id="landingHeader">
+            <div class="landing-logo">
+                <div class="landing-logo-icon">
+                    <i class="fas fa-heart"></i>
+                </div>
+                <div class="landing-logo-text">
+                    <span class="landing-logo-primary">CoopConnect</span>
+                    <span class="landing-logo-secondary">Premium</span>
+                </div>
+            </div>
+            
+            <!-- Desktop Navigation -->
+            <nav class="landing-nav">
+                <a href="#home" class="active">Home</a>
+                <a href="#features">Features</a>
+                <a href="#testimonials">Testimonials</a>
                 {% if user.is_authenticated %}
-                    <a href="{% url 'dashboard' %}" class="hero-btn hero-btn-primary">
-                        Go to Dashboard
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-sm">Dashboard</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn btn-secondary btn-sm">Sign In</a>
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary btn-sm">Join Free</a>
+                {% endif %}
+            </nav>
+            
+            <!-- Mobile Menu Toggle -->
+            <button class="mobile-menu-toggle" id="mobileMenuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </header>
+        
+        <!-- Hero Section -->
+        <section class="landing-hero" id="home">
+            <h1 class="hero-title">Find Your Perfect Match in the Cooperative Community</h1>
+            <p class="hero-subtitle">
+                Connect with like-minded professionals, discover meaningful relationships, and grow together 
+                in a trusted community built on shared values and mutual respect.
+            </p>
+            
+            <div class="hero-cta">
+                {% if user.is_authenticated %}
+                    <a href="{% url 'search' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-search"></i> Start Discovering
                     </a>
-                    <a href="{% url 'search' %}" class="hero-btn hero-btn-secondary">
-                        Browse Profiles
+                    <a href="{% url 'profile' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-user"></i> Complete Your Profile
                     </a>
                 {% else %}
-                    <a href="{% url 'account_signup' %}" class="hero-btn hero-btn-primary">
-                        Join Free Today
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Join Free Today
                     </a>
-                    <a href="{% url 'account_login' %}" class="hero-btn hero-btn-secondary">
-                        Sign In
+                    <a href="{% url 'account_login' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-sign-in-alt"></i> Sign In
                     </a>
                 {% endif %}
             </div>
             
-            <div class="hero-stats fade-in" data-delay="0.6s">
-                <div class="stat-item floating-element">
-                    <div class="stat-number">10K+</div>
+            <div class="hero-stats">
+                <div class="stat-box">
+                    <div class="stat-number">10,000+</div>
                     <div class="stat-label">Active Members</div>
                 </div>
-                <div class="stat-item floating-element" style="animation-delay: 1s;">
-                    <div class="stat-number">5K+</div>
-                    <div class="stat-label">Successful Dates</div>
+                <div class="stat-box">
+                    <div class="stat-number">85%</div>
+                    <div class="stat-label">Success Rate</div>
                 </div>
-                <div class="stat-item floating-element" style="animation-delay: 2s;">
-                    <div class="stat-number">98%</div>
-                    <div class="stat-label">Satisfaction Rate</div>
+                <div class="stat-box">
+                    <div class="stat-number">50+</div>
+                    <div class="stat-label">Cooperative Societies</div>
                 </div>
-                <div class="stat-item floating-element" style="animation-delay: 3s;">
+                <div class="stat-box">
                     <div class="stat-number">24/7</div>
                     <div class="stat-label">Support</div>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Features Section -->
-    <section class="features-section">
-        <div class="container">
-            <h2 class="section-title fade-in">Why Choose ConnectPlus?</h2>
-            <p class="section-subtitle fade-in" data-delay="0.2s">
-                We provide a safe, exclusive platform for meaningful connections and premium dating experiences.
+        </section>
+        
+        <!-- Features Section -->
+        <section class="landing-features" id="features">
+            <h2 class="section-title">Why Choose CoopConnect Premium?</h2>
+            <p class="section-subtitle">
+                Our platform is designed specifically for cooperative community members who value 
+                meaningful connections and professional networking.
             </p>
             
             <div class="features-grid">
-                <div class="feature-card fade-in" data-delay="0.1s">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">
-                        <i class="ri-shield-check-line"></i>
+                        <i class="fas fa-shield-alt"></i>
                     </div>
                     <h3 class="feature-title">Verified Profiles</h3>
                     <p class="feature-description">
-                        Every profile undergoes strict verification to ensure authenticity and safety.
-                        Your security is our top priority.
+                        All members are verified through their cooperative societies, ensuring authenticity 
+                        and trust in every connection.
                     </p>
                 </div>
                 
-                <div class="feature-card fade-in" data-delay="0.2s">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">
-                        <i class="ri-vip-crown-line"></i>
+                        <i class="fas fa-comments"></i>
                     </div>
-                    <h3 class="feature-title">VIP Experience</h3>
+                    <h3 class="feature-title">Secure Communication</h3>
                     <p class="feature-description">
-                        Access premium features, priority matching, and exclusive events 
-                        for a superior dating experience.
+                        Built-in messaging and video call features with end-to-end encryption for safe and 
+                        private conversations.
                     </p>
                 </div>
                 
-                <div class="feature-card fade-in" data-delay="0.3s">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">
-                        <i class="ri-lock-line"></i>
+                        <i class="fas fa-filter"></i>
                     </div>
-                    <h3 class="feature-title">Complete Privacy</h3>
+                    <h3 class="feature-title">Advanced Matching</h3>
                     <p class="feature-description">
-                        Control your visibility and choose who can see your profile.
-                        Your data is encrypted and secure.
+                        Our intelligent algorithm finds compatible matches based on interests, values, and 
+                        cooperative involvement.
                     </p>
                 </div>
                 
-                <div class="feature-card fade-in" data-delay="0.4s">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">
-                        <i class="ri-chat-smile-line"></i>
+                        <i class="fas fa-calendar-check"></i>
                     </div>
-                    <h3 class="feature-title">Smart Matching</h3>
+                    <h3 class="feature-title">Event Management</h3>
                     <p class="feature-description">
-                        Our intelligent algorithm connects you with compatible partners
-                        based on interests, location, and preferences.
+                        Organize and join cooperative events, meetings, and social gatherings within the 
+                        community.
                     </p>
                 </div>
                 
-                <div class="feature-card fade-in" data-delay="0.5s">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">
-                        <i class="ri-calendar-check-line"></i>
+                        <i class="fas fa-wallet"></i>
                     </div>
-                    <h3 class="feature-title">Easy Booking</h3>
+                    <h3 class="feature-title">Integrated Wallet</h3>
                     <p class="feature-description">
-                        Schedule dates, book services, and manage appointments
-                        seamlessly with our integrated booking system.
+                        Manage your cooperative savings, payments, and transactions securely within the platform.
                     </p>
                 </div>
                 
-                <div class="feature-card fade-in" data-delay="0.6s">
+                <div class="feature-card fade-in">
                     <div class="feature-icon">
-                        <i class="ri-wallet-3-line"></i>
+                        <i class="fas fa-mobile-alt"></i>
                     </div>
-                    <h3 class="feature-title">Secure Payments</h3>
+                    <h3 class="feature-title">Mobile Friendly</h3>
                     <p class="feature-description">
-                        Integrated M-Pesa payments ensure safe and convenient
-                        transactions for all your dating experiences.
+                        Access CoopConnect on any device with our responsive design and dedicated mobile experience.
                     </p>
                 </div>
             </div>
-        </div>
-    </section>
-
-    <!-- Featured Profiles -->
-    <section class="profiles-section">
-        <div class="container">
-            <h2 class="section-title fade-in">Featured Profiles</h2>
-            <p class="section-subtitle fade-in" data-delay="0.2s">
-                Meet some of our most popular and verified members
+        </section>
+        
+        <!-- Testimonials Section -->
+        <section class="landing-testimonials" id="testimonials">
+            <h2 class="section-title">Success Stories</h2>
+            <p class="section-subtitle">
+                Hear from members who found meaningful connections through our platform.
             </p>
             
-            <div class="profiles-grid">
-                {% for profile in featured_profiles %}
-                <div class="profile-card-landing fade-in" data-delay="{{ forloop.counter|add:"0.1"|divisibleby:2|yesno:"0.1,0.2" }}">
-                    <div class="profile-image">
-                        {% if profile.photos.first %}
-                        <img src="{{ profile.photos.first.image.url }}" alt="{{ profile.user.username }}">
-                        {% else %}
-                        <div style="width: 100%; height: 100%; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));"></div>
-                        {% endif %}
-                    </div>
-                    <div class="profile-info">
-                        <h3 class="profile-name">{{ profile.user.username }}</h3>
-                        <div class="profile-location">
-                            <i class="ri-map-pin-line"></i>
-                            {{ profile.city_town }}, {{ profile.county }}
-                        </div>
-                        <div class="profile-stats-landing">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">{{ profile.age }}</div>
-                                <div class="profile-stat-label">Age</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">{{ profile.total_views }}</div>
-                                <div class="profile-stat-label">Views</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">{{ profile.rating|floatformat:1 }}</div>
-                                <div class="profile-stat-label">Rating</div>
-                            </div>
+            <div class="testimonials-slider">
+                <div class="testimonial-card fade-in">
+                    <div class="testimonial-avatar">
+                        <div style="background: var(--coop-green); height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
+                            <i class="fas fa-user"></i>
                         </div>
                     </div>
+                    <p class="testimonial-text">
+                        "CoopConnect helped me find not just a partner, but someone who shares my passion for 
+                        cooperative development. We've been together for two years now and are planning to start 
+                        our own cooperative business together."
+                    </p>
+                    <div class="testimonial-author">Sarah M.</div>
+                    <div class="testimonial-role">Cooperative Society Member</div>
                 </div>
-                {% empty %}
-                <!-- Fallback profiles if none in database -->
-                <div class="profile-card-landing fade-in">
-                    <div class="profile-image" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);"></div>
-                    <div class="profile-info">
-                        <h3 class="profile-name">Sarah_K</h3>
-                        <div class="profile-location">
-                            <i class="ri-map-pin-line"></i>
-                            Nairobi, Kenya
-                        </div>
-                        <div class="profile-stats-landing">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">28</div>
-                                <div class="profile-stat-label">Age</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">1.2K</div>
-                                <div class="profile-stat-label">Views</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">4.8</div>
-                                <div class="profile-stat-label">Rating</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="profile-card-landing fade-in" data-delay="0.1s">
-                    <div class="profile-image" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);"></div>
-                    <div class="profile-info">
-                        <h3 class="profile-name">John_D</h3>
-                        <div class="profile-location">
-                            <i class="ri-map-pin-line"></i>
-                            Mombasa, Kenya
-                        </div>
-                        <div class="profile-stats-landing">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">32</div>
-                                <div class="profile-stat-label">Age</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">2.1K</div>
-                                <div class="profile-stat-label">Views</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">4.9</div>
-                                <div class="profile-stat-label">Rating</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="profile-card-landing fade-in" data-delay="0.2s">
-                    <div class="profile-image" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);"></div>
-                    <div class="profile-info">
-                        <h3 class="profile-name">Lisa_M</h3>
-                        <div class="profile-location">
-                            <i class="ri-map-pin-line"></i>
-                            Kisumu, Kenya
-                        </div>
-                        <div class="profile-stats-landing">
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">26</div>
-                                <div class="profile-stat-label">Age</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">856</div>
-                                <div class="profile-stat-label">Views</div>
-                            </div>
-                            <div class="profile-stat">
-                                <div class="profile-stat-value">4.7</div>
-                                <div class="profile-stat-label">Rating</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
             </div>
-        </div>
-    </section>
-
-    <!-- How It Works -->
-    <section class="how-it-works">
-        <div class="container">
-            <h2 class="section-title fade-in">How It Works</h2>
-            <p class="section-subtitle fade-in" data-delay="0.2s">
-                Get started in just 4 simple steps
+        </section>
+        
+        <!-- CTA Section -->
+        <section class="landing-cta" id="pricing">
+            <h2 class="cta-title">Ready to Find Your Match?</h2>
+            <p class="cta-subtitle">
+                Join thousands of cooperative members who have found meaningful connections, 
+                business partners, and lifelong relationships through CoopConnect Premium.
             </p>
             
-            <div class="steps-container">
-                <div class="steps-grid">
-                    <div class="step-card fade-in" data-delay="0.1s">
-                        <div class="step-number">1</div>
-                        <h3 class="step-title">Create Profile</h3>
-                        <p class="step-description">
-                            Sign up and create your profile with photos and details about yourself.
-                            Verification takes less than 24 hours.
-                        </p>
-                    </div>
-                    
-                    <div class="step-card fade-in" data-delay="0.2s">
-                        <div class="step-number">2</div>
-                        <h3 class="step-title">Browse & Connect</h3>
-                        <p class="step-description">
-                            Explore verified profiles, use advanced filters, and connect with
-                            people who match your interests.
-                        </p>
-                    </div>
-                    
-                    <div class="step-card fade-in" data-delay="0.3s">
-                        <div class="step-number">3</div>
-                        <h3 class="step-title">Chat & Plan</h3>
-                        <p class="step-description">
-                            Use our secure messaging system to chat, make voice/video calls,
-                            and plan your dates.
-                        </p>
-                    </div>
-                    
-                    <div class="step-card fade-in" data-delay="0.4s">
-                        <div class="step-number">4</div>
-                        <h3 class="step-title">Meet & Enjoy</h3>
-                        <p class="step-description">
-                            Book dates, services, and enjoy premium dating experiences
-                            with complete safety and convenience.
-                        </p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- CTA Section -->
-    <section class="cta-section">
-        <div class="cta-background"></div>
-        <div class="cta-content">
-            <h2 class="cta-title fade-in">
-                Ready to Find Your Perfect Match?
-            </h2>
-            <p class="cta-subtitle fade-in" data-delay="0.2s">
-                Join thousands of singles who have found meaningful connections through ConnectPlus.
-                Your next great relationship could be just a click away.
-            </p>
-            <div class="cta-buttons fade-in" data-delay="0.4s">
+            <div class="hero-cta">
                 {% if user.is_authenticated %}
-                    <a href="{% url 'search' %}" class="cta-btn cta-btn-primary">
-                        Find Matches Now
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-rocket"></i> Go to Dashboard
                     </a>
-                    <a href="{% url 'post_create' %}" class="cta-btn cta-btn-secondary">
-                        Create a Post
+                    <a href="{% url 'search' %}" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-search"></i> Browse Profiles
                     </a>
                 {% else %}
-                    <a href="{% url 'account_signup' %}" class="cta-btn cta-btn-primary">
-                        Get Started Free
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-gem"></i> Start Free Trial
                     </a>
-                    <a href="{% url 'account_login' %}" class="cta-btn cta-btn-secondary">
-                        Sign In to Account
+                    <a href="#features" class="btn btn-secondary btn-lg">
+                        <i class="fas fa-info-circle"></i> Learn More
                     </a>
                 {% endif %}
             </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="footer-section">
-        <div class="footer-content">
+        </section>
+        
+        <!-- Footer -->
+        <footer class="landing-footer">
             <div class="footer-grid">
                 <div class="footer-column">
-                    <div class="footer-logo">
-                        <div class="logo">CP</div>
-                        <span class="footer-logo-text">ConnectPlus</span>
+                    <div class="landing-logo">
+                        <div class="landing-logo-icon" style="width: 40px; height: 40px; font-size: 18px;">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <div class="landing-logo-text">
+                            <span class="landing-logo-primary">CoopConnect</span>
+                            <span class="landing-logo-secondary">Premium</span>
+                        </div>
                     </div>
-                    <p class="footer-description">
-                        Kenya's premier dating and social connection platform.
-                        Creating meaningful relationships through technology.
+                    <p style="color: var(--text-secondary); margin-top: 15px; line-height: 1.6;">
+                        Connecting cooperative communities through meaningful relationships since 2020.
                     </p>
-                    <div class="social-links">
-                        <a href="#" class="social-link">
-                            <i class="ri-facebook-fill"></i>
-                        </a>
-                        <a href="#" class="social-link">
-                            <i class="ri-twitter-fill"></i>
-                        </a>
-                        <a href="#" class="social-link">
-                            <i class="ri-instagram-line"></i>
-                        </a>
-                        <a href="#" class="social-link">
-                            <i class="ri-linkedin-fill"></i>
-                        </a>
-                    </div>
                 </div>
                 
                 <div class="footer-column">
-                    <h3>Quick Links</h3>
+                    <h4>Quick Links</h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'search' %}"><i class="ri-search-line"></i> Browse Profiles</a></li>
-                        <li><a href="{% url 'dashboard' %}"><i class="ri-dashboard-line"></i> Dashboard</a></li>
-                        <li><a href="#"><i class="ri-vip-crown-line"></i> VIP Features</a></li>
-                        <li><a href="#"><i class="ri-question-line"></i> Help Center</a></li>
-                        <li><a href="#"><i class="ri-phone-line"></i> Contact Us</a></li>
+                        <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+                        <li><a href="{% url 'search' %}">Discover</a></li>
+                        <li><a href="{% url 'inbox' %}">Messages</a></li>
+                        <li><a href="{% url 'profile' %}">My Profile</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-column">
-                    <h3>Services</h3>
+                    <h4>Resources</h4>
                     <ul class="footer-links">
-                        <li><a href="#"><i class="ri-calendar-line"></i> Date Booking</a></li>
-                        <li><a href="#"><i class="ri-chat-3-line"></i> Premium Messaging</a></li>
-                        <li><a href="#"><i class="ri-verified-badge-line"></i> Profile Verification</a></li>
-                        <li><a href="#"><i class="ri-shield-check-line"></i> Safety Features</a></li>
-                        <li><a href="#"><i class="ri-gift-line"></i> Gift Services</a></li>
+                        <li><a href="#">Help Center</a></li>
+                        <li><a href="#">Safety Guidelines</a></li>
+                        <li><a href="#">Community Rules</a></li>
+                        <li><a href="#">Blog</a></li>
                     </ul>
                 </div>
                 
                 <div class="footer-column">
-                    <h3>Legal</h3>
+                    <h4>Contact Us</h4>
                     <ul class="footer-links">
-                        <li><a href="{% url 'terms' %}"><i class="ri-file-text-line"></i> Terms of Service</a></li>
-                        <li><a href="{% url 'privacy' %}"><i class="ri-shield-keyhole-line"></i> Privacy Policy</a></li>
-                        <li><a href="#"><i class="ri-cookie-line"></i> Cookie Policy</a></li>
-                        <li><a href="#"><i class="ri-group-line"></i> Community Guidelines</a></li>
-                        <li><a href="#"><i class="ri-alert-line"></i> Safety Tips</a></li>
+                        <li><a href="mailto:support@coopconnect.com">support@coopconnect.com</a></li>
+                        <li><a href="tel:+254700000000">+254 700 000 000</a></li>
+                        <li>Nairobi, Kenya</li>
                     </ul>
                 </div>
             </div>
             
             <div class="footer-bottom">
-                <div class="copyright">
-                    &copy; 2024 ConnectPlus. All rights reserved.
-                </div>
-                <div class="footer-legal">
-                    <a href="{% url 'terms' %}">Terms</a>
-                    <a href="{% url 'privacy' %}">Privacy</a>
-                    <a href="#">Cookies</a>
-                    <a href="#">Sitemap</a>
-                </div>
+                <p>&copy; 2023 CoopConnect Premium. All rights reserved. | <a href="#" style="color: var(--coop-green);">Privacy Policy</a> | <a href="#" style="color: var(--coop-green);">Terms of Service</a></p>
+            </div>
+        </footer>
+        
+        <!-- Mobile Navigation -->
+        <div class="mobile-nav" id="mobileNav">
+            <button class="mobile-nav-close" id="mobileNavClose">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="mobile-nav-links">
+                <a href="#home" class="active">Home</a>
+                <a href="#features">Features</a>
+                <a href="#testimonials">Testimonials</a>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'dashboard' %}" class="btn btn-primary w-100 mt-2">Go to Dashboard</a>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="btn btn-secondary w-100 mt-2">Sign In</a>
+                    <a href="{% url 'account_signup' %}" class="btn btn-primary w-100 mt-1">Join Free</a>
+                {% endif %}
             </div>
         </div>
-    </footer>
-</div>
+    </div>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Scroll animations
-    const fadeElements = document.querySelectorAll('.fade-in');
-    
-    const observerOptions = {
-        root: null,
-        rootMargin: '0px',
-        threshold: 0.1
-    };
-    
-    const observer = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const delay = entry.target.getAttribute('data-delay') || '0';
-                setTimeout(() => {
-                    entry.target.classList.add('visible');
-                }, parseFloat(delay) * 1000);
-                observer.unobserve(entry.target);
+    <script>
+    $(document).ready(function() {
+        // Fixed navbar scroll effect
+        $(window).scroll(function() {
+            if ($(this).scrollTop() > 50) {
+                $('#landingHeader').addClass('scrolled');
+            } else {
+                $('#landingHeader').removeClass('scrolled');
             }
         });
-    }, observerOptions);
-    
-    fadeElements.forEach(element => {
-        observer.observe(element);
-    });
-    
-    // Smooth scrolling for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener('click', function (e) {
-            e.preventDefault();
-            const targetId = this.getAttribute('href');
-            if (targetId === '#') return;
+        
+        // Mobile menu functionality
+        $('#mobileMenuToggle').click(function() {
+            $('#mobileNav').addClass('active');
+            $('#mobileOverlay').addClass('active');
+            $('body').css('overflow', 'hidden');
+        });
+        
+        $('#mobileNavClose').click(function() {
+            $('#mobileNav').removeClass('active');
+            $('#mobileOverlay').removeClass('active');
+            $('body').css('overflow', 'auto');
+        });
+        
+        $('#mobileOverlay').click(function() {
+            $('#mobileNav').removeClass('active');
+            $('#mobileOverlay').removeClass('active');
+            $('body').css('overflow', 'auto');
+        });
+        
+        // Smooth scrolling for anchor links
+        $('a[href^="#"]').on('click', function(e) {
+            if ($(this).attr('href') === '#') return;
             
-            const targetElement = document.querySelector(targetId);
-            if (targetElement) {
-                window.scrollTo({
-                    top: targetElement.offsetTop - 80,
-                    behavior: 'smooth'
+            e.preventDefault();
+            const target = $(this).attr('href');
+            
+            if (target === '#home') {
+                $('html, body').animate({
+                    scrollTop: 0
+                }, 600);
+            } else {
+                const offset = $('#landingHeader').outerHeight() + 20;
+                $('html, body').animate({
+                    scrollTop: $(target).offset().top - offset
+                }, 600);
+            }
+            
+            // Close mobile menu if open
+            $('#mobileNav').removeClass('active');
+            $('#mobileOverlay').removeClass('active');
+            $('body').css('overflow', 'auto');
+            
+            // Update active nav link
+            $('.landing-nav a, .mobile-nav-links a').removeClass('active');
+            $(this).addClass('active');
+        });
+        
+        // Update active nav on scroll
+        $(window).on('scroll', function() {
+            const scrollPos = $(document).scrollTop();
+            const headerHeight = $('#landingHeader').outerHeight();
+            
+            // Only update if not at the very top
+            if (scrollPos > 100) {
+                $('.landing-nav a, .mobile-nav-links a').each(function() {
+                    const currLink = $(this);
+                    const refElement = $(currLink.attr('href'));
+                    
+                    if (refElement.length && refElement.position().top <= scrollPos + headerHeight + 100 && 
+                        refElement.position().top + refElement.height() > scrollPos) {
+                        $('.landing-nav a, .mobile-nav-links a').removeClass('active');
+                        currLink.addClass('active');
+                    }
                 });
             }
         });
-    });
-    
-    // Update stats animation
-    const statNumbers = document.querySelectorAll('.stat-number');
-    
-    const animateValue = (element, start, end, duration) => {
-        if (start === end) return;
         
-        const range = end - start;
-        const increment = end > start ? 1 : -1;
-        const stepTime = Math.abs(Math.floor(duration / range));
+        // Testimonial slider functionality
+        let testimonialIndex = 0;
+        const testimonials = [
+            {
+                name: "Sarah M.",
+                role: "Cooperative Society Member",
+                text: "CoopConnect helped me find not just a partner, but someone who shares my passion for cooperative development. We've been together for two years now and are planning to start our own cooperative business together.",
+                color: "var(--coop-green)"
+            },
+            {
+                name: "James K.",
+                role: "Cooperative Society Chairman",
+                text: "As a cooperative leader, I've used CoopConnect to network with other societies and find partnerships. The platform has been instrumental in expanding our cooperative's reach and impact.",
+                color: "var(--coop-blue)"
+            },
+            {
+                name: "Grace W.",
+                role: "Agricultural Cooperative Member",
+                text: "I found both business partners and friends through CoopConnect. The verification system gave me confidence that I was connecting with genuine cooperative members.",
+                color: "#8a2be2"
+            }
+        ];
         
-        let current = start;
-        const timer = setInterval(() => {
-            current += increment;
-            element.textContent = current + (element.textContent.includes('+') ? '+' : '');
+        function rotateTestimonial() {
+            testimonialIndex = (testimonialIndex + 1) % testimonials.length;
+            const testimonial = testimonials[testimonialIndex];
             
-            if (current === end) {
-                clearInterval(timer);
-            }
-        }, stepTime);
-    };
-    
-    // Animate stats when they become visible
-    const statsObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const statElement = entry.target;
-                const value = parseInt(statElement.textContent);
-                
-                if (!statElement.classList.contains('animated')) {
-                    statElement.classList.add('animated');
-                    animateValue(statElement, 0, value, 2000);
-                }
-            }
-        });
-    }, { threshold: 0.5 });
-    
-    statNumbers.forEach(stat => {
-        statsObserver.observe(stat);
-    });
-    
-    // Add scroll effect to navbar
-    const navbar = document.querySelector('.navbar');
-    if (navbar) {
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 100) {
-                navbar.style.background = 'var(--bg-glass)';
-                navbar.style.backdropFilter = 'blur(20px)';
-                navbar.style.boxShadow = 'var(--shadow-md)';
-            } else {
-                navbar.style.background = 'transparent';
-                navbar.style.backdropFilter = 'none';
-                navbar.style.boxShadow = 'none';
-            }
-        });
-    }
-    
-    // Auto-typing effect for hero subtitle
-    const heroSubtitle = document.querySelector('.hero-subtitle');
-    if (heroSubtitle) {
-        const text = heroSubtitle.textContent;
-        heroSubtitle.textContent = '';
-        let i = 0;
-        
-        function typeWriter() {
-            if (i < text.length) {
-                heroSubtitle.textContent += text.charAt(i);
-                i++;
-                setTimeout(typeWriter, 50);
-            }
+            $('.testimonial-card').fadeOut(300, function() {
+                $(this).html(`
+                    <div class="testimonial-avatar">
+                        <div style="background: ${testimonial.color}; height: 100%; display: flex; align-items: center; justify-content: center; color: white; font-size: 1.8rem;">
+                            <i class="fas fa-user"></i>
+                        </div>
+                    </div>
+                    <p class="testimonial-text">
+                        "${testimonial.text}"
+                    </p>
+                    <div class="testimonial-author">${testimonial.name}</div>
+                    <div class="testimonial-role">${testimonial.role}</div>
+                `).fadeIn(300);
+            });
         }
         
-        // Start typing after a delay
-        setTimeout(typeWriter, 1000);
-    }
-    
-    // Theme toggle for landing page
-    const themeToggle = document.querySelector('.theme-toggle');
-    if (themeToggle) {
-        themeToggle.style.position = 'fixed';
-        themeToggle.style.top = '1rem';
-        themeToggle.style.right = '1rem';
-        themeToggle.style.zIndex = '1001';
-    }
-});
-</script>
-{% endblock %}
+        // Rotate testimonials every 8 seconds
+        setInterval(rotateTestimonial, 8000);
+        
+        // Auto-hide messages after 5 seconds
+        setTimeout(function() {
+            $('.alert').fadeOut(300, function() {
+                $(this).remove();
+            });
+        }, 5000);
+        
+        // Animate elements on scroll
+        function animateOnScroll() {
+            $('.feature-card, .testimonial-card').each(function() {
+                const elementTop = $(this).offset().top;
+                const elementBottom = elementTop + $(this).outerHeight();
+                const viewportTop = $(window).scrollTop();
+                const viewportBottom = viewportTop + $(window).height();
+                
+                if (elementBottom > viewportTop && elementTop < viewportBottom) {
+                    $(this).addClass('fade-in');
+                }
+            });
+        }
+        
+        // Initial check for animations
+        animateOnScroll();
+        $(window).scroll(animateOnScroll);
+        
+        // Set initial scroll class
+        if ($(window).scrollTop() > 50) {
+            $('#landingHeader').addClass('scrolled');
+        }
+    });
+    </script>
+</body>
+</html>

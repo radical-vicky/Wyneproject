@@ -1,688 +1,1818 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Upload Photo - CoopConnect Premium{% endblock %}
+{% block title %}Photos - CoopConnect Premium{% endblock %}
 
 {% block extra_css %}
 <style>
-.upload-container {
-    max-width: 600px;
-    margin: 0 auto;
-    animation: fadeIn 0.5s ease-out;
+/* Dark Theme Variables */
+:root {
+    --dark-bg: #121212;
+    --darker-bg: #0a0a0a;
+    --card-dark: #1e1e1e;
+    --card-darker: #171717;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --border-dark: #2a2a2a;
+    --coop-green: #00a859;
+    --primary-gradient: linear-gradient(135deg, #00a859 0%, #0056b3 100%);
+    --hover-gradient: linear-gradient(135deg, #00c06a 0%, #0066cc 100%);
 }
 
-.upload-header {
-    text-align: center;
-    margin-bottom: 40px;
+/* Main Container */
+.photos-container {
+    background: var(--dark-bg);
+    min-height: 100vh;
+    padding: 30px 0 50px;
 }
 
-.upload-header h1 {
-    font-size: 2.2rem;
-    font-weight: 700;
-    margin-bottom: 10px;
+/* Tabs Navigation */
+.photos-tabs {
+    max-width: 1200px;
+    margin: 0 auto 30px;
+    padding: 0 20px;
 }
 
-.upload-header p {
+.tabs-nav {
+    display: flex;
+    gap: 10px;
+    border-bottom: 1px solid var(--border-dark);
+    padding-bottom: 10px;
+}
+
+.tab-btn {
+    background: none;
+    border: none;
     color: var(--text-secondary);
-    font-size: 1.1rem;
-}
-
-.upload-card {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-color);
-    padding: 40px;
-}
-
-.upload-area {
-    border: 3px dashed var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 50px 30px;
-    text-align: center;
-    margin-bottom: 30px;
-    transition: var(--transition);
+    font-size: 16px;
+    font-weight: 500;
+    padding: 12px 24px;
+    border-radius: 8px 8px 0 0;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+    color: var(--coop-green);
+    background: rgba(0, 168, 89, 0.1);
+    border-bottom: 2px solid var(--coop-green);
+}
+
+.tab-btn i {
+    font-size: 14px;
+}
+
+/* Main Content */
+.photos-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+/* Tab Content */
+.tab-content {
+    display: none;
+    animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Upload Card */
+.upload-card {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid var(--border-dark);
+    margin-bottom: 30px;
+}
+
+/* Upload Area */
+.upload-area {
+    border: 3px dashed rgba(0, 168, 89, 0.3);
+    border-radius: 12px;
+    padding: 60px 30px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: rgba(0, 168, 89, 0.05);
+    margin-bottom: 30px;
+    position: relative;
 }
 
 .upload-area:hover {
-    border-color: var(--coop-green);
-    background: rgba(0,168,89,0.05);
+    background: rgba(0, 168, 89, 0.1);
+    border-color: rgba(0, 168, 89, 0.5);
+    transform: translateY(-2px);
 }
 
 .upload-area.dragover {
+    background: rgba(0, 168, 89, 0.2);
     border-color: var(--coop-green);
-    background: rgba(0,168,89,0.1);
+    transform: scale(1.01);
 }
 
 .upload-icon {
-    width: 80px;
-    height: 80px;
-    background: rgba(0,168,89,0.1);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
+    font-size: 64px;
     color: var(--coop-green);
-    font-size: 2rem;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
 }
 
-.upload-text h3 {
-    font-size: 1.4rem;
-    margin-bottom: 10px;
+.upload-area:hover .upload-icon {
+    transform: scale(1.1);
+}
+
+.upload-title {
+    font-size: 22px;
     font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 10px;
 }
 
-.upload-text p {
+.upload-subtitle {
     color: var(--text-secondary);
+    font-size: 16px;
     margin-bottom: 20px;
 }
 
-.browse-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 30px;
-    background: var(--surface-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    cursor: pointer;
-    transition: var(--transition);
-}
-
-.browse-btn:hover {
-    border-color: var(--coop-green);
-    color: var(--coop-green);
-}
-
-#file-input {
-    display: none;
-}
-
 .upload-requirements {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    text-align: center;
-    margin-top: 20px;
-}
-
-.upload-requirements ul {
-    list-style: none;
-    padding: 0;
-    margin: 10px 0;
-}
-
-.upload-requirements li {
-    margin-bottom: 5px;
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-top: 15px;
 }
 
 .upload-requirements i {
     color: var(--coop-green);
-    margin-right: 8px;
+    margin-right: 5px;
 }
 
-/* PREVIEW */
-.preview-container {
-    margin-top: 30px;
-    display: none;
+/* File Input */
+.file-input-container {
+    position: relative;
+    display: inline-block;
 }
 
-.preview-title {
-    font-size: 1.2rem;
+.file-input {
+    position: absolute;
+    left: 0;
+    top: 0;
+    opacity: 0;
+    width: 100%;
+    height: 100%;
+    cursor: pointer;
+}
+
+/* Button Styling */
+.btn {
+    padding: 12px 28px;
+    border-radius: 10px;
     font-weight: 600;
-    margin-bottom: 20px;
+    font-size: 15px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--coop-green);
+    color: white;
+}
+
+.btn-primary:hover {
+    background: #00c06a;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(0, 168, 89, 0.3);
+}
+
+.btn-secondary {
+    background: var(--card-darker);
     color: var(--text-primary);
+    border: 1px solid var(--border-dark);
 }
 
-.image-preview {
-    width: 200px;
-    height: 200px;
-    border-radius: var(--radius-md);
-    margin: 0 auto 20px;
+.btn-secondary:hover {
+    background: var(--border-dark);
+    transform: translateY(-2px);
+}
+
+.btn-danger {
+    background: #dc3545;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #c82333;
+    transform: translateY(-2px);
+}
+
+/* Gallery Section */
+.gallery-section {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 30px;
+    border: 1px solid var(--border-dark);
+}
+
+.gallery-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.gallery-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.gallery-title i {
+    color: var(--coop-green);
+}
+
+.photo-count {
+    background: var(--coop-green);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Gallery Grid */
+.gallery-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+@media (max-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+}
+
+@media (max-width: 480px) {
+    .gallery-grid {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    }
+}
+
+.photo-item {
+    position: relative;
+    border-radius: 12px;
     overflow: hidden;
-    border: 2px solid var(--border-color);
+    aspect-ratio: 1;
+    background: var(--card-darker);
+    border: 1px solid var(--border-dark);
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.image-preview img {
+.photo-item:hover {
+    transform: translateY(-5px);
+    border-color: rgba(0, 168, 89, 0.3);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+.photo-image {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    cursor: pointer;
 }
 
-/* FORM */
-.upload-form {
-    margin-top: 30px;
+.photo-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.7) 0%,
+        rgba(0, 0, 0, 0.3) 30%,
+        rgba(0, 0, 0, 0) 50%,
+        rgba(0, 0, 0, 0.8) 100%
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
+.photo-item:hover .photo-overlay {
+    opacity: 1;
+}
+
+.photo-actions {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 8px;
+    transform: translateY(-10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.photo-item:hover .photo-actions {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: rgba(0, 0, 0, 0.8);
+    border: none;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.action-btn:hover {
+    background: var(--coop-green);
+    transform: scale(1.1);
+}
+
+.action-btn.delete:hover {
+    background: #dc3545;
+}
+
+.action-btn.primary:hover {
+    background: #ffc107;
+    color: #000;
+}
+
+.photo-info {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 15px;
+    background: linear-gradient(transparent, rgba(0, 0, 0, 0.9));
+    transform: translateY(10px);
+    opacity: 0;
+    transition: all 0.3s ease;
+    z-index: 5;
+}
+
+.photo-item:hover .photo-info {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.photo-caption {
+    color: white;
+    font-size: 14px;
+    margin-bottom: 5px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.photo-status {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: rgba(255, 255, 255, 0.8);
+}
+
+.photo-status.primary {
+    color: #ffc107;
+}
+
+.photo-date {
+    font-size: 11px;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 3px;
+}
+
+/* Primary Badge */
+.primary-badge {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: #ffc107;
+    color: #000;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+}
+
+/* Empty State */
+.empty-gallery {
+    text-align: center;
+    padding: 60px 20px;
+    grid-column: 1 / -1;
+}
+
+.empty-icon {
+    font-size: 64px;
+    color: var(--text-secondary);
+    margin-bottom: 20px;
+    opacity: 0.5;
+}
+
+.empty-title {
+    font-size: 18px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+}
+
+.empty-description {
+    color: var(--text-secondary);
+    opacity: 0.8;
+    font-size: 14px;
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+/* Form Controls */
 .form-group {
     margin-bottom: 25px;
 }
 
 .form-label {
     display: block;
-    margin-bottom: 10px;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     font-weight: 500;
-    font-size: 1rem;
+    font-size: 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.form-label i {
+    color: var(--coop-green);
+    font-size: 14px;
 }
 
 .form-control {
     width: 100%;
     padding: 14px 16px;
-    background: var(--surface-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
+    background: var(--card-darker);
+    border: 1px solid var(--border-dark);
+    border-radius: 10px;
     color: var(--text-primary);
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    transition: var(--transition);
+    font-size: 15px;
+    transition: all 0.3s ease;
 }
 
 .form-control:focus {
-    border-color: var(--coop-green);
     outline: none;
-    box-shadow: 0 0 0 3px rgba(0,168,89,0.1);
+    border-color: var(--coop-green);
+    box-shadow: 0 0 0 2px rgba(0, 168, 89, 0.2);
 }
 
-textarea.form-control {
-    min-height: 100px;
-    resize: vertical;
+.form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
 }
 
+/* Checkbox Styling */
 .checkbox-group {
     display: flex;
     align-items: center;
     gap: 12px;
-    margin-bottom: 25px;
 }
 
 .checkbox-label {
     display: flex;
     align-items: center;
-    gap: 8px;
-    color: var(--text-secondary);
-    cursor: pointer;
-    font-size: 0.95rem;
-}
-
-.checkbox-label input {
-    width: 20px;
-    height: 20px;
-    accent-color: var(--coop-green);
-}
-
-.form-actions {
-    display: flex;
-    gap: 20px;
-    justify-content: flex-end;
-    margin-top: 40px;
-    padding-top: 30px;
-    border-top: 1px solid var(--border-color);
-}
-
-/* GALLERY PREVIEW */
-.gallery-preview {
-    margin-top: 40px;
-}
-
-.gallery-title {
-    font-size: 1.3rem;
-    font-weight: 600;
-    margin-bottom: 25px;
+    gap: 12px;
     color: var(--text-primary);
+    font-size: 15px;
+    cursor: pointer;
+    user-select: none;
 }
 
-.photos-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 30px;
+.custom-checkbox {
+    width: 22px;
+    height: 22px;
+    border: 2px solid var(--border-dark);
+    border-radius: 6px;
+    background: var(--card-darker);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
 }
 
-.photo-item {
-    position: relative;
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    aspect-ratio: 1;
-    border: 2px solid transparent;
-    transition: var(--transition);
+.custom-checkbox::after {
+    content: '✓';
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
+    opacity: 0;
+    transition: opacity 0.3s ease;
 }
 
-.photo-item.primary {
+.checkbox-label input[type="checkbox"] {
+    display: none;
+}
+
+.checkbox-label input[type="checkbox"]:checked + .custom-checkbox {
+    background: var(--coop-green);
     border-color: var(--coop-green);
 }
 
-.photo-item img {
+.checkbox-label input[type="checkbox"]:checked + .custom-checkbox::after {
+    opacity: 1;
+}
+
+/* Form Actions */
+.form-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-dark);
+}
+
+/* Image Viewer Modal */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    z-index: 10000;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.modal.active {
+    display: flex;
+}
+
+.modal-content {
+    background: transparent;
+    border-radius: 16px;
+    padding: 0;
+    max-width: 90vw;
+    max-height: 90vh;
+    width: auto;
+    position: relative;
+}
+
+.image-viewer-content {
+    background: transparent;
+    position: relative;
+}
+
+.image-viewer-img {
+    max-width: 100%;
+    max-height: 80vh;
+    object-fit: contain;
+    border-radius: 8px;
+    display: block;
+    margin: 0 auto;
+}
+
+.image-viewer-caption {
+    color: white;
+    text-align: center;
+    margin-top: 15px;
+    font-size: 16px;
+    padding: 10px;
+}
+
+.image-viewer-counter {
+    color: var(--text-secondary);
+    text-align: center;
+    margin-top: 5px;
+    font-size: 14px;
+}
+
+.image-viewer-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 20px;
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.image-viewer-nav:hover {
+    background: var(--coop-green);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.image-viewer-prev {
+    left: 20px;
+}
+
+.image-viewer-next {
+    right: 20px;
+}
+
+.image-viewer-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    border: none;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    z-index: 1001;
+}
+
+.image-viewer-close:hover {
+    background: #dc3545;
+    transform: scale(1.1);
+}
+
+/* Edit/Delete Modals */
+.edit-delete-modal .modal-content {
+    background: var(--card-dark);
+    border-radius: 16px;
+    padding: 30px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.edit-delete-modal .modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.edit-delete-modal .modal-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.edit-delete-modal .modal-title i {
+    color: var(--coop-green);
+}
+
+.edit-delete-modal .modal-close {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 20px;
+    cursor: pointer;
+    padding: 5px;
+    transition: color 0.3s ease;
+}
+
+.edit-delete-modal .modal-close:hover {
+    color: var(--text-primary);
+}
+
+.edit-delete-modal .modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 15px;
+    margin-top: 30px;
+    padding-top: 25px;
+    border-top: 1px solid var(--border-dark);
+}
+
+/* Preview Grid */
+.preview-container {
+    margin-top: 30px;
+}
+
+.preview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.preview-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.preview-title i {
+    color: var(--coop-green);
+}
+
+.file-count {
+    background: var(--coop-green);
+    color: white;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.preview-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.preview-item {
+    position: relative;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 1;
+    background: var(--card-darker);
+    border: 1px solid var(--border-dark);
+}
+
+.preview-item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
 }
 
-.photo-badge {
+.remove-preview {
     position: absolute;
     top: 10px;
-    left: 10px;
-    background: var(--coop-green);
+    right: 10px;
+    background: #dc3545;
     color: white;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-/* MOBILE UPLOAD */
-.mobile-upload-area {
-    border: 2px dashed var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: 40px 20px;
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-.mobile-upload-icon {
-    width: 60px;
-    height: 60px;
-    background: rgba(0,168,89,0.1);
+    border: none;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto 15px;
+    font-size: 14px;
+    z-index: 10;
+}
+
+/* Success Message */
+.success-message {
+    background: rgba(0, 168, 89, 0.1);
+    border: 1px solid rgba(0, 168, 89, 0.3);
     color: var(--coop-green);
-    font-size: 1.5rem;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideIn 0.3s ease;
 }
 
-.mobile-form-group {
-    margin-bottom: 20px;
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.mobile-form-label {
-    display: block;
-    margin-bottom: 8px;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-.mobile-form-control {
-    width: 100%;
-    padding: 12px;
-    background: var(--surface-bg);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    color: var(--text-primary);
-    font-size: 1rem;
-}
-
-/* RESPONSIVE */
+/* Responsive Design */
 @media (max-width: 768px) {
-    .upload-card {
-        padding: 25px;
-    }
-    
-    .upload-area {
-        padding: 30px 20px;
-    }
-    
-    .upload-icon {
-        width: 60px;
-        height: 60px;
-        font-size: 1.5rem;
+    .gallery-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: flex-start;
     }
     
     .form-actions {
         flex-direction: column;
+        gap: 15px;
     }
     
     .form-actions .btn {
         width: 100%;
+        justify-content: center;
     }
     
-    .photos-grid {
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+    .tabs-nav {
+        flex-direction: column;
+    }
+    
+    .tab-btn {
+        width: 100%;
+        justify-content: center;
+        border-radius: 8px;
+        margin-bottom: 5px;
+    }
+    
+    .image-viewer-nav {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .image-viewer-prev {
+        left: 10px;
+    }
+    
+    .image-viewer-next {
+        right: 10px;
     }
 }
 
-@media (max-width: 480px) {
-    .upload-card {
-        padding: 20px;
-    }
-    
-    .upload-header h1 {
-        font-size: 1.8rem;
-    }
-    
-    .image-preview {
-        width: 150px;
-        height: 150px;
-    }
-    
-    .photos-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
+/* Alert Messages */
+.alert-message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 10px;
+    color: white;
+    font-weight: 500;
+    z-index: 10000;
+    animation: slideInAlert 0.3s ease, fadeOutAlert 0.3s ease 2.7s;
+    max-width: 350px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.alert-error { background: #dc3545; }
+.alert-warning { background: #ffc107; color: #000; }
+.alert-success { background: var(--coop-green); }
+
+.alert-close {
+    background: none;
+    border: none;
+    color: inherit;
+    cursor: pointer;
+    margin-left: auto;
+    padding: 0;
+    font-size: 14px;
+    opacity: 0.8;
+}
+
+.alert-close:hover {
+    opacity: 1;
+}
+
+@keyframes slideInAlert {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fadeOutAlert {
+    from { opacity: 1; }
+    to { opacity: 0; }
 }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="upload-container">
-    <!-- HEADER -->
-    <div class="upload-header">
-        <h1>Upload Photo</h1>
-        <p>Add new photos to your profile gallery</p>
-    </div>
-    
-    <!-- UPLOAD CARD -->
-    <div class="upload-card">
-        <!-- UPLOAD AREA -->
-        <div class="upload-area" id="upload-area">
-            <div class="upload-icon">
-                <i class="fas fa-cloud-upload-alt"></i>
-            </div>
-            <div class="upload-text">
-                <h3>Drag & Drop</h3>
-                <p>Drag your photo here or click to browse</p>
-                <label class="browse-btn">
-                    <i class="fas fa-folder-open"></i>
-                    Browse Files
-                    <input type="file" id="file-input" name="image" accept="image/*" required>
-                </label>
-            </div>
-            <div class="upload-requirements">
-                <p>Supported formats: JPG, PNG, GIF</p>
-                <p>Max file size: 5MB</p>
-            </div>
-        </div>
-        
-        <!-- PREVIEW -->
-        <div class="preview-container" id="preview-container">
-            <h3 class="preview-title">Preview</h3>
-            <div class="image-preview">
-                <img id="preview-image" src="" alt="Preview">
-            </div>
-        </div>
-        
-        <!-- UPLOAD FORM -->
-        <form method="POST" enctype="multipart/form-data" class="upload-form" id="upload-form">
-            {% csrf_token %}
-            
-            <!-- CAPTION -->
-            <div class="form-group">
-                <label for="caption" class="form-label">Caption (Optional)</label>
-                <input type="text" id="caption" name="caption" class="form-control" 
-                       placeholder="Add a caption for your photo...">
-            </div>
-            
-            <!-- SET AS PRIMARY -->
-            <div class="checkbox-group">
-                <label class="checkbox-label">
-                    <input type="checkbox" name="is_primary" id="is_primary">
-                    <span>Set as primary profile photo</span>
-                </label>
-            </div>
-            
-            <!-- FORM ACTIONS -->
-            <div class="form-actions">
-                <button type="submit" class="btn btn-primary" id="submit-btn" disabled>
-                    <i class="fas fa-upload"></i> Upload Photo
-                </button>
-                <a href="{% url 'profile' %}" class="btn btn-outline">
-                    <i class="fas fa-times"></i> Cancel
-                </a>
-            </div>
-        </form>
-        
-        <!-- EXISTING PHOTOS -->
-        {% if user.profile.photos.all %}
-        <div class="gallery-preview">
-            <h3 class="gallery-title">Your Photos ({{ user.profile.photos.count }})</h3>
-            <div class="photos-grid">
-                {% for photo in user.profile.photos.all %}
-                <div class="photo-item {% if photo.is_primary %}primary{% endif %}">
-                    <img src="{{ photo.image.url }}" alt="{{ photo.caption }}">
-                    {% if photo.is_primary %}
-                    <div class="photo-badge">Primary</div>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-            <a href="{% url 'profile' %}" class="btn btn-outline" style="width: 100%;">
-                <i class="fas fa-images"></i> View All Photos
-            </a>
-        </div>
-        {% endif %}
-    </div>
-</div>
-
-<script>
-$(document).ready(function() {
-    const uploadArea = $('#upload-area');
-    const fileInput = $('#file-input');
-    const previewContainer = $('#preview-container');
-    const previewImage = $('#preview-image');
-    const submitBtn = $('#submit-btn');
-    const uploadForm = $('#upload-form');
-    
-    // Click to upload
-    uploadArea.on('click', function() {
-        fileInput.click();
-    });
-    
-    // File input change
-    fileInput.on('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            if (validateFile(file)) {
-                previewFile(file);
-                submitBtn.prop('disabled', false);
-            }
-        }
-    });
-    
-    // Drag and drop
-    uploadArea.on('dragover', function(e) {
-        e.preventDefault();
-        uploadArea.addClass('dragover');
-    });
-    
-    uploadArea.on('dragleave', function() {
-        uploadArea.removeClass('dragover');
-    });
-    
-    uploadArea.on('drop', function(e) {
-        e.preventDefault();
-        uploadArea.removeClass('dragover');
-        
-        const file = e.originalEvent.dataTransfer.files[0];
-        if (file) {
-            if (validateFile(file)) {
-                fileInput[0].files = e.originalEvent.dataTransfer.files;
-                previewFile(file);
-                submitBtn.prop('disabled', false);
-            }
-        }
-    });
-    
-    // Validate file
-    function validateFile(file) {
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        const maxSize = 5 * 1024 * 1024; // 5MB
-        
-        if (!validTypes.includes(file.type)) {
-            alert('Please upload only JPG, PNG, or GIF images.');
-            return false;
-        }
-        
-        if (file.size > maxSize) {
-            alert('File size must be less than 5MB.');
-            return false;
-        }
-        
-        return true;
-    }
-    
-    // Preview file
-    function previewFile(file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImage.attr('src', e.target.result);
-            previewContainer.show();
-            uploadArea.hide();
-        }
-        reader.readAsDataURL(file);
-    }
-    
-    // Form submission
-    uploadForm.on('submit', function(e) {
-        if (!fileInput[0].files[0]) {
-            e.preventDefault();
-            alert('Please select a photo to upload.');
-            return false;
-        }
-        
-        // Show loading
-        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Uploading...');
-        return true;
-    });
-    
-    // Check if primary photo exists
-    {% if user.profile.photos.filter.is_primary.exists %}
-    $('#is_primary').on('change', function() {
-        if (this.checked) {
-            if (!confirm('This will replace your current primary photo. Continue?')) {
-                this.checked = false;
-            }
-        }
-    });
-    {% endif %}
-});
-</script>
-{% endblock %}
-
-{% block mobile_content %}
-<div class="mobile-upload">
-    <!-- HEADER -->
-    <div style="text-align: center; margin-bottom: 30px;">
-        <h1 style="font-size: 1.5rem; margin-bottom: 10px;">Upload Photo</h1>
-        <p style="color: var(--text-secondary); font-size: 0.9rem;">Add to your profile gallery</p>
-    </div>
-    
-    <!-- UPLOAD AREA -->
-    <div class="mobile-upload-area" onclick="document.getElementById('mobile-file-input').click()">
-        <div class="mobile-upload-icon">
-            <i class="fas fa-cloud-upload-alt"></i>
-        </div>
-        <div style="color: var(--text-secondary); margin-bottom: 15px;">
-            Tap to select a photo
-        </div>
-        <div style="color: var(--text-muted); font-size: 0.8rem;">
-            JPG, PNG, GIF • Max 5MB
-        </div>
-    </div>
-    
-    <!-- PREVIEW -->
-    <div id="mobile-preview" style="display: none; text-align: center; margin: 20px 0;">
-        <img id="mobile-preview-image" src="" alt="Preview" 
-             style="width: 150px; height: 150px; border-radius: var(--radius-md); object-fit: cover; margin: 0 auto;">
-    </div>
-    
-    <!-- FORM -->
-    <form method="POST" enctype="multipart/form-data">
-        {% csrf_token %}
-        <input type="file" id="mobile-file-input" name="image" accept="image/*" style="display: none;">
-        
-        <!-- CAPTION -->
-        <div class="mobile-form-group">
-            <label class="mobile-form-label">Caption</label>
-            <input type="text" name="caption" class="mobile-form-control" placeholder="Add a caption...">
-        </div>
-        
-        <!-- PRIMARY -->
-        <div style="display: flex; align-items: center; gap: 10px; margin: 20px 0;">
-            <input type="checkbox" name="is_primary" id="mobile-is-primary" style="width: 20px; height: 20px;">
-            <label for="mobile-is-primary" style="color: var(--text-secondary); font-size: 0.9rem;">
-                Set as primary photo
-            </label>
-        </div>
-        
-        <!-- ACTIONS -->
-        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin: 30px 0;">
-            <button type="submit" id="mobile-submit-btn" disabled
-                    style="background: var(--primary-gradient); color: white; border: none; padding: 15px;
-                           border-radius: var(--radius-md); font-weight: 600;">
-                <i class="fas fa-upload"></i> Upload
+<div class="photos-container">
+    <!-- Tabs Navigation -->
+    <div class="photos-tabs">
+        <div class="tabs-nav">
+            <button class="tab-btn active" data-tab="gallery">
+                <i class="fas fa-images"></i> My Gallery
             </button>
-            <a href="{% url 'profile' %}" style="background: var(--surface-bg); color: var(--text-secondary); 
-               border: 1px solid var(--border-color); padding: 15px; border-radius: var(--radius-md);
-               text-align: center; font-weight: 500;">
-                <i class="fas fa-times"></i> Cancel
-            </a>
+            <button class="tab-btn" data-tab="upload">
+                <i class="fas fa-upload"></i> Upload Photos
+            </button>
         </div>
-    </form>
-    
-    <!-- EXISTING PHOTOS -->
-    {% if user.profile.photos.all %}
-    <div style="margin-top: 30px;">
-        <h3 style="font-size: 1.1rem; margin-bottom: 15px;">Your Photos</h3>
-        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px;">
-            {% for photo in user.profile.photos.all|slice:":6" %}
-            <div style="position: relative; border-radius: var(--radius-sm); overflow: hidden; aspect-ratio: 1;">
-                <img src="{{ photo.image.url }}" alt="" style="width: 100%; height: 100%; object-fit: cover;">
-                {% if photo.is_primary %}
-                <div style="position: absolute; top: 5px; left: 5px; background: var(--coop-green); color: white;
-                     padding: 2px 6px; border-radius: 10px; font-size: 0.7rem; font-weight: 600;">
-                    Primary
-                </div>
-                {% endif %}
-            </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="photos-content">
+        <!-- Success Message -->
+        {% if messages %}
+        <div class="success-message">
+            <i class="fas fa-check-circle"></i>
+            {% for message in messages %}
+            {{ message }}
             {% endfor %}
         </div>
-        <a href="{% url 'profile' %}" style="display: block; text-align: center; color: var(--coop-green);
-           font-size: 0.9rem; font-weight: 500;">
-            View all photos
-        </a>
+        {% endif %}
+
+        <!-- Gallery Tab -->
+        <div class="tab-content active" id="galleryTab">
+            <div class="gallery-section">
+                <div class="gallery-header">
+                    <h2 class="gallery-title">
+                        <i class="fas fa-images"></i>
+                        Photo Gallery
+                    </h2>
+                    <span class="photo-count">{{ photos|length }} photo{{ photos|length|pluralize }}</span>
+                </div>
+
+                <!-- Gallery Grid -->
+                <div class="gallery-grid" id="galleryGrid">
+                    {% if photos %}
+                        {% for photo in photos %}
+                        <div class="photo-item" data-photo-id="{{ photo.id }}">
+                            {% if photo.is_primary %}
+                            <div class="primary-badge">
+                                <i class="fas fa-star"></i> Primary
+                            </div>
+                            {% endif %}
+                            
+                            <img src="{{ photo.image.url }}" 
+                                 alt="{{ photo.caption|default:'Photo' }}" 
+                                 class="photo-image"
+                                 data-image-url="{{ photo.image.url }}"
+                                 data-caption="{{ photo.caption|default:'' }}"
+                                 data-photo-id="{{ photo.id }}">
+                            
+                            <div class="photo-overlay"></div>
+                            
+                            <div class="photo-actions">
+                                <button class="action-btn edit" data-photo-id="{{ photo.id }}" title="Edit Photo">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="action-btn delete" data-photo-id="{{ photo.id }}" title="Delete Photo">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                                {% if not photo.is_primary %}
+                                <button class="action-btn primary" data-photo-id="{{ photo.id }}" title="Set as Primary">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="photo-info">
+                                <div class="photo-caption">{{ photo.caption|default:"No caption"|truncatechars:30 }}</div>
+                                <div class="photo-status {% if photo.is_primary %}primary{% endif %}">
+                                    <i class="fas {% if photo.is_primary %}fa-star{% else %}fa-image{% endif %}"></i>
+                                    {% if photo.is_primary %}Primary Photo{% else %}Gallery Photo{% endif %}
+                                </div>
+                                <div class="photo-date">{{ photo.uploaded_at|date:"M d, Y" }}</div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-gallery">
+                            <div class="empty-icon">
+                                <i class="fas fa-images"></i>
+                            </div>
+                            <h3 class="empty-title">No photos yet</h3>
+                            <p class="empty-description">
+                                Upload photos to showcase yourself and attract more clients
+                            </p>
+                            <button class="btn btn-primary mt-3 switch-tab" data-tab="upload">
+                                <i class="fas fa-upload"></i> Upload Your First Photo
+                            </button>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Upload Tab -->
+        <div class="tab-content" id="uploadTab">
+            <form method="POST" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                
+                <div class="upload-card">
+                    <!-- Upload Area -->
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h3 class="upload-title">Drag & Drop Photos Here</h3>
+                        <p class="upload-subtitle">or click to browse files from your computer</p>
+                        
+                        <div class="file-input-container">
+                            <input type="file" id="photoInput" name="image" accept="image/*" multiple class="file-input">
+                            <button type="button" class="btn btn-primary">
+                                <i class="fas fa-folder-open"></i> Browse Files
+                            </button>
+                        </div>
+                        
+                        <p class="upload-requirements mt-3">
+                            <i class="fas fa-info-circle"></i>
+                            Maximum file size: 5MB • Supported formats: JPG, PNG, GIF, WebP
+                        </p>
+                    </div>
+
+                    <!-- Preview Container -->
+                    <div class="preview-container" id="previewContainer">
+                        <div class="preview-header">
+                            <h4 class="preview-title">
+                                <i class="fas fa-images"></i>
+                                Selected Photos
+                            </h4>
+                            <span class="file-count" id="fileCount">0 files</span>
+                        </div>
+                        
+                        <div id="previewGrid" class="preview-grid">
+                            <!-- Preview items will be added here -->
+                        </div>
+                        
+                        <!-- Empty State -->
+                        <div id="emptyPreview" class="empty-gallery">
+                            <div class="empty-icon">
+                                <i class="fas fa-images"></i>
+                            </div>
+                            <h4 class="empty-title">No photos selected</h4>
+                            <p class="empty-description">
+                                Drag & drop images or click "Browse Files" to select photos
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Photo Details -->
+                    <div class="form-group">
+                        <label class="form-label">
+                            <i class="fas fa-comment"></i>
+                            Caption (Optional)
+                        </label>
+                        <input type="text" class="form-control" name="caption" 
+                               placeholder="Add a descriptive caption for your photos...">
+                    </div>
+
+                    <!-- Primary Photo Option -->
+                    <div class="form-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="is_primary" id="setPrimary">
+                            <span class="custom-checkbox"></span>
+                            Set as primary profile photo
+                        </label>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary switch-tab" data-tab="gallery">
+                            <i class="fas fa-arrow-left"></i> Back to Gallery
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-upload"></i> Upload Photos
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
     </div>
-    {% endif %}
+</div>
+
+<!-- Edit Photo Modal -->
+<div class="modal edit-delete-modal" id="editPhotoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-edit"></i>
+                Edit Photo
+            </h3>
+            <button class="modal-close" onclick="closeModal('editPhotoModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <form id="editPhotoForm">
+            {% csrf_token %}
+            <input type="hidden" name="photo_id" id="editPhotoId">
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <i class="fas fa-comment"></i>
+                    Caption
+                </label>
+                <input type="text" class="form-control" name="caption" id="editCaption" 
+                       placeholder="Enter photo caption...">
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="is_primary" id="editIsPrimary">
+                    <span class="custom-checkbox"></span>
+                    Set as primary profile photo
+                </label>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal('editPhotoModal')">
+                    Cancel
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Photo Modal -->
+<div class="modal edit-delete-modal" id="deletePhotoModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 class="modal-title">
+                <i class="fas fa-exclamation-triangle"></i>
+                Delete Photo
+            </h3>
+            <button class="modal-close" onclick="closeModal('deletePhotoModal')">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        
+        <div class="text-center p-4">
+            <i class="fas fa-trash-alt fa-3x text-danger mb-3"></i>
+            <h4>Are you sure?</h4>
+            <p>This will permanently delete the photo from your gallery.</p>
+            <p class="text-secondary">This action cannot be undone.</p>
+        </div>
+        
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeModal('deletePhotoModal')">
+                Cancel
+            </button>
+            <button type="button" class="btn btn-danger" id="confirmDeletePhoto">
+                <i class="fas fa-trash"></i> Delete Photo
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div class="modal" id="imageViewerModal">
+    <div class="modal-content">
+        <button class="image-viewer-close" onclick="closeModal('imageViewerModal')">
+            <i class="fas fa-times"></i>
+        </button>
+        <button class="image-viewer-nav image-viewer-prev" onclick="changeImageViewerImage(-1)">
+            <i class="fas fa-chevron-left"></i>
+        </button>
+        <button class="image-viewer-nav image-viewer-next" onclick="changeImageViewerImage(1)">
+            <i class="fas fa-chevron-right"></i>
+        </button>
+        
+        <div class="image-viewer-content">
+            <img id="imageViewerImg" class="image-viewer-img" src="" alt="">
+            <div id="imageViewerCaption" class="image-viewer-caption"></div>
+            <div id="imageViewerCounter" class="image-viewer-counter"></div>
+        </div>
+    </div>
 </div>
 
 <script>
+// Global variables
+let allPhotos = [];
+let currentImageIndex = 0;
+
+// Initialize when document is ready
 $(document).ready(function() {
-    const fileInput = $('#mobile-file-input');
-    const previewDiv = $('#mobile-preview');
-    const previewImg = $('#mobile-preview-image');
-    const submitBtn = $('#mobile-submit-btn');
+    console.log('Document ready - Initializing photo gallery');
     
-    fileInput.on('change', function(e) {
-        const file = e.target.files[0];
-        if (file) {
-            if (validateFile(file)) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    previewImg.attr('src', e.target.result);
-                    previewDiv.show();
-                    submitBtn.prop('disabled', false);
-                }
-                reader.readAsDataURL(file);
+    // Initialize photos array from gallery
+    initializePhotosArray();
+    
+    // Set up event listeners for images
+    setupImageClickListeners();
+    
+    // Tab switching
+    $('.tab-btn').click(function() {
+        console.log('Tab clicked:', $(this).data('tab'));
+        const tabId = $(this).data('tab');
+        
+        // Update active tab button
+        $('.tab-btn').removeClass('active');
+        $(this).addClass('active');
+        
+        // Show selected tab content
+        $('.tab-content').removeClass('active');
+        $(`#${tabId}Tab`).addClass('active');
+    });
+    
+    // Switch tab from button
+    $('.switch-tab').click(function() {
+        const tabId = $(this).data('tab');
+        $(`.tab-btn[data-tab="${tabId}"]`).click();
+    });
+    
+    // Photo management variables
+    let files = [];
+    let currentPhotoId = null;
+    
+    // Upload area functionality
+    const uploadArea = $('#uploadArea');
+    const photoInput = $('#photoInput');
+    const previewGrid = $('#previewGrid');
+    const emptyPreview = $('#emptyPreview');
+    const fileCount = $('#fileCount');
+    
+    // Show/hide empty state
+    function updateEmptyState() {
+        if (files.length === 0) {
+            emptyPreview.show();
+            previewGrid.empty();
+        } else {
+            emptyPreview.hide();
+        }
+        fileCount.text(`${files.length} file${files.length !== 1 ? 's' : ''}`);
+    }
+    
+    // Initialize empty state
+    updateEmptyState();
+    
+    // Drag and drop functionality
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        uploadArea[0].addEventListener(eventName, preventDefaults, false);
+    });
+    
+    function preventDefaults(e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    
+    ['dragenter', 'dragover'].forEach(eventName => {
+        uploadArea[0].addEventListener(eventName, function() {
+            uploadArea.addClass('dragover');
+        }, false);
+    });
+    
+    ['dragleave', 'drop'].forEach(eventName => {
+        uploadArea[0].addEventListener(eventName, function() {
+            uploadArea.removeClass('dragover');
+        }, false);
+    });
+    
+    uploadArea[0].addEventListener('drop', function(e) {
+        const dt = e.dataTransfer;
+        const droppedFiles = dt.files;
+        handleFiles(droppedFiles);
+    }, false);
+    
+    photoInput.on('change', function() {
+        handleFiles(this.files);
+    });
+    
+    function handleFiles(selectedFiles) {
+        const newFiles = Array.from(selectedFiles);
+        
+        // Check total file count
+        if (files.length + newFiles.length > 20) {
+            showAlert('You can only upload up to 20 photos maximum', 'warning');
+            return;
+        }
+        
+        // Validate files
+        const validFiles = newFiles.filter(file => {
+            const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            const maxSize = 5 * 1024 * 1024; // 5MB
+            
+            if (!validTypes.includes(file.type)) {
+                showAlert(`${file.name} is not a supported image format`, 'error');
+                return false;
             }
+            
+            if (file.size > maxSize) {
+                showAlert(`${file.name} is too large (max 5MB)`, 'error');
+                return false;
+            }
+            
+            return true;
+        });
+        
+        // Add to files array
+        files = [...files, ...validFiles];
+        
+        // Create previews for new files
+        createPreviews(validFiles);
+        
+        // Update UI
+        updateEmptyState();
+    }
+    
+    function createPreviews(newFiles) {
+        newFiles.forEach((file, offsetIndex) => {
+            const reader = new FileReader();
+            const index = files.length - newFiles.length + offsetIndex;
+            
+            reader.onload = function(e) {
+                const previewItem = $(`
+                    <div class="preview-item">
+                        <img src="${e.target.result}" alt="Preview ${index + 1}" style="cursor: pointer;" onclick="viewPreviewImage('${e.target.result}')">
+                        <button type="button" class="remove-preview" data-index="${index}">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                `);
+                
+                previewGrid.append(previewItem);
+            };
+            
+            reader.readAsDataURL(file);
+        });
+    }
+    
+    // Remove preview
+    previewGrid.on('click', '.remove-preview', function(e) {
+        e.stopPropagation(); // Prevent triggering image click
+        const index = parseInt($(this).data('index'));
+        files.splice(index, 1);
+        
+        // Regenerate previews
+        previewGrid.empty();
+        createPreviews(files);
+        
+        // Update UI
+        updateEmptyState();
+    });
+    
+    // Click upload area to trigger file input
+    uploadArea.on('click', function(e) {
+        if (!$(e.target).closest('.file-input-container').length) {
+            photoInput.click();
         }
     });
     
-    function validateFile(file) {
-        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
-        const maxSize = 5 * 1024 * 1024;
+    // Edit Photo
+    $('#galleryGrid').on('click', '.action-btn.edit', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
         
-        if (!validTypes.includes(file.type)) {
-            alert('Please upload only JPG, PNG, or GIF images.');
+        const photoId = $(this).data('photo-id');
+        const photoItem = $(this).closest('.photo-item');
+        
+        // Get current photo data
+        const caption = photoItem.find('.photo-caption').text();
+        const isPrimary = photoItem.find('.primary-badge').length > 0;
+        
+        // Populate edit form
+        $('#editPhotoId').val(photoId);
+        $('#editCaption').val(caption === 'No caption' ? '' : caption);
+        $('#editIsPrimary').prop('checked', isPrimary);
+        
+        // Show modal
+        showModal('editPhotoModal');
+    });
+    
+    // Submit edit form
+    $('#editPhotoForm').submit(function(e) {
+        e.preventDefault();
+        
+        const formData = $(this).serialize();
+        const submitBtn = $(this).find('button[type="submit"]');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Saving...');
+        
+        $.ajax({
+            url: '{% url "api_photo_edit" %}',
+            method: 'POST',
+            data: formData,
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('Photo updated successfully!', 'success');
+                    closeModal('editPhotoModal');
+                    
+                    // Update the photo item in gallery
+                    const photoItem = $(`[data-photo-id="${response.photo_id}"]`);
+                    
+                    if (response.caption) {
+                        photoItem.find('.photo-caption').text(response.caption);
+                        photoItem.find('.photo-image').data('caption', response.caption);
+                    } else {
+                        photoItem.find('.photo-caption').text('No caption');
+                        photoItem.find('.photo-image').data('caption', '');
+                    }
+                    
+                    // Update primary status
+                    if (response.is_primary) {
+                        // Remove primary from all photos
+                        $('.primary-badge').remove();
+                        $('.photo-status.primary').removeClass('primary').html('<i class="fas fa-image"></i> Gallery Photo');
+                        $('.action-btn.primary').show();
+                        
+                        // Add primary to this photo
+                        photoItem.prepend('<div class="primary-badge"><i class="fas fa-star"></i> Primary</div>');
+                        photoItem.find('.photo-status').addClass('primary').html('<i class="fas fa-star"></i> Primary Photo');
+                        photoItem.find('.action-btn.primary').hide();
+                    }
+                    
+                    // Update photos array for image viewer
+                    initializePhotosArray();
+                    
+                } else {
+                    showAlert('Error: ' + response.error, 'error');
+                }
+                submitBtn.prop('disabled', false).html(originalText);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error updating photo:', xhr.responseText);
+                showAlert('Error updating photo. Please try again.', 'error');
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+    
+    // Delete Photo
+    $('#galleryGrid').on('click', '.action-btn.delete', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        currentPhotoId = $(this).data('photo-id');
+        showModal('deletePhotoModal');
+    });
+    
+    // Confirm delete
+    $('#confirmDeletePhoto').click(function() {
+        const deleteBtn = $(this);
+        deleteBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Deleting...');
+        
+        $.ajax({
+            url: '{% url "api_photo_delete" %}',
+            method: 'POST',
+            data: {
+                photo_id: currentPhotoId,
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('Photo deleted successfully!', 'success');
+                    closeModal('deletePhotoModal');
+                    
+                    // Remove photo from gallery
+                    $(`[data-photo-id="${currentPhotoId}"]`).fadeOut(300, function() {
+                        $(this).remove();
+                        
+                        // Update photo count
+                        const remainingPhotos = $('#galleryGrid .photo-item').length;
+                        $('.photo-count').text(remainingPhotos + ' photo' + (remainingPhotos !== 1 ? 's' : ''));
+                        
+                        // Update photos array for image viewer
+                        initializePhotosArray();
+                        
+                        // Show empty state if no photos left
+                        if (remainingPhotos === 0) {
+                            $('#galleryGrid').html(`
+                                <div class="empty-gallery">
+                                    <div class="empty-icon">
+                                        <i class="fas fa-images"></i>
+                                    </div>
+                                    <h3 class="empty-title">No photos yet</h3>
+                                    <p class="empty-description">
+                                        Upload photos to showcase yourself and attract more clients
+                                    </p>
+                                    <button class="btn btn-primary mt-3 switch-tab" data-tab="upload">
+                                        <i class="fas fa-upload"></i> Upload Your First Photo
+                                    </button>
+                                </div>
+                            `);
+                        }
+                    });
+                } else {
+                    showAlert('Error: ' + response.error, 'error');
+                }
+                deleteBtn.prop('disabled', false).html('<i class="fas fa-trash"></i> Delete Photo');
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting photo:', xhr.responseText);
+                showAlert('Error deleting photo. Please try again.', 'error');
+                deleteBtn.prop('disabled', false).html('<i class="fas fa-trash"></i> Delete Photo');
+            }
+        });
+    });
+    
+    // Set as primary photo
+    $('#galleryGrid').on('click', '.action-btn.primary', function(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        
+        const photoId = $(this).data('photo-id');
+        const actionBtn = $(this);
+        
+        actionBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i>');
+        
+        $.ajax({
+            url: '{% url "api_photo_set_primary" %}',
+            method: 'POST',
+            data: {
+                photo_id: photoId,
+                csrfmiddlewaretoken: getCSRFToken()
+            },
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('Primary photo updated successfully!', 'success');
+                    
+                    // Remove primary from all photos
+                    $('.primary-badge').remove();
+                    $('.photo-status.primary').removeClass('primary').html('<i class="fas fa-image"></i> Gallery Photo');
+                    $('.action-btn.primary').show();
+                    
+                    // Add primary to this photo
+                    const photoItem = $(`[data-photo-id="${photoId}"]`);
+                    photoItem.prepend('<div class="primary-badge"><i class="fas fa-star"></i> Primary</div>');
+                    photoItem.find('.photo-status').addClass('primary').html('<i class="fas fa-star"></i> Primary Photo');
+                    actionBtn.hide();
+                    
+                    // Update photos array for image viewer
+                    initializePhotosArray();
+                    
+                } else {
+                    showAlert('Error: ' + response.error, 'error');
+                    actionBtn.prop('disabled', false).html('<i class="fas fa-star"></i>');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error setting primary photo:', xhr.responseText);
+                showAlert('Error setting primary photo. Please try again.', 'error');
+                actionBtn.prop('disabled', false).html('<i class="fas fa-star"></i>');
+            }
+        });
+    });
+    
+    // Upload form submission
+    $('#uploadForm').submit(function(e) {
+        e.preventDefault();
+        
+        if (files.length === 0) {
+            showAlert('Please select at least one photo to upload', 'warning');
             return false;
         }
         
-        if (file.size > maxSize) {
-            alert('File size must be less than 5MB.');
-            return false;
+        const formData = new FormData(this);
+        
+        // Add all files to form data
+        for (let i = 0; i < files.length; i++) {
+            formData.append('images', files[i]);
         }
         
-        return true;
+        const submitBtn = $('#submitBtn');
+        const originalText = submitBtn.html();
+        
+        submitBtn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin"></i> Uploading...');
+        
+        $.ajax({
+            url: '{% url "api_photo_upload" %}',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            success: function(response) {
+                if (response.success) {
+                    showAlert('Photos uploaded successfully!', 'success');
+                    
+                    // Clear form
+                    files = [];
+                    updateEmptyState();
+                    $('#uploadForm')[0].reset();
+                    
+                    // Reload gallery after 1.5 seconds
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1500);
+                    
+                } else {
+                    showAlert('Error: ' + response.error, 'error');
+                }
+                submitBtn.prop('disabled', false).html(originalText);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error uploading photos:', xhr.responseText);
+                showAlert('Error uploading photos. Please try again.', 'error');
+                submitBtn.prop('disabled', false).html(originalText);
+            }
+        });
+    });
+});
+
+// Initialize photos array from gallery
+function initializePhotosArray() {
+    allPhotos = [];
+    $('#galleryGrid .photo-item').each(function(index) {
+        const img = $(this).find('.photo-image');
+        const photoId = img.data('photo-id');
+        const imageUrl = img.attr('src');
+        const caption = img.data('caption') || '';
+        
+        if (imageUrl) {
+            allPhotos.push({
+                id: photoId,
+                url: imageUrl,
+                caption: caption
+            });
+        }
+    });
+    console.log('Initialized photos array:', allPhotos.length, 'photos');
+}
+
+// Set up event listeners for image clicks
+function setupImageClickListeners() {
+    // Use event delegation for gallery images
+    $(document).on('click', '.photo-image', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Image clicked');
+        
+        // Get clicked image data
+        const clickedImage = $(this);
+        const photoId = clickedImage.data('photo-id');
+        const imageUrl = clickedImage.attr('src');
+        const caption = clickedImage.data('caption') || '';
+        
+        console.log('Clicked image data:', { photoId, imageUrl, caption });
+        
+        // Find the index of this photo
+        initializePhotosArray();
+        currentImageIndex = allPhotos.findIndex(photo => photo.id == photoId);
+        
+        if (currentImageIndex === -1) {
+            console.error('Photo not found in array');
+            return;
+        }
+        
+        // Show image in viewer
+        showImageInViewer(currentImageIndex);
+    });
+}
+
+// Show image in viewer
+function showImageInViewer(index) {
+    if (allPhotos.length === 0) {
+        console.error('No photos in array');
+        return;
+    }
+    
+    // Handle index bounds
+    if (index < 0) index = allPhotos.length - 1;
+    if (index >= allPhotos.length) index = 0;
+    
+    currentImageIndex = index;
+    const photo = allPhotos[index];
+    
+    console.log('Showing image at index:', index, photo);
+    
+    // Update viewer content
+    $('#imageViewerImg').attr('src', photo.url);
+    $('#imageViewerImg').attr('alt', photo.caption || 'Photo');
+    $('#imageViewerCaption').text(photo.caption || 'No caption');
+    $('#imageViewerCounter').text(`Image ${index + 1} of ${allPhotos.length}`);
+    
+    // Show the modal
+    showModal('imageViewerModal');
+}
+
+// Change image in viewer
+function changeImageViewerImage(direction) {
+    console.log('Changing image:', direction);
+    showImageInViewer(currentImageIndex + direction);
+}
+
+// View preview image
+function viewPreviewImage(imageSrc) {
+    console.log('Viewing preview image');
+    $('#imageViewerImg').attr('src', imageSrc);
+    $('#imageViewerCaption').text('Preview Image');
+    $('#imageViewerCounter').text('');
+    showModal('imageViewerModal');
+}
+
+// Modal functions
+function showModal(modalId) {
+    console.log('Showing modal:', modalId);
+    $(`#${modalId}`).addClass('active');
+    $('body').css('overflow', 'hidden');
+    
+    // Add keyboard navigation for image viewer
+    if (modalId === 'imageViewerModal') {
+        $(document).on('keydown.imageViewer', handleImageViewerKeyboard);
+    }
+}
+
+function closeModal(modalId) {
+    console.log('Closing modal:', modalId);
+    $(`#${modalId}`).removeClass('active');
+    $('body').css('overflow', 'auto');
+    
+    // Remove keyboard navigation for image viewer
+    if (modalId === 'imageViewerModal') {
+        $(document).off('keydown.imageViewer');
+    }
+}
+
+// Handle keyboard navigation in image viewer
+function handleImageViewerKeyboard(e) {
+    console.log('Key pressed:', e.key);
+    switch(e.key) {
+        case 'ArrowLeft':
+            e.preventDefault();
+            changeImageViewerImage(-1);
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            changeImageViewerImage(1);
+            break;
+        case 'Escape':
+            e.preventDefault();
+            closeModal('imageViewerModal');
+            break;
+    }
+}
+
+// Close modal when clicking outside
+$(document).on('click', '.modal', function(e) {
+    if (e.target === this) {
+        const modalId = $(this).attr('id');
+        closeModal(modalId);
     }
 });
+
+// Get CSRF token
+function getCSRFToken() {
+    return $('meta[name="csrf-token"]').attr('content') || 
+           $('input[name="csrfmiddlewaretoken"]').val();
+}
+
+// Alert function
+function showAlert(message, type) {
+    const alert = $(`
+        <div class="alert-message alert-${type}">
+            <i class="fas fa-${type === 'error' ? 'exclamation-circle' : type === 'warning' ? 'exclamation-triangle' : 'check-circle'}"></i>
+            ${message}
+            <button class="alert-close"><i class="fas fa-times"></i></button>
+        </div>
+    `);
+    
+    $('body').append(alert);
+    
+    // Remove alert after 3 seconds
+    setTimeout(() => {
+        alert.fadeOut(300, function() {
+            $(this).remove();
+        });
+    }, 3000);
+    
+    // Close button
+    alert.find('.alert-close').click(() => alert.remove());
+}
 </script>
 {% endblock %}
